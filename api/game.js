@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
 
   try {
 
-    // ── ОЙЫН ЖАСАУ (тек хост) ─────────────────
+    // ── ОЙЫН ЖАСАУ ────────────────────────────
     if (action === 'create') {
       const { quizData } = payload;
       const code = genCode();
@@ -58,11 +58,11 @@ module.exports = async (req, res) => {
           host_id: user.id,
           status: 'waiting',
           current_question: 0,
+          show_answers: false,
         })
         .select().single();
       if (error) throw error;
 
-      // Хост та қатысушы ретінде қосылады
       await supabase.from('game_players').insert({
         session_id: code,
         user_id: user.id,
@@ -85,7 +85,6 @@ module.exports = async (req, res) => {
       if (!session) return res.json({ ok: false, error: 'Ойын табылмады' });
       if (session.status === 'finished') return res.json({ ok: false, error: 'Ойын аяқталған' });
 
-      // Қатысушы қос (бар болса update)
       await supabase.from('game_players').upsert({
         session_id: session.id,
         user_id: user.id,
@@ -96,7 +95,7 @@ module.exports = async (req, res) => {
       return res.json({ ok: true, session });
     }
 
-    // ── ОЙЫНДЫ БАСТАУ (тек хост) ──────────────
+    // ── ОЙЫНДЫ БАСТАУ ─────────────────────────
     if (action === 'start') {
       const { code } = payload;
       const { data: session } = await supabase
@@ -106,13 +105,29 @@ module.exports = async (req, res) => {
       if (session.host_id !== user.id) return res.json({ ok: false, error: 'Тек хост бастай алады' });
 
       await supabase.from('game_sessions')
-        .update({ status: 'playing', current_question: 0 })
+        .update({ status: 'playing', current_question: 0, show_answers: false })
         .eq('id', code);
 
       return res.json({ ok: true });
     }
 
-    // ── КЕЛЕСІ СҰРАҚ (тек хост) ───────────────
+    // ── ЖАУАПТАРДЫ КӨРСЕТ ─────────────────────
+    if (action === 'reveal_answers') {
+      const { code } = payload;
+      const { data: session } = await supabase
+        .from('game_sessions').select('*').eq('id', code).single();
+
+      if (!session || session.host_id !== user.id)
+        return res.json({ ok: false, error: 'Рұқсат жоқ' });
+
+      await supabase.from('game_sessions')
+        .update({ show_answers: true })
+        .eq('id', code);
+
+      return res.json({ ok: true });
+    }
+
+    // ── КЕЛЕСІ СҰРАҚ ──────────────────────────
     if (action === 'next_question') {
       const { code } = payload;
       const { data: session } = await supabase
@@ -121,18 +136,18 @@ module.exports = async (req, res) => {
       if (!session || session.host_id !== user.id)
         return res.json({ ok: false, error: 'Рұқсат жоқ' });
 
-      const quiz = session.quiz_data;
       const nextIdx = session.current_question + 1;
 
-      if (nextIdx >= quiz.questions.length) {
-        // Ойын аяқталды
+      if (nextIdx >= session.quiz_data.questions.length) {
         await supabase.from('game_sessions')
-          .update({ status: 'finished' }).eq('id', code);
+          .update({ status: 'finished', show_answers: false })
+          .eq('id', code);
         return res.json({ ok: true, finished: true });
       }
 
       await supabase.from('game_sessions')
-        .update({ current_question: nextIdx }).eq('id', code);
+        .update({ current_question: nextIdx, show_answers: false })
+        .eq('id', code);
 
       return res.json({ ok: true, finished: false, questionIdx: nextIdx });
     }
@@ -147,13 +162,10 @@ module.exports = async (req, res) => {
 
       const q = session.quiz_data.questions[questionIdx];
       const isCorrect = answerIdx === q.correct;
-
-      // Жылдамдыққа байланысты ұпай (макс 1000, уақытқа пропорционал)
       const timer = session.quiz_data.timer || 20;
       const timeFraction = Math.max(0, 1 - timeMs / (timer * 1000));
       const points = isCorrect ? Math.round(500 + 500 * timeFraction) : 0;
 
-      // Жауапты сақта (бір рет қана)
       const { error } = await supabase.from('game_answers').insert({
         session_id: code,
         user_id: user.id,
@@ -164,21 +176,16 @@ module.exports = async (req, res) => {
         points,
       });
 
-      if (error && error.code !== '23505') throw error; // 23505 = duplicate, жауап берілген
+      if (error && error.code !== '23505') throw error;
 
-      // Жалпы ұпайды жаңарт
       if (isCorrect) {
         const { data: player } = await supabase
-          .from('game_players')
-          .select('score')
-          .eq('session_id', code)
-          .eq('user_id', user.id)
-          .single();
+          .from('game_players').select('score')
+          .eq('session_id', code).eq('user_id', user.id).single();
 
         await supabase.from('game_players')
           .update({ score: (player?.score || 0) + points })
-          .eq('session_id', code)
-          .eq('user_id', user.id);
+          .eq('session_id', code).eq('user_id', user.id);
       }
 
       return res.json({ ok: true, isCorrect, points });
@@ -188,8 +195,7 @@ module.exports = async (req, res) => {
     if (action === 'scoreboard') {
       const { code } = payload;
       const { data: players } = await supabase
-        .from('game_players')
-        .select('*')
+        .from('game_players').select('*')
         .eq('session_id', code)
         .order('score', { ascending: false });
 
@@ -199,7 +205,7 @@ module.exports = async (req, res) => {
       return res.json({ ok: true, players: players || [], session });
     }
 
-    // ── СЕССИЯ МӘЛІМЕТІ ───────────────────────
+    // ── СЕССИЯ ────────────────────────────────
     if (action === 'session') {
       const { code } = payload;
       const { data: session } = await supabase
