@@ -1,6 +1,8 @@
 module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.status(200).json({
-    adminId: process.env.ADMIN_ID
+    adminId: process.env.ADMIN_ID,
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseKey: process.env.SUPABASE_ANON_KEY,
   });
 };
