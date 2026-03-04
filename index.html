@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QBit Quiz Bot</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@300;500;700&family=Orbitron:wght@400;700;900&display=swap');
 
@@ -24,47 +25,24 @@
   }
 
   * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
-    background:var(--bg); color:var(--text);
-    font-family:'Rajdhani',sans-serif;
-    min-height:100vh; overflow-x:hidden;
-  }
+  body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; overflow-x:hidden; }
 
   body::before {
     content:''; position:fixed; inset:0;
-    background-image:
-      linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);
+    background-image: linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);
     background-size:40px 40px; pointer-events:none; z-index:0;
   }
-
   body::after {
     content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
-    background:
-      radial-gradient(ellipse at 30% 20%,rgba(124,58,237,0.08) 0%,transparent 50%),
-      radial-gradient(ellipse at 70% 80%,rgba(0,245,255,0.06) 0%,transparent 50%);
+    background: radial-gradient(ellipse at 30% 20%,rgba(124,58,237,0.08) 0%,transparent 50%), radial-gradient(ellipse at 70% 80%,rgba(0,245,255,0.06) 0%,transparent 50%);
     pointer-events:none; z-index:0;
   }
 
-  #app {
-    position:relative; z-index:1;
-    max-width:900px; margin:0 auto; padding:20px;
-    padding-bottom:90px; min-height:100vh;
-  }
+  #app { position:relative; z-index:1; max-width:900px; margin:0 auto; padding:20px; padding-bottom:90px; min-height:100vh; }
 
-  header {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:16px 0 24px; border-bottom:1px solid var(--border); margin-bottom:24px;
-  }
+  header { display:flex; align-items:center; justify-content:space-between; padding:16px 0 24px; border-bottom:1px solid var(--border); margin-bottom:24px; }
   .logo { display:flex; align-items:center; gap:12px; }
-  .logo-icon {
-    width:40px; height:40px;
-    background:linear-gradient(135deg,var(--accent2),var(--accent));
-    border-radius:10px; display:flex; align-items:center; justify-content:center;
-    font-family:'Orbitron',monospace; font-weight:900; font-size:13px;
-    color:#fff; box-shadow:var(--glow); letter-spacing:-1px;
-  }
+  .logo-icon { width:40px; height:40px; background:linear-gradient(135deg,var(--accent2),var(--accent)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-weight:900; font-size:13px; color:#fff; box-shadow:var(--glow); letter-spacing:-1px; }
   .logo-text { font-family:'Orbitron',monospace; font-weight:700; font-size:18px; color:var(--accent); text-shadow:var(--glow); letter-spacing:2px; }
   .logo-sub { font-size:10px; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:1px; }
   .header-right { display:flex; align-items:center; gap:12px; }
@@ -73,46 +51,18 @@
   .stat-val { font-family:'Orbitron',monospace; font-size:16px; font-weight:700; color:var(--accent); }
   .stat-label { font-size:9px; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:1px; text-transform:uppercase; }
 
-  .admin-badge {
-    display:inline-flex; align-items:center; gap:6px;
-    padding:4px 10px; border-radius:20px;
-    background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,245,255,0.1));
-    border:1px solid rgba(0,245,255,0.35);
-    font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1.5px; color:var(--accent);
-  }
+  .admin-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:20px; background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,245,255,0.1)); border:1px solid rgba(0,245,255,0.35); font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1.5px; color:var(--accent); }
   .admin-dot { width:5px; height:5px; border-radius:50%; background:var(--accent3); box-shadow:0 0 6px var(--accent3); animation:admBlink 2s infinite; }
   @keyframes admBlink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
   /* BOTTOM NAV */
-  .tabs {
-    position:fixed; bottom:0; left:0; right:0;
-    display:flex;
-    background:rgba(13,17,23,0.97);
-    border-top:1px solid var(--border);
-    backdrop-filter:blur(20px);
-    -webkit-backdrop-filter:blur(20px);
-    z-index:1000;
-    padding:0 4px;
-    padding-bottom:env(safe-area-inset-bottom,0px);
-  }
-  .tab {
-    flex:1; padding:10px 2px 8px;
-    background:none; border:none; color:var(--muted);
-    font-family:'Rajdhani',sans-serif;
-    cursor:pointer; transition:all 0.2s;
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    gap:3px; position:relative; min-width:0;
-  }
+  .tabs { position:fixed; bottom:0; left:0; right:0; display:flex; background:rgba(13,17,23,0.97); border-top:1px solid var(--border); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:1000; padding:0 4px; padding-bottom:env(safe-area-inset-bottom,0px); }
+  .tab { flex:1; padding:10px 2px 8px; background:none; border:none; color:var(--muted); font-family:'Rajdhani',sans-serif; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; position:relative; min-width:0; }
   .tab-icon { font-size:22px; line-height:1; transition:all 0.2s; }
   .tab-label { font-size:9px; letter-spacing:0.3px; font-weight:600; white-space:nowrap; }
   .tab.active { color:var(--accent); }
   .tab.active .tab-icon { filter:drop-shadow(0 0 8px rgba(0,245,255,0.8)); transform:translateY(-2px); }
-  .tab::before {
-    content:''; position:absolute; top:0; left:20%; right:20%; height:2px;
-    background:var(--accent); border-radius:0 0 4px 4px;
-    opacity:0; transition:opacity 0.2s;
-  }
+  .tab::before { content:''; position:absolute; top:0; left:20%; right:20%; height:2px; background:var(--accent); border-radius:0 0 4px 4px; opacity:0; transition:opacity 0.2s; }
   .tab.active::before { opacity:1; }
   .tab.admin-tab::after { content:'👑'; position:absolute; top:6px; right:6px; font-size:8px; }
 
@@ -120,42 +70,19 @@
   .panel.active { display:block; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
-  .card {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:16px; padding:20px; margin-bottom:14px;
-    position:relative; overflow:hidden; transition:border-color 0.2s;
-  }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:14px; position:relative; overflow:hidden; transition:border-color 0.2s; }
   .card:hover { border-color:rgba(0,245,255,0.2); }
-  .card::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:2px;
-    background:linear-gradient(90deg,var(--accent2),var(--accent),transparent);
-    opacity:0; transition:opacity 0.2s;
-  }
+  .card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent2),var(--accent),transparent); opacity:0; transition:opacity 0.2s; }
   .card:hover::before { opacity:1; }
-  .card-title {
-    font-family:'Orbitron',monospace; font-size:11px; letter-spacing:2px;
-    color:var(--accent); text-transform:uppercase; margin-bottom:14px;
-    display:flex; align-items:center; gap:8px;
-  }
+  .card-title { font-family:'Orbitron',monospace; font-size:11px; letter-spacing:2px; color:var(--accent); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
   .card-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,var(--border),transparent); }
 
   label { display:block; font-size:12px; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:0.5px; margin-bottom:5px; }
-  input[type="text"], textarea, select {
-    width:100%; background:var(--surface2); border:1px solid var(--border);
-    border-radius:8px; padding:9px 12px; color:var(--text);
-    font-family:'Rajdhani',sans-serif; font-size:15px; outline:none;
-    transition:border-color 0.2s,box-shadow 0.2s; margin-bottom:12px;
-  }
+  input[type="text"], textarea, select { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; color:var(--text); font-family:'Rajdhani',sans-serif; font-size:15px; outline:none; transition:border-color 0.2s,box-shadow 0.2s; margin-bottom:12px; }
   input[type="text"]:focus, textarea:focus, select:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,245,255,0.1); }
-  textarea { resize:vertical; min-height:70px; font-size:14px; line-height:1.5; }
   select option { background:var(--surface2); }
 
-  .btn {
-    display:inline-flex; align-items:center; gap:8px;
-    padding:9px 18px; border-radius:8px;
-    font-family:'Rajdhani',sans-serif; font-size:15px; font-weight:600;
-    letter-spacing:0.5px; cursor:pointer; border:none; transition:all 0.2s;
-  }
+  .btn { display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border-radius:8px; font-family:'Rajdhani',sans-serif; font-size:15px; font-weight:600; letter-spacing:0.5px; cursor:pointer; border:none; transition:all 0.2s; }
   .btn-primary { background:linear-gradient(135deg,var(--accent2),#5b21b6); color:#fff; box-shadow:0 4px 15px rgba(124,58,237,0.3); }
   .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(124,58,237,0.4); }
   .btn-cyan { background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(0,245,255,0.05)); color:var(--accent); border:1px solid rgba(0,245,255,0.3); }
@@ -166,6 +93,7 @@
   .btn-ghost { background:rgba(255,255,255,0.05); color:var(--muted); border:1px solid var(--border); }
   .btn-ghost.active, .adm-nav.active { color:var(--accent); border-color:rgba(0,245,255,0.3); background:rgba(0,245,255,0.08); }
   .btn-sm { padding:5px 12px; font-size:13px; }
+  .btn-lg { padding:14px 28px; font-size:17px; }
 
   /* QUESTION BUILDER */
   .question-item { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:10px; transition:all 0.2s; }
@@ -181,7 +109,7 @@
   .correct-btn { padding:4px 11px; border-radius:20px; border:1px solid var(--border); background:none; color:var(--muted); font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; transition:all 0.2s; }
   .correct-btn.selected { background:rgba(16,185,129,0.2); border-color:var(--accent3); color:var(--accent3); }
 
-  /* PLAY */
+  /* QUIZ PLAY */
   .quiz-header-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
   .quiz-title-big { font-family:'Orbitron',monospace; font-size:20px; font-weight:700; color:var(--accent); text-shadow:var(--glow); }
   .progress-bar { height:3px; background:var(--surface2); border-radius:2px; margin-bottom:22px; overflow:hidden; }
@@ -262,7 +190,7 @@
   .ps-box { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:13px; text-align:center; }
   .ps-val { font-family:'Orbitron',monospace; font-size:20px; font-weight:700; color:var(--accent); }
   .ps-lbl { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.5px; margin-top:3px; }
-  .achievement { display:flex; align-items:center; gap:11px; padding:11px; background:var(--surface2); border:1px solid var(--border); border-radius:11px; margin-bottom:7px; transition:all 0.2s; }
+  .achievement { display:flex; align-items:center; gap:11px; padding:11px; background:var(--surface2); border:1px solid var(--border); border-radius:11px; margin-bottom:7px; }
   .ach-icon { font-size:26px; flex-shrink:0; }
   .ach-name { font-size:13px; font-weight:600; color:var(--text); }
   .ach-desc { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); }
@@ -271,16 +199,72 @@
   .recent-title { font-size:13px; color:var(--text); }
   .recent-meta { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); margin-top:2px; }
 
+  /* GAME - KAHOOT STYLE */
+  .game-code-display {
+    text-align:center; padding:32px 20px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(0,245,255,0.08));
+    border:1px solid rgba(0,245,255,0.3); border-radius:20px; margin-bottom:16px;
+  }
+  .game-code { font-family:'Orbitron',monospace; font-size:48px; font-weight:900; color:var(--accent); text-shadow:var(--glow); letter-spacing:8px; margin:12px 0; }
+  .game-code-label { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
+
+  .player-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; margin-bottom:16px; }
+  .player-chip { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px; text-align:center; transition:all 0.3s; animation:popIn 0.3s ease; }
+  .player-chip.me { border-color:var(--accent); background:rgba(0,245,255,0.08); }
+  @keyframes popIn { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
+  .player-chip-name { font-size:13px; font-weight:600; color:var(--text); }
+  .player-chip-score { font-family:'Orbitron',monospace; font-size:11px; color:var(--accent); margin-top:2px; }
+
+  .game-question-header { text-align:center; margin-bottom:20px; }
+  .game-q-num { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:2px; margin-bottom:8px; }
+  .game-q-text { font-size:22px; font-weight:700; color:var(--text); line-height:1.3; }
+
+  .game-answers { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; }
+  .game-ans-btn {
+    padding:18px 14px; border-radius:14px; border:none; cursor:pointer;
+    font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700;
+    transition:all 0.15s; text-align:center; color:#fff;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    min-height:70px; position:relative; overflow:hidden;
+  }
+  .game-ans-btn:nth-child(1) { background:linear-gradient(135deg,#e74c3c,#c0392b); }
+  .game-ans-btn:nth-child(2) { background:linear-gradient(135deg,#3498db,#2980b9); }
+  .game-ans-btn:nth-child(3) { background:linear-gradient(135deg,#f39c12,#d68910); }
+  .game-ans-btn:nth-child(4) { background:linear-gradient(135deg,#27ae60,#219a52); }
+  .game-ans-btn:hover:not(:disabled) { transform:translateY(-3px) scale(1.02); box-shadow:0 8px 20px rgba(0,0,0,0.3); }
+  .game-ans-btn:disabled { cursor:default; opacity:0.7; }
+  .game-ans-btn.selected { transform:scale(0.96); box-shadow:0 0 0 3px var(--accent) !important; }
+  .game-ans-btn.reveal-correct { opacity:1 !important; box-shadow:0 0 20px rgba(16,185,129,0.6) !important; border:3px solid var(--accent3); }
+  .game-ans-btn.reveal-wrong { opacity:0.3 !important; }
+
+  .game-waiting { text-align:center; padding:40px 20px; }
+  .game-waiting-icon { font-size:60px; margin-bottom:16px; animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+
+  .points-popup {
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    color:#fff; font-family:'Orbitron',monospace; font-size:28px; font-weight:900;
+    padding:20px 40px; border-radius:20px; z-index:9999;
+    animation:pointsPop 1.5s ease forwards;
+  }
+  @keyframes pointsPop {
+    0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}
+    20%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}
+    40%{transform:translate(-50%,-50%) scale(1)}
+    70%{opacity:1;transform:translate(-50%,-60%)}
+    100%{opacity:0;transform:translate(-50%,-80%)}
+  }
+
+  .scoreboard-row { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; margin-bottom:7px; transition:all 0.3s; }
+  .scoreboard-row.highlight { background:linear-gradient(135deg,rgba(251,191,36,0.15),rgba(251,191,36,0.05)); border-color:rgba(251,191,36,0.3); }
+
   /* EXPORT */
   .export-box { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px; font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); line-height:1.8; white-space:pre-wrap; word-break:break-all; margin-top:10px; max-height:280px; overflow-y:auto; }
 
-  /* ADMIN NAV */
   .adm-nav { transition:all 0.2s; }
-
-  .flex { display:flex; }
-  .flex-center { display:flex; align-items:center; }
-  .gap-8 { gap:8px; }
-  .gap-12 { gap:12px; }
+  .flex { display:flex; } .flex-center { display:flex; align-items:center; }
+  .gap-8 { gap:8px; } .gap-12 { gap:12px; }
   .mb-8 { margin-bottom:8px; }
   .muted { color:var(--muted); font-size:12px; font-family:'Space Mono',monospace; }
   .divider { height:1px; background:var(--border); margin:16px 0; }
@@ -297,6 +281,7 @@
   @media (max-width:480px) {
     .options-grid { grid-template-columns:1fr; }
     .answers-grid { grid-template-columns:1fr; }
+    .game-answers { grid-template-columns:1fr 1fr; }
     .result-stats { gap:14px; }
     .result-score { font-size:52px; }
     #app { padding:14px; padding-bottom:90px; }
@@ -317,14 +302,8 @@
     <div class="header-right">
       <div id="adminBadge"></div>
       <div class="header-stats">
-        <div class="stat-chip">
-          <div class="stat-val" id="totalQuizzes">0</div>
-          <div class="stat-label">тест</div>
-        </div>
-        <div class="stat-chip">
-          <div class="stat-val" id="totalPlays">0</div>
-          <div class="stat-label">ойын</div>
-        </div>
+        <div class="stat-chip"><div class="stat-val" id="totalQuizzes">0</div><div class="stat-label">тест</div></div>
+        <div class="stat-chip"><div class="stat-val" id="totalPlays">0</div><div class="stat-label">ойын</div></div>
       </div>
     </div>
   </header>
@@ -332,30 +311,15 @@
   <!-- ⚡ ӘКІМШІ ТАҚТАСЫ -->
   <div class="panel" id="panel-create">
     <div id="admin-dashboard">
-
-      <!-- Статистика -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-        <div class="ps-box">
-          <div class="ps-val" id="adm-users">—</div>
-          <div class="ps-lbl">👥 ҚОЛДАНУШЫ</div>
-        </div>
-        <div class="ps-box">
-          <div class="ps-val" id="adm-games">—</div>
-          <div class="ps-lbl">🎮 ЖАЛПЫ ОЙЫН</div>
-        </div>
-        <div class="ps-box">
-          <div class="ps-val" id="adm-today">—</div>
-          <div class="ps-lbl">📅 БҮГІН</div>
-        </div>
-        <div class="ps-box">
-          <div class="ps-val" id="adm-weekly">—</div>
-          <div class="ps-lbl">🔥 АПТАЛЫҚ</div>
-        </div>
+        <div class="ps-box"><div class="ps-val" id="adm-users">—</div><div class="ps-lbl">👥 ҚОЛДАНУШЫ</div></div>
+        <div class="ps-box"><div class="ps-val" id="adm-games">—</div><div class="ps-lbl">🎮 ЖАЛПЫ ОЙЫН</div></div>
+        <div class="ps-box"><div class="ps-val" id="adm-today">—</div><div class="ps-lbl">📅 БҮГІН</div></div>
+        <div class="ps-box"><div class="ps-val" id="adm-weekly">—</div><div class="ps-lbl">🔥 АПТАЛЫҚ</div></div>
       </div>
-
-      <!-- Секция навигация -->
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
         <button class="btn btn-cyan btn-sm adm-nav active" onclick="admSection('create',event)">⚡ Тест жасау</button>
+        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('games',event)">🎮 Ойын жасау</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('quizzes',event)">📋 Тесттер</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('users',event)">👥 Қолданушылар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('recent',event)">📜 Ойындар</button>
@@ -374,20 +338,16 @@
             <option>🔢 Математика</option><option>📚 Әдебиет</option><option>⚽ Спорт</option><option>🎯 Өзге</option>
           </select>
           <div class="flex gap-12">
-            <div style="flex:1">
-              <label>Уақыт (сек/сұрақ)</label>
+            <div style="flex:1"><label>Уақыт (сек/сұрақ)</label>
               <select id="quizTimer">
                 <option value="0">⏸ Таймерсіз</option><option value="10">⚡ 10с</option>
                 <option value="15">🔥 15с</option><option value="20" selected>🎯 20с</option>
                 <option value="30">💡 30с</option><option value="60">🐢 60с</option>
               </select>
             </div>
-            <div style="flex:1">
-              <label>Қиындық</label>
+            <div style="flex:1"><label>Қиындық</label>
               <select id="quizDifficulty">
-                <option value="easy">🟢 Оңай</option>
-                <option value="medium" selected>🟡 Орта</option>
-                <option value="hard">🔴 Қиын</option>
+                <option value="easy">🟢 Оңай</option><option value="medium" selected>🟡 Орта</option><option value="hard">🔴 Қиын</option>
               </select>
             </div>
           </div>
@@ -400,6 +360,44 @@
         <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
           <button class="btn btn-danger" onclick="clearAll()">🗑 Тазалау</button>
           <button class="btn btn-primary" onclick="saveQuiz()">💾 Сақтау</button>
+        </div>
+      </div>
+
+      <!-- 🎮 ОЙЫН ЖАСАУ (admin) -->
+      <div id="adm-section-games" style="display:none">
+        <div class="card">
+          <div class="card-title">🎮 жарыс ойыны жасау</div>
+          <p style="color:var(--muted);font-size:13px;margin-bottom:14px;line-height:1.6">Тест таңдаңыз — ойын коды генерацияланады. Қатысушылар кодты енгізіп қосылады.</p>
+          <label>Тест таңдаңыз</label>
+          <select id="gameQuizSelect"><option value="">— Тест таңдаңыз —</option></select>
+          <button class="btn btn-primary btn-lg" onclick="createGame()" style="width:100%;justify-content:center">🚀 Ойын жасау</button>
+        </div>
+        <div id="activeGamePanel" style="display:none">
+          <div class="game-code-display">
+            <div class="game-code-label">ОЙЫН КОДЫ</div>
+            <div class="game-code" id="activeGameCode">——</div>
+            <div class="game-code-label">Қатысушыларға осы кодты беріңіз</div>
+          </div>
+          <div class="card">
+            <div class="card-title">👥 қатысушылар · <span id="playerCount">0</span></div>
+            <div id="lobbyPlayers" class="player-grid"></div>
+            <div style="display:flex;gap:10px;margin-top:12px">
+              <button class="btn btn-primary" onclick="startGame()" style="flex:1;justify-content:center">▶ Ойынды бастау</button>
+              <button class="btn btn-danger btn-sm" onclick="cancelGame()">✕ Бітіру</button>
+            </div>
+          </div>
+          <!-- Хост сұрақ басқаруы -->
+          <div id="hostQuestionPanel" style="display:none">
+            <div class="card">
+              <div class="card-title">🎯 хост басқармасы</div>
+              <div id="hostQText" style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:16px;line-height:1.4"></div>
+              <div id="hostAnswerStats" style="margin-bottom:16px"></div>
+              <div style="display:flex;gap:10px">
+                <button class="btn btn-cyan" onclick="showAnswers()" id="btnShowAnswers" style="flex:1;justify-content:center">👁 Жауаптарды көрсет</button>
+                <button class="btn btn-primary" onclick="hostNextQuestion()" id="btnNext" style="flex:1;justify-content:center;display:none">➡ Келесі сұрақ</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -426,11 +424,10 @@
           <div id="adm-recent-list"><div class="loading">Жүктелуде</div></div>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- 📦 LIBRARY -->
+  <!-- 📦 ТЕСТТЕР -->
   <div class="panel active" id="panel-library">
     <div class="card">
       <div class="card-title">📦 тесттер</div>
@@ -438,18 +435,85 @@
     </div>
   </div>
 
-  <!-- 🎮 PLAY -->
+  <!-- 📝 ТЕСТ ОРЫНДАУ -->
   <div class="panel" id="panel-play">
     <div id="playContent">
       <div class="empty-state">
-        <div class="empty-icon">🎮</div>
+        <div class="empty-icon">📝</div>
         <div class="empty-title">Тест таңдаңыз</div>
         <p class="muted">Тесттер бөлімінен тест таңдаңыз</p>
       </div>
     </div>
   </div>
 
-  <!-- 🏆 LEADERBOARD -->
+  <!-- 🎮 ОЙЫН -->
+  <div class="panel" id="panel-game">
+    <div id="gameContent">
+      <!-- LOBBY: код енгізу -->
+      <div id="gameJoinScreen">
+        <div class="card">
+          <div class="card-title">🎮 ойынға қосылу</div>
+          <p style="color:var(--muted);font-size:13px;margin-bottom:16px;line-height:1.6">Әкімші берген 6 таңбалы кодты енгізіңіз</p>
+          <label>Ойын коды</label>
+          <input type="text" id="gameCodeInput" placeholder="ABC123" maxlength="6"
+            style="text-transform:uppercase;font-family:Orbitron,monospace;font-size:24px;text-align:center;letter-spacing:6px"
+            oninput="this.value=this.value.toUpperCase()"/>
+          <button class="btn btn-primary btn-lg" onclick="joinGame()" style="width:100%;justify-content:center">🚀 Қосылу</button>
+        </div>
+        <div class="card" style="margin-top:8px">
+          <div class="card-title">📋 соңғы ойындар</div>
+          <div id="recentGames" style="color:var(--muted);font-size:13px;text-align:center;padding:16px">Ойын тарихы жоқ</div>
+        </div>
+      </div>
+
+      <!-- LOBBY: күту -->
+      <div id="gameLobbyScreen" style="display:none">
+        <div class="game-code-display">
+          <div class="game-code-label">ОЙЫН КОДЫ</div>
+          <div class="game-code" id="lobbyCode">——</div>
+          <div class="game-code-label" id="lobbyQuizName"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">👥 қатысушылар · <span id="lobbyPlayerCount">0</span></div>
+          <div id="lobbyPlayerList" class="player-grid"></div>
+          <div class="game-waiting">
+            <div class="game-waiting-icon">⏳</div>
+            <div style="font-family:Space Mono,monospace;font-size:12px;color:var(--muted);letter-spacing:1px">ХОСТ БАСТАУЫН КҮТІҢІЗ</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ОЙЫН: сұрақ -->
+      <div id="gamePlayScreen" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div class="tag tag-purple" id="gameQCounter">1/1</div>
+          <div class="timer-ring">
+            <svg viewBox="0 0 54 54"><circle class="timer-bg"/><circle class="timer-fill" id="gameTimerCircle"/></svg>
+            <div class="timer-text" id="gameTimerText">20</div>
+          </div>
+          <div style="font-family:Orbitron,monospace;font-size:14px;color:var(--accent)" id="myGameScore">0 ⭐</div>
+        </div>
+        <div class="q-card" style="margin-bottom:12px">
+          <div class="game-q-text" id="gameQText"></div>
+        </div>
+        <div class="game-answers" id="gameAnswers"></div>
+      </div>
+
+      <!-- ОЙЫН: нәтиже/scoreboard -->
+      <div id="gameScoreScreen" style="display:none">
+        <div class="card">
+          <div class="card-title">🏆 scoreboard</div>
+          <div id="gameScoreboard"></div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px">
+          <button class="btn btn-cyan" onclick="backToGameJoin()">🎮 Жаңа ойын</button>
+          <button class="btn btn-ghost" onclick="switchTab('library')">📦 Тесттер</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🏆 РЕЙТИНГ -->
   <div class="panel" id="panel-leaderboard">
     <div class="card">
       <div class="card-title">🏆 рейтинг</div>
@@ -461,12 +525,12 @@
     </div>
   </div>
 
-  <!-- 👤 PROFILE -->
+  <!-- 👤 БЕЙІН -->
   <div class="panel" id="panel-profile">
     <div id="profileContent"><div class="loading">Жүктелуде</div></div>
   </div>
 
-  <!-- 📤 EXPORT -->
+  <!-- 📤 ЭКСПОРТ -->
   <div class="panel" id="panel-export">
     <div class="card">
       <div class="card-title">📤 telegram экспорт</div>
@@ -490,28 +554,25 @@
   <!-- BOTTOM NAV -->
   <div class="tabs">
     <button class="tab admin-tab" id="tab-create" onclick="switchTab('create')" style="display:none">
-      <span class="tab-icon">⚡</span>
-      <span class="tab-label">Әкімші</span>
+      <span class="tab-icon">⚡</span><span class="tab-label">Әкімші</span>
     </button>
     <button class="tab active" id="tab-library" onclick="switchTab('library')">
-      <span class="tab-icon">📦</span>
-      <span class="tab-label">Тесттер</span>
+      <span class="tab-icon">📦</span><span class="tab-label">Тесттер</span>
     </button>
     <button class="tab" id="tab-play" onclick="switchTab('play')">
-      <span class="tab-icon">🎮</span>
-      <span class="tab-label">Ойын</span>
+      <span class="tab-icon">📝</span><span class="tab-label">Тест</span>
+    </button>
+    <button class="tab" id="tab-game" onclick="switchTab('game')">
+      <span class="tab-icon">🎮</span><span class="tab-label">Ойын</span>
     </button>
     <button class="tab" id="tab-leaderboard" onclick="switchTab('leaderboard')">
-      <span class="tab-icon">🏆</span>
-      <span class="tab-label">Рейтинг</span>
+      <span class="tab-icon">🏆</span><span class="tab-label">Рейтинг</span>
     </button>
     <button class="tab" id="tab-profile" onclick="switchTab('profile')">
-      <span class="tab-icon">👤</span>
-      <span class="tab-label">Бейін</span>
+      <span class="tab-icon">👤</span><span class="tab-label">Бейін</span>
     </button>
     <button class="tab admin-tab" id="tab-export" onclick="switchTab('export')" style="display:none">
-      <span class="tab-icon">📤</span>
-      <span class="tab-label">Экспорт</span>
+      <span class="tab-icon">📤</span><span class="tab-label">Экспорт</span>
     </button>
   </div>
 
@@ -522,10 +583,10 @@ const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 function getTgUser() { return tg?.initDataUnsafe?.user || null; }
 function getTgInitData() { return tg?.initData || ''; }
-function isAdmin() {
-  const uid = getTgUser()?.id ?? null;
-  return uid !== null && String(uid) === String(window.__ADMIN_ID__);
-}
+function isAdmin() { return getTgUser()?.id !== null && String(getTgUser()?.id) === String(window.__ADMIN_ID__); }
+
+// Supabase client (realtime үшін)
+let supabaseClient = null;
 
 let state = {
   quizzes: JSON.parse(localStorage.getItem('qbit_quizzes') || '[]'),
@@ -534,14 +595,34 @@ let state = {
 };
 let questions = [];
 
+// Game state
+let gameState = {
+  code: null,
+  session: null,
+  isHost: false,
+  myScore: 0,
+  currentQ: 0,
+  answerStartTime: null,
+  realtimeSub: null,
+  gameTimer: null,
+};
+
 // ══════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════
 async function init() {
   try {
     const r = await fetch(`${API_BASE}/config`);
-    if (r.ok) { const d = await r.json(); window.__ADMIN_ID__ = d.adminId; }
+    if (r.ok) {
+      const d = await r.json();
+      window.__ADMIN_ID__ = d.adminId;
+      // Supabase client init
+      if (d.supabaseUrl && d.supabaseKey) {
+        supabaseClient = supabase.createClient(d.supabaseUrl, d.supabaseKey);
+      }
+    }
   } catch {}
+
   if (isAdmin()) {
     document.getElementById('tab-create').style.display = '';
     document.getElementById('tab-export').style.display = '';
@@ -568,7 +649,7 @@ function switchTab(tab) {
   const el = document.getElementById('tab-'+tab);
   if (el) el.classList.add('active');
   document.getElementById('panel-'+tab).classList.add('active');
-  if (tab==='create') loadAdminDashboard();
+  if (tab==='create') { loadAdminDashboard(); updateGameQuizSelect(); }
   if (tab==='leaderboard') loadLeaderboard('all');
   if (tab==='profile') loadProfile();
   if (tab==='export') { updateExportSelect(); renderStats(); }
@@ -579,8 +660,9 @@ function switchTab(tab) {
 // ADMIN DASHBOARD
 // ══════════════════════════════════════════
 function admSection(name, e) {
-  ['create','quizzes','users','recent'].forEach(s => {
-    document.getElementById('adm-section-'+s).style.display = 'none';
+  ['create','games','quizzes','users','recent'].forEach(s => {
+    const el = document.getElementById('adm-section-'+s);
+    if (el) el.style.display = 'none';
   });
   document.getElementById('adm-section-'+name).style.display = 'block';
   document.querySelectorAll('.adm-nav').forEach(b => b.classList.remove('active'));
@@ -588,6 +670,7 @@ function admSection(name, e) {
   if (name==='quizzes') renderAdminQuizzes();
   if (name==='users') loadAdminUsers();
   if (name==='recent') loadAdminRecent();
+  if (name==='games') updateGameQuizSelect();
 }
 
 async function loadAdminDashboard() {
@@ -603,6 +686,16 @@ async function loadAdminDashboard() {
     document.getElementById('adm-today').textContent = d.data.todayGames;
     document.getElementById('adm-weekly').textContent = d.data.weeklyActive;
   } catch {}
+}
+
+function updateGameQuizSelect() {
+  const sel = document.getElementById('gameQuizSelect');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Тест таңдаңыз —</option>';
+  state.quizzes.forEach(q => {
+    const opt = document.createElement('option');
+    opt.value = q.id; opt.textContent = q.title; sel.appendChild(opt);
+  });
 }
 
 function renderAdminQuizzes() {
@@ -622,7 +715,7 @@ function renderAdminQuizzes() {
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
-        <button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}')">▶ Ойна</button>
+        <button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}')">▶ Тест</button>
         <button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">🗑 Жою</button>
       </div>
     </div>`).join('');
@@ -638,7 +731,7 @@ async function loadAdminUsers() {
     });
     const d = await r.json();
     if (!d.ok || !d.data.length) {
-      c.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Қолданушы жоқ</div><p class="muted">Әлі ешкім ойнаған жоқ</p></div>`;
+      c.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Қолданушы жоқ</div></div>`;
       return;
     }
     c.innerHTML = d.data.map((u,i)=>{
@@ -651,10 +744,7 @@ async function loadAdminUsers() {
             <div class="lb-name">${esc(u.first_name||'Қолданушы')}</div>
             <div class="lb-sub">${u.username?'@'+u.username:''} · ${u.total_games} ойын</div>
           </div>
-          <div>
-            <div class="lb-score">${pct}%</div>
-            <div class="lb-score-sub">${u.total_correct} дұрыс</div>
-          </div>
+          <div><div class="lb-score">${pct}%</div><div class="lb-score-sub">${u.total_correct} дұрыс</div></div>
         </div>`;
     }).join('');
   } catch {
@@ -689,6 +779,313 @@ async function loadAdminRecent() {
   } catch {
     c.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>`;
   }
+}
+
+// ══════════════════════════════════════════
+// GAME — HOST SIDE
+// ══════════════════════════════════════════
+async function createGame() {
+  const quizId = document.getElementById('gameQuizSelect').value;
+  if (!quizId) return showToast('⚠️ Тест таңдаңыз!');
+  const quiz = state.quizzes.find(q => q.id === quizId);
+  if (!quiz) return;
+
+  try {
+    const r = await fetch(`${API_BASE}/game`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action:'create', payload:{ quizData: quiz } })
+    });
+    const d = await r.json();
+    if (!d.ok) return showToast('⚠️ ' + d.error);
+
+    gameState.code = d.code;
+    gameState.isHost = true;
+    gameState.session = d.session;
+
+    document.getElementById('activeGameCode').textContent = d.code;
+    document.getElementById('activeGamePanel').style.display = 'block';
+
+    // Realtime subscribe
+    subscribeToGame(d.code, true);
+    showToast(`✅ Ойын жасалды: ${d.code}`);
+  } catch {
+    showToast('⚠️ Қате');
+  }
+}
+
+async function startGame() {
+  const r = await fetch(`${API_BASE}/game`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ initData: getTgInitData(), action:'start', payload:{ code: gameState.code } })
+  });
+  const d = await r.json();
+  if (!d.ok) return showToast('⚠️ ' + d.error);
+  // Realtime арқылы барлығына хабарланады
+}
+
+async function hostNextQuestion() {
+  const r = await fetch(`${API_BASE}/game`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ initData: getTgInitData(), action:'next_question', payload:{ code: gameState.code } })
+  });
+  const d = await r.json();
+  if (d.finished) {
+    showGameScoreboard();
+  }
+}
+
+function showAnswers() {
+  document.getElementById('btnShowAnswers').style.display = 'none';
+  document.getElementById('btnNext').style.display = '';
+  // Жауаптарды ашу — realtime арқылы барлығына
+  const q = gameState.session.quiz_data.questions[gameState.currentQ];
+  revealAnswers(q.correct);
+}
+
+function cancelGame() {
+  if (gameState.realtimeSub) gameState.realtimeSub.unsubscribe();
+  document.getElementById('activeGamePanel').style.display = 'none';
+  gameState = { code:null, session:null, isHost:false, myScore:0, currentQ:0, realtimeSub:null, gameTimer:null };
+}
+
+// ══════════════════════════════════════════
+// GAME — PLAYER SIDE
+// ══════════════════════════════════════════
+async function joinGame() {
+  const code = document.getElementById('gameCodeInput').value.trim().toUpperCase();
+  if (code.length < 4) return showToast('⚠️ Кодты толық енгізіңіз!');
+
+  try {
+    const r = await fetch(`${API_BASE}/game`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action:'join', payload:{ code } })
+    });
+    const d = await r.json();
+    if (!d.ok) return showToast('⚠️ ' + d.error);
+
+    gameState.code = code;
+    gameState.session = d.session;
+    gameState.isHost = false;
+    gameState.myScore = 0;
+
+    document.getElementById('lobbyCode').textContent = code;
+    document.getElementById('lobbyQuizName').textContent = d.session.quiz_data?.title || '';
+    showGameScreen('lobby');
+    subscribeToGame(code, false);
+  } catch {
+    showToast('⚠️ Қате');
+  }
+}
+
+function backToGameJoin() {
+  if (gameState.realtimeSub) gameState.realtimeSub.unsubscribe();
+  gameState = { code:null, session:null, isHost:false, myScore:0, currentQ:0, realtimeSub:null, gameTimer:null };
+  showGameScreen('join');
+}
+
+// ══════════════════════════════════════════
+// GAME — REALTIME
+// ══════════════════════════════════════════
+function subscribeToGame(code, isHost) {
+  if (!supabaseClient) return;
+  if (gameState.realtimeSub) gameState.realtimeSub.unsubscribe();
+
+  gameState.realtimeSub = supabaseClient
+    .channel('game_'+code)
+    .on('postgres_changes', {
+      event:'UPDATE', schema:'public', table:'game_sessions', filter:`id=eq.${code}`
+    }, (payload) => {
+      handleSessionUpdate(payload.new, isHost);
+    })
+    .on('postgres_changes', {
+      event:'INSERT', schema:'public', table:'game_players', filter:`session_id=eq.${code}`
+    }, (payload) => {
+      refreshLobbyPlayers(code);
+    })
+    .subscribe();
+
+  // Лобби қатысушыларын жүктеу
+  refreshLobbyPlayers(code);
+}
+
+async function refreshLobbyPlayers(code) {
+  if (!supabaseClient) return;
+  const { data } = await supabaseClient
+    .from('game_players').select('*').eq('session_id', code).order('score', { ascending: false });
+  const players = data || [];
+  const myId = getTgUser()?.id;
+
+  // Admin lobby
+  const lobbyEl = document.getElementById('lobbyPlayers');
+  const countEl = document.getElementById('playerCount');
+  if (lobbyEl) {
+    lobbyEl.innerHTML = players.map(p => `
+      <div class="player-chip ${p.user_id===myId?'me':''}">
+        <div class="player-chip-name">${esc(p.first_name||'?')}</div>
+        <div class="player-chip-score">${p.score} ⭐</div>
+      </div>`).join('');
+  }
+  if (countEl) countEl.textContent = players.length;
+
+  // Player lobby
+  const lobbyPlayerList = document.getElementById('lobbyPlayerList');
+  const lobbyCount = document.getElementById('lobbyPlayerCount');
+  if (lobbyPlayerList) {
+    lobbyPlayerList.innerHTML = players.map(p => `
+      <div class="player-chip ${p.user_id===myId?'me':''}">
+        <div class="player-chip-name">${esc(p.first_name||'?')}</div>
+      </div>`).join('');
+  }
+  if (lobbyCount) lobbyCount.textContent = players.length;
+}
+
+function handleSessionUpdate(session, isHost) {
+  gameState.session = session;
+  gameState.currentQ = session.current_question;
+
+  if (session.status === 'playing') {
+    const q = session.quiz_data.questions[session.current_question];
+    showGameQuestion(q, session.current_question, session.quiz_data.questions.length, session.quiz_data.timer);
+
+    if (isHost) {
+      document.getElementById('activeGamePanel').style.display = 'block';
+      document.getElementById('hostQuestionPanel').style.display = 'block';
+      document.getElementById('hostQText').textContent = q.text;
+      document.getElementById('btnShowAnswers').style.display = '';
+      document.getElementById('btnNext').style.display = 'none';
+      document.getElementById('hostAnswerStats').innerHTML = '';
+    }
+  }
+
+  if (session.status === 'finished') {
+    showGameScoreboard();
+  }
+}
+
+// ══════════════════════════════════════════
+// GAME — QUESTION UI
+// ══════════════════════════════════════════
+function showGameScreen(screen) {
+  ['join','lobby','play','score'].forEach(s => {
+    const el = document.getElementById('game'+s.charAt(0).toUpperCase()+s.slice(1)+'Screen');
+    if (el) el.style.display = 'none';
+  });
+  const target = document.getElementById('game'+screen.charAt(0).toUpperCase()+screen.slice(1)+'Screen');
+  if (target) target.style.display = 'block';
+  switchTab('game');
+}
+
+function showGameQuestion(q, idx, total, timerSecs) {
+  showGameScreen('play');
+  gameState.answerStartTime = Date.now();
+
+  document.getElementById('gameQCounter').textContent = `${idx+1}/${total}`;
+  document.getElementById('gameQText').textContent = q.text;
+  document.getElementById('myGameScore').textContent = gameState.myScore + ' ⭐';
+
+  const shapes = ['▲','●','■','⬟'];
+  const answersEl = document.getElementById('gameAnswers');
+  answersEl.innerHTML = q.options.map((opt,i) => `
+    <button class="game-ans-btn" onclick="submitGameAnswer(${i})" id="gab_${i}">
+      <span style="font-size:20px">${shapes[i]}</span> ${esc(opt)}
+    </button>`).join('');
+
+  // Timer
+  if (timerSecs > 0) startGameTimer(timerSecs);
+}
+
+function startGameTimer(secs) {
+  clearInterval(gameState.gameTimer);
+  const C = 145; let rem = secs;
+  function tick() {
+    const circle = document.getElementById('gameTimerCircle');
+    const text = document.getElementById('gameTimerText');
+    if (!circle) { clearInterval(gameState.gameTimer); return; }
+    circle.style.strokeDashoffset = C * (1 - rem/secs);
+    circle.style.stroke = rem<=5?'#ef4444':rem<=10?'#f59e0b':'var(--accent)';
+    text.textContent = rem;
+    if (rem <= 0) { clearInterval(gameState.gameTimer); autoGameAnswer(); return; }
+    rem--;
+  }
+  tick();
+  gameState.gameTimer = setInterval(tick, 1000);
+}
+
+async function submitGameAnswer(optIdx) {
+  clearInterval(gameState.gameTimer);
+  const timeMs = Date.now() - (gameState.answerStartTime || Date.now());
+
+  document.querySelectorAll('.game-ans-btn').forEach(b => {
+    b.disabled = true; b.classList.remove('selected');
+  });
+  document.getElementById('gab_'+optIdx)?.classList.add('selected');
+
+  try {
+    const r = await fetch(`${API_BASE}/game`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        initData: getTgInitData(), action:'answer',
+        payload: { code: gameState.code, questionIdx: gameState.currentQ, answerIdx: optIdx, timeMs }
+      })
+    });
+    const d = await r.json();
+    if (d.isCorrect) {
+      gameState.myScore += d.points;
+      document.getElementById('myGameScore').textContent = gameState.myScore + ' ⭐';
+      showPointsPopup('+' + d.points);
+    }
+  } catch {}
+
+  // Жауапты күт (хост reveal етеді)
+}
+
+function autoGameAnswer() {
+  document.querySelectorAll('.game-ans-btn').forEach(b => b.disabled = true);
+}
+
+function revealAnswers(correctIdx) {
+  document.querySelectorAll('.game-ans-btn').forEach((b,i) => {
+    b.disabled = true;
+    if (i === correctIdx) b.classList.add('reveal-correct');
+    else b.classList.add('reveal-wrong');
+  });
+}
+
+function showPointsPopup(text) {
+  const el = document.createElement('div');
+  el.className = 'points-popup';
+  el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1600);
+}
+
+async function showGameScoreboard() {
+  clearInterval(gameState.gameTimer);
+  try {
+    const r = await fetch(`${API_BASE}/game`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action:'scoreboard', payload:{ code: gameState.code } })
+    });
+    const d = await r.json();
+    if (!d.ok) return;
+
+    const myId = getTgUser()?.id;
+    const html = d.players.map((p,i) => {
+      const n = i+1;
+      const icon = n===1?'🥇':n===2?'🥈':n===3?'🥉':'#'+n;
+      const isMe = p.user_id === myId;
+      return `
+        <div class="scoreboard-row ${isMe?'highlight':''}">
+          <div style="font-family:Orbitron,monospace;font-size:16px;width:32px">${icon}</div>
+          <div class="lb-avatar">${(p.first_name||'?')[0].toUpperCase()}</div>
+          <div style="flex:1"><div class="lb-name">${esc(p.first_name||'Ойыншы')}${isMe?' 👈':''}</div></div>
+          <div style="font-family:Orbitron,monospace;font-size:16px;color:var(--accent)">${p.score} ⭐</div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('gameScoreboard').innerHTML = html;
+    showGameScreen('score');
+  } catch {}
 }
 
 // ══════════════════════════════════════════
@@ -796,120 +1193,7 @@ async function loadProfile() {
 }
 
 // ══════════════════════════════════════════
-// QUESTION BUILDER
-// ══════════════════════════════════════════
-function addQuestion(q=null) {
-  state.questionCounter++;
-  const id='q_'+Date.now()+'_'+state.questionCounter;
-  const question=q||{id,text:'',options:['','','',''],correct:0,explanation:''};
-  if(!q)question.id=id;
-  questions.push(question); renderQuestions();
-}
-function renderQuestions() {
-  const list=document.getElementById('questionsList');
-  list.innerHTML='';
-  questions.forEach((q,idx)=>{
-    const div=document.createElement('div');
-    div.className='question-item';
-    div.innerHTML=`
-      <div class="q-header">
-        <div class="q-num">СҰРАҚ ${idx+1}</div>
-        <div style="display:flex;gap:5px">
-          ${idx>0?`<button class="btn btn-sm btn-cyan" onclick="moveQuestion(${idx},-1)">↑</button>`:''}
-          ${idx<questions.length-1?`<button class="btn btn-sm btn-cyan" onclick="moveQuestion(${idx},1)">↓</button>`:''}
-          <button class="btn btn-sm btn-danger" onclick="removeQuestion(${idx})">✕</button>
-        </div>
-      </div>
-      <label>Сұрақ мәтіні</label>
-      <input type="text" value="${esc(q.text)}" placeholder="Сұрақты жазыңыз..." oninput="questions[${idx}].text=this.value"/>
-      <label>Жауап нұсқалары</label>
-      <div class="options-grid">
-        ${['A','B','C','D'].map((l,oi)=>`
-          <div class="option-input">
-            <div class="option-label">${l}</div>
-            <input type="text" value="${esc(q.options[oi]||'')}" placeholder="${l}" oninput="questions[${idx}].options[${oi}]=this.value"/>
-          </div>`).join('')}
-      </div>
-      <label>Дұрыс жауап</label>
-      <div class="correct-selector">
-        ${['A','B','C','D'].map((l,oi)=>`
-          <button class="correct-btn ${q.correct===oi?'selected':''}" onclick="setCorrect(${idx},${oi})">✓ ${l}</button>`).join('')}
-      </div>
-      <label>Түсіндірме (міндетті емес)</label>
-      <input type="text" value="${esc(q.explanation||'')}" placeholder="Түсіндірме..." oninput="questions[${idx}].explanation=this.value"/>`;
-    list.appendChild(div);
-  });
-}
-function setCorrect(qi,oi){questions[qi].correct=oi;renderQuestions();}
-function removeQuestion(idx){if(questions.length<=1)return showToast('⚠️ Кем дегенде 1 сұрақ!');questions.splice(idx,1);renderQuestions();}
-function moveQuestion(idx,dir){const ni=idx+dir;if(ni<0||ni>=questions.length)return;[questions[idx],questions[ni]]=[questions[ni],questions[idx]];renderQuestions();}
-function clearAll(){if(confirm('Тазалайсыз ба?')){questions=[];addQuestion();document.getElementById('quizTitle').value='';}}
-
-// ══════════════════════════════════════════
-// SAVE QUIZ
-// ══════════════════════════════════════════
-function saveQuiz() {
-  if(!isAdmin())return;
-  const title=document.getElementById('quizTitle').value.trim();
-  if(!title)return showToast('⚠️ Тест атауын енгізіңіз!');
-  const validQs=questions.filter(q=>q.text.trim()&&q.options.some(o=>o.trim()));
-  if(validQs.length<2)return showToast('⚠️ Кем дегенде 2 сұрақ!');
-  const quiz={
-    id:'quiz_'+Date.now(),title,
-    category:document.getElementById('quizCategory').value,
-    timer:parseInt(document.getElementById('quizTimer').value),
-    difficulty:document.getElementById('quizDifficulty').value,
-    questions:validQs.map(q=>({...q,options:q.options.filter(o=>o.trim())})),
-    created:new Date().toLocaleDateString('kk-KZ'),
-    playCount:0,bestScore:0,
-  };
-  state.quizzes.unshift(quiz);
-  localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
-  updateHeader();updateExportSelect();
-  questions=[];addQuestion();
-  document.getElementById('quizTitle').value='';
-  showToast(`✅ "${title}" сақталды!`);
-  switchTab('library');
-}
-
-// ══════════════════════════════════════════
-// LIBRARY
-// ══════════════════════════════════════════
-function renderLibrary() {
-  const c=document.getElementById('quizLibrary');
-  if(!state.quizzes.length){
-    c.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div><p class="muted">Әкімші тест жасаса осында көрінеді</p></div>`;
-    return;
-  }
-  c.innerHTML=state.quizzes.map(quiz=>`
-    <div class="quiz-list-item" onclick="startPlay('${quiz.id}')">
-      <div>
-        <div class="qli-name">${esc(quiz.title)}</div>
-        <div class="qli-meta">${quiz.category} · ${quiz.questions.length} сұрақ · ${quiz.created}</div>
-        <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap">
-          <span class="tag tag-cyan">${quiz.timer>0?quiz.timer+'с':'∞'}</span>
-          <span class="tag ${quiz.difficulty==='easy'?'tag-green':quiz.difficulty==='hard'?'tag-purple':'tag-cyan'}">${quiz.difficulty==='easy'?'оңай':quiz.difficulty==='hard'?'қиын':'орта'}</span>
-          ${quiz.playCount>0?`<span class="tag tag-green">▶ ${quiz.playCount}x</span>`:''}
-          ${quiz.bestScore>0?`<span class="tag tag-purple">⭐ ${quiz.bestScore}%</span>`:''}
-        </div>
-      </div>
-      <div class="qli-actions" onclick="event.stopPropagation()">
-        <button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}')">▶</button>
-        ${isAdmin()?`<button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">✕</button>`:''}
-      </div>
-    </div>`).join('');
-}
-
-function deleteQuiz(id) {
-  if(!isAdmin())return;
-  if(!confirm('Жоюға сенімдісіз бе?'))return;
-  state.quizzes=state.quizzes.filter(q=>q.id!==id);
-  localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
-  updateHeader();renderLibrary();updateExportSelect();
-}
-
-// ══════════════════════════════════════════
-// PLAY
+// QUIZ PLAY (жеке тест)
 // ══════════════════════════════════════════
 function startPlay(quizId) {
   const quiz=state.quizzes.find(q=>q.id===quizId);
@@ -1049,6 +1333,42 @@ async function showResults() {
 }
 
 // ══════════════════════════════════════════
+// LIBRARY
+// ══════════════════════════════════════════
+function renderLibrary() {
+  const c=document.getElementById('quizLibrary');
+  if(!state.quizzes.length){
+    c.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div><p class="muted">Әкімші тест жасаса осында көрінеді</p></div>`;
+    return;
+  }
+  c.innerHTML=state.quizzes.map(quiz=>`
+    <div class="quiz-list-item" onclick="startPlay('${quiz.id}')">
+      <div>
+        <div class="qli-name">${esc(quiz.title)}</div>
+        <div class="qli-meta">${quiz.category} · ${quiz.questions.length} сұрақ · ${quiz.created}</div>
+        <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap">
+          <span class="tag tag-cyan">${quiz.timer>0?quiz.timer+'с':'∞'}</span>
+          <span class="tag ${quiz.difficulty==='easy'?'tag-green':quiz.difficulty==='hard'?'tag-purple':'tag-cyan'}">${quiz.difficulty==='easy'?'оңай':quiz.difficulty==='hard'?'қиын':'орта'}</span>
+          ${quiz.playCount>0?`<span class="tag tag-green">▶ ${quiz.playCount}x</span>`:''}
+          ${quiz.bestScore>0?`<span class="tag tag-purple">⭐ ${quiz.bestScore}%</span>`:''}
+        </div>
+      </div>
+      <div class="qli-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}')">▶</button>
+        ${isAdmin()?`<button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">✕</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function deleteQuiz(id) {
+  if(!isAdmin())return;
+  if(!confirm('Жоюға сенімдісіз бе?'))return;
+  state.quizzes=state.quizzes.filter(q=>q.id!==id);
+  localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
+  updateHeader();renderLibrary();updateExportSelect();
+}
+
+// ══════════════════════════════════════════
 // EXPORT
 // ══════════════════════════════════════════
 function updateExportSelect(){
@@ -1088,6 +1408,80 @@ function renderStats(){
       <div><div class="r-stat-val green" style="font-size:26px">${total}</div><div class="r-stat-lbl">ойын</div></div>
       <div><div class="r-stat-val" style="font-size:26px;color:var(--accent2)">${avg}%</div><div class="r-stat-lbl">үздік</div></div>
     </div>`;
+}
+
+// ══════════════════════════════════════════
+// QUESTION BUILDER
+// ══════════════════════════════════════════
+function addQuestion(q=null) {
+  state.questionCounter++;
+  const id='q_'+Date.now()+'_'+state.questionCounter;
+  const question=q||{id,text:'',options:['','','',''],correct:0,explanation:''};
+  if(!q)question.id=id;
+  questions.push(question); renderQuestions();
+}
+function renderQuestions() {
+  const list=document.getElementById('questionsList');
+  list.innerHTML='';
+  questions.forEach((q,idx)=>{
+    const div=document.createElement('div');
+    div.className='question-item';
+    div.innerHTML=`
+      <div class="q-header">
+        <div class="q-num">СҰРАҚ ${idx+1}</div>
+        <div style="display:flex;gap:5px">
+          ${idx>0?`<button class="btn btn-sm btn-cyan" onclick="moveQuestion(${idx},-1)">↑</button>`:''}
+          ${idx<questions.length-1?`<button class="btn btn-sm btn-cyan" onclick="moveQuestion(${idx},1)">↓</button>`:''}
+          <button class="btn btn-sm btn-danger" onclick="removeQuestion(${idx})">✕</button>
+        </div>
+      </div>
+      <label>Сұрақ мәтіні</label>
+      <input type="text" value="${esc(q.text)}" placeholder="Сұрақты жазыңыз..." oninput="questions[${idx}].text=this.value"/>
+      <label>Жауап нұсқалары</label>
+      <div class="options-grid">
+        ${['A','B','C','D'].map((l,oi)=>`
+          <div class="option-input">
+            <div class="option-label">${l}</div>
+            <input type="text" value="${esc(q.options[oi]||'')}" placeholder="${l}" oninput="questions[${idx}].options[${oi}]=this.value"/>
+          </div>`).join('')}
+      </div>
+      <label>Дұрыс жауап</label>
+      <div class="correct-selector">
+        ${['A','B','C','D'].map((l,oi)=>`
+          <button class="correct-btn ${q.correct===oi?'selected':''}" onclick="setCorrect(${idx},${oi})">✓ ${l}</button>`).join('')}
+      </div>
+      <label>Түсіндірме (міндетті емес)</label>
+      <input type="text" value="${esc(q.explanation||'')}" placeholder="Түсіндірме..." oninput="questions[${idx}].explanation=this.value"/>`;
+    list.appendChild(div);
+  });
+}
+function setCorrect(qi,oi){questions[qi].correct=oi;renderQuestions();}
+function removeQuestion(idx){if(questions.length<=1)return showToast('⚠️ Кем дегенде 1 сұрақ!');questions.splice(idx,1);renderQuestions();}
+function moveQuestion(idx,dir){const ni=idx+dir;if(ni<0||ni>=questions.length)return;[questions[idx],questions[ni]]=[questions[ni],questions[idx]];renderQuestions();}
+function clearAll(){if(confirm('Тазалайсыз ба?')){questions=[];addQuestion();document.getElementById('quizTitle').value='';}}
+
+function saveQuiz() {
+  if(!isAdmin())return;
+  const title=document.getElementById('quizTitle').value.trim();
+  if(!title)return showToast('⚠️ Тест атауын енгізіңіз!');
+  const validQs=questions.filter(q=>q.text.trim()&&q.options.some(o=>o.trim()));
+  if(validQs.length<2)return showToast('⚠️ Кем дегенде 2 сұрақ!');
+  const quiz={
+    id:'quiz_'+Date.now(),title,
+    category:document.getElementById('quizCategory').value,
+    timer:parseInt(document.getElementById('quizTimer').value),
+    difficulty:document.getElementById('quizDifficulty').value,
+    questions:validQs.map(q=>({...q,options:q.options.filter(o=>o.trim())})),
+    created:new Date().toLocaleDateString('kk-KZ'),
+    playCount:0,bestScore:0,
+  };
+  state.quizzes.unshift(quiz);
+  localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
+  updateHeader();updateExportSelect();updateGameQuizSelect();
+  questions=[];addQuestion();
+  document.getElementById('quizTitle').value='';
+  showToast(`✅ "${title}" сақталды!`);
+  switchTab('library');
 }
 
 // ══════════════════════════════════════════
