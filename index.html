@@ -17,335 +17,296 @@
     --accent2: #7c3aed;
     --accent3: #10b981;
     --danger: #ef4444;
+    --warn: #f59e0b;
     --text: #e6edf3;
     --muted: #8b949e;
     --glow: 0 0 20px rgba(0,245,255,0.3);
-    --glow2: 0 0 20px rgba(124,58,237,0.4);
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; }
 
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Rajdhani', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
+    background:var(--bg); color:var(--text);
+    font-family:'Rajdhani',sans-serif;
+    min-height:100vh; overflow-x:hidden;
   }
 
   body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
+    content:''; position:fixed; inset:0;
     background-image:
-      linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
+      linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);
+    background-size:40px 40px; pointer-events:none; z-index:0;
   }
 
   body::after {
-    content: '';
-    position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(ellipse at 30% 20%, rgba(124,58,237,0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(0,245,255,0.06) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
+    content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
+    background:radial-gradient(ellipse at 30% 20%,rgba(124,58,237,0.08) 0%,transparent 50%),
+               radial-gradient(ellipse at 70% 80%,rgba(0,245,255,0.06) 0%,transparent 50%);
+    pointer-events:none; z-index:0;
   }
 
   #app {
-    position: relative;
-    z-index: 1;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    position:relative; z-index:1;
+    max-width:900px; margin:0 auto; padding:20px;
+    min-height:100vh; display:flex; flex-direction:column;
   }
 
   header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 0 30px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 30px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 0 30px; border-bottom:1px solid var(--border); margin-bottom:30px;
   }
 
-  .logo { display: flex; align-items: center; gap: 12px; }
-
+  .logo { display:flex; align-items:center; gap:12px; }
   .logo-icon {
-    width: 44px; height: 44px;
-    background: linear-gradient(135deg, var(--accent2), var(--accent));
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Orbitron', monospace; font-weight: 900; font-size: 14px;
-    color: #fff; box-shadow: var(--glow); letter-spacing: -1px;
+    width:44px; height:44px;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-family:'Orbitron',monospace; font-weight:900; font-size:14px;
+    color:#fff; box-shadow:var(--glow); letter-spacing:-1px;
   }
+  .logo-text { font-family:'Orbitron',monospace; font-weight:700; font-size:20px; color:var(--accent); text-shadow:var(--glow); letter-spacing:2px; }
+  .logo-sub { font-size:11px; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:1px; }
+  .header-right { display:flex; align-items:center; gap:16px; }
+  .header-stats { display:flex; gap:20px; }
+  .stat-chip { display:flex; flex-direction:column; align-items:flex-end; }
+  .stat-val { font-family:'Orbitron',monospace; font-size:18px; font-weight:700; color:var(--accent); }
+  .stat-label { font-size:10px; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:1px; text-transform:uppercase; }
 
-  .logo-text {
-    font-family: 'Orbitron', monospace; font-weight: 700; font-size: 20px;
-    color: var(--accent); text-shadow: var(--glow); letter-spacing: 2px;
-  }
-
-  .logo-sub { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 1px; }
-
-  .header-right { display: flex; align-items: center; gap: 16px; }
-
-  .header-stats { display: flex; gap: 20px; }
-
-  .stat-chip { display: flex; flex-direction: column; align-items: flex-end; }
-
-  .stat-val { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 700; color: var(--accent); }
-
-  .stat-label { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 1px; text-transform: uppercase; }
-
-  /* ADMIN BADGE */
   .admin-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 12px; border-radius: 20px;
-    background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(0,245,255,0.1));
-    border: 1px solid rgba(0,245,255,0.35);
-    font-family: 'Orbitron', monospace; font-size: 10px;
-    letter-spacing: 1.5px; color: var(--accent); box-shadow: var(--glow);
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 12px; border-radius:20px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,245,255,0.1));
+    border:1px solid rgba(0,245,255,0.35);
+    font-family:'Orbitron',monospace; font-size:10px; letter-spacing:1.5px; color:var(--accent);
   }
-  .admin-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent3); box-shadow: 0 0 6px var(--accent3);
-    animation: admBlink 2s infinite;
-  }
+  .admin-dot { width:6px; height:6px; border-radius:50%; background:var(--accent3); box-shadow:0 0 6px var(--accent3); animation:admBlink 2s infinite; }
   @keyframes admBlink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-  /* TABS */
   .tabs {
-    display: flex; gap: 4px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 4px; margin-bottom: 24px;
+    display:flex; gap:4px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:4px; margin-bottom:24px;
   }
-
   .tab {
-    flex: 1; padding: 10px 16px; background: none; border: none; border-radius: 8px;
-    color: var(--muted); font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 500;
-    cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px;
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    position: relative;
+    flex:1; padding:10px 8px; background:none; border:none; border-radius:8px;
+    color:var(--muted); font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:500;
+    cursor:pointer; transition:all 0.2s; letter-spacing:0.3px;
+    display:flex; align-items:center; justify-content:center; gap:4px; position:relative;
   }
-
   .tab.active {
-    background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(0,245,255,0.1));
-    color: var(--accent); border: 1px solid rgba(0,245,255,0.2);
-    box-shadow: 0 0 12px rgba(0,245,255,0.1);
+    background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,245,255,0.1));
+    color:var(--accent); border:1px solid rgba(0,245,255,0.2);
+    box-shadow:0 0 12px rgba(0,245,255,0.1);
   }
+  .tab:hover:not(.active) { color:var(--text); background:var(--surface2); }
+  .tab.admin-tab::after { content:'👑'; position:absolute; top:3px; right:4px; font-size:8px; }
 
-  .tab:hover:not(.active) { color: var(--text); background: var(--surface2); }
-
-  .tab.admin-tab::after {
-    content: '👑'; position: absolute; top: 3px; right: 5px; font-size: 9px;
-  }
-
-  .panel { display: none; animation: fadeIn 0.3s ease; }
-  .panel.active { display: block; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .panel { display:none; animation:fadeIn 0.3s ease; }
+  .panel.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
   .card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 16px; padding: 24px; margin-bottom: 16px;
-    position: relative; overflow: hidden; transition: border-color 0.2s;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; padding:24px; margin-bottom:16px;
+    position:relative; overflow:hidden; transition:border-color 0.2s;
   }
-
-  .card:hover { border-color: rgba(0,245,255,0.2); }
-
+  .card:hover { border-color:rgba(0,245,255,0.2); }
   .card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent2), var(--accent), transparent);
-    opacity: 0; transition: opacity 0.2s;
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent),transparent);
+    opacity:0; transition:opacity 0.2s;
   }
-
-  .card:hover::before { opacity: 1; }
-
+  .card:hover::before { opacity:1; }
   .card-title {
-    font-family: 'Orbitron', monospace; font-size: 12px; letter-spacing: 2px;
-    color: var(--accent); text-transform: uppercase; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
+    font-family:'Orbitron',monospace; font-size:12px; letter-spacing:2px;
+    color:var(--accent); text-transform:uppercase; margin-bottom:16px;
+    display:flex; align-items:center; gap:8px;
   }
+  .card-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,var(--border),transparent); }
 
-  .card-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
-
-  label {
-    display: block; font-size: 13px; color: var(--muted);
-    font-family: 'Space Mono', monospace; letter-spacing: 0.5px; margin-bottom: 6px;
-  }
-
+  label { display:block; font-size:13px; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:0.5px; margin-bottom:6px; }
   input[type="text"], textarea, select {
-    width: 100%; background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 14px; color: var(--text);
-    font-family: 'Rajdhani', sans-serif; font-size: 15px; outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s; margin-bottom: 14px; letter-spacing: 0.3px;
+    width:100%; background:var(--surface2); border:1px solid var(--border);
+    border-radius:8px; padding:10px 14px; color:var(--text);
+    font-family:'Rajdhani',sans-serif; font-size:15px; outline:none;
+    transition:border-color 0.2s,box-shadow 0.2s; margin-bottom:14px;
   }
-
-  input[type="text"]:focus, textarea:focus, select:focus {
-    border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,245,255,0.1);
-  }
-
-  textarea { resize: vertical; min-height: 80px; font-size: 14px; line-height: 1.5; }
-  select option { background: var(--surface2); }
+  input[type="text"]:focus, textarea:focus, select:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,245,255,0.1); }
+  textarea { resize:vertical; min-height:80px; font-size:14px; line-height:1.5; }
+  select option { background:var(--surface2); }
 
   .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 20px; border-radius: 8px;
-    font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600;
-    letter-spacing: 0.5px; cursor: pointer; border: none; transition: all 0.2s;
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 20px; border-radius:8px;
+    font-family:'Rajdhani',sans-serif; font-size:15px; font-weight:600;
+    letter-spacing:0.5px; cursor:pointer; border:none; transition:all 0.2s;
   }
+  .btn-primary { background:linear-gradient(135deg,var(--accent2),#5b21b6); color:#fff; box-shadow:0 4px 15px rgba(124,58,237,0.3); }
+  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(124,58,237,0.4); }
+  .btn-cyan { background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(0,245,255,0.05)); color:var(--accent); border:1px solid rgba(0,245,255,0.3); }
+  .btn-cyan:hover { background:rgba(0,245,255,0.2); box-shadow:var(--glow); }
+  .btn-danger { background:rgba(239,68,68,0.15); color:var(--danger); border:1px solid rgba(239,68,68,0.3); }
+  .btn-danger:hover { background:rgba(239,68,68,0.25); }
+  .btn-success { background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(16,185,129,0.1)); color:var(--accent3); border:1px solid rgba(16,185,129,0.3); }
+  .btn-sm { padding:6px 12px; font-size:13px; }
+  .btn-ghost { background:rgba(255,255,255,0.05); color:var(--muted); border:1px solid var(--border); }
+  .btn-ghost.active { color:var(--accent); border-color:rgba(0,245,255,0.3); background:rgba(0,245,255,0.08); }
 
-  .btn-primary { background: linear-gradient(135deg, var(--accent2), #5b21b6); color: #fff; box-shadow: 0 4px 15px rgba(124,58,237,0.3); }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.4); }
-  .btn-cyan { background: linear-gradient(135deg, rgba(0,245,255,0.15), rgba(0,245,255,0.05)); color: var(--accent); border: 1px solid rgba(0,245,255,0.3); }
-  .btn-cyan:hover { background: rgba(0,245,255,0.2); box-shadow: var(--glow); }
-  .btn-danger { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
-  .btn-danger:hover { background: rgba(239,68,68,0.25); }
-  .btn-success { background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(16,185,129,0.1)); color: var(--accent3); border: 1px solid rgba(16,185,129,0.3); }
-  .btn-sm { padding: 6px 12px; font-size: 13px; }
+  .question-item { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:12px; transition:all 0.2s; }
+  .question-item:hover { border-color:rgba(124,58,237,0.3); }
+  .q-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .q-num { font-family:'Orbitron',monospace; font-size:11px; color:var(--accent2); letter-spacing:2px; display:flex; align-items:center; gap:6px; }
+  .q-num::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent2); box-shadow:0 0 6px var(--accent2); }
+  .options-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+  .option-input { display:flex; align-items:center; gap:8px; }
+  .option-label { width:28px; height:28px; border-radius:6px; flex-shrink:0; background:rgba(0,245,255,0.08); border:1px solid rgba(0,245,255,0.15); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:11px; color:var(--accent); }
+  .option-input input[type="text"] { margin-bottom:0; flex:1; }
+  .correct-selector { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .correct-btn { padding:5px 12px; border-radius:20px; border:1px solid var(--border); background:none; color:var(--muted); font-family:'Space Mono',monospace; font-size:11px; cursor:pointer; transition:all 0.2s; }
+  .correct-btn.selected { background:rgba(16,185,129,0.2); border-color:var(--accent3); color:var(--accent3); }
 
-  .question-item {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 18px; margin-bottom: 12px; transition: all 0.2s;
+  .quiz-header-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+  .quiz-title-big { font-family:'Orbitron',monospace; font-size:22px; font-weight:700; color:var(--accent); text-shadow:var(--glow); }
+  .progress-bar { height:4px; background:var(--surface2); border-radius:2px; margin-bottom:28px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--accent2),var(--accent)); border-radius:2px; transition:width 0.4s cubic-bezier(0.4,0,0.2,1); box-shadow:0 0 8px var(--accent); }
+  .q-card { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px; margin-bottom:20px; text-align:center; }
+  .q-counter { font-family:'Space Mono',monospace; font-size:12px; color:var(--muted); letter-spacing:2px; margin-bottom:20px; }
+  .q-text { font-size:22px; font-weight:600; color:var(--text); line-height:1.4; margin-bottom:28px; }
+  .answers-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .answer-btn { padding:14px 18px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; color:var(--text); font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:500; cursor:pointer; transition:all 0.2s; text-align:left; display:flex; align-items:center; gap:10px; }
+  .answer-btn:hover:not(:disabled) { border-color:rgba(0,245,255,0.4); background:rgba(0,245,255,0.05); transform:translateY(-2px); }
+  .answer-btn.correct { border-color:var(--accent3); background:rgba(16,185,129,0.15); color:var(--accent3); }
+  .answer-btn.wrong { border-color:var(--danger); background:rgba(239,68,68,0.1); color:var(--danger); }
+  .answer-btn:disabled { cursor:default; }
+  .ans-letter { width:28px; height:28px; border-radius:6px; flex-shrink:0; background:rgba(124,58,237,0.2); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:11px; }
+
+  .timer-ring { width:60px; height:60px; position:relative; flex-shrink:0; }
+  .timer-ring svg { transform:rotate(-90deg); width:60px; height:60px; }
+  .timer-ring circle { fill:none; stroke-width:4; r:26; cx:30; cy:30; stroke-dasharray:163; transition:stroke-dashoffset 1s linear,stroke 0.3s; }
+  .timer-bg { stroke:var(--surface2); }
+  .timer-fill { stroke:var(--accent); }
+  .timer-text { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:14px; font-weight:700; color:var(--accent); }
+
+  .result-big { text-align:center; padding:40px 20px; }
+  .result-score { font-family:'Orbitron',monospace; font-size:72px; font-weight:900; background:linear-gradient(135deg,var(--accent2),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1; margin-bottom:8px; }
+  .result-label { font-size:16px; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:1px; margin-bottom:28px; }
+  .result-stats { display:flex; justify-content:center; gap:32px; margin-bottom:32px; }
+  .r-stat { text-align:center; }
+  .r-stat-val { font-family:'Orbitron',monospace; font-size:28px; font-weight:700; }
+  .r-stat-val.green { color:var(--accent3); }
+  .r-stat-val.red { color:var(--danger); }
+  .r-stat-val.cyan { color:var(--accent); }
+  .r-stat-lbl { font-size:12px; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:1px; }
+  .rank-badge { display:inline-block; padding:8px 24px; background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,245,255,0.1)); border:1px solid rgba(0,245,255,0.3); border-radius:100px; font-family:'Orbitron',monospace; font-size:14px; letter-spacing:2px; color:var(--accent); margin-bottom:28px; box-shadow:var(--glow); }
+
+  .quiz-list-item { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 20px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; transition:all 0.2s; cursor:pointer; }
+  .quiz-list-item:hover { border-color:rgba(0,245,255,0.25); transform:translateX(4px); box-shadow:-4px 0 0 var(--accent); }
+  .qli-name { font-size:17px; font-weight:600; color:var(--text); margin-bottom:4px; }
+  .qli-meta { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.5px; }
+  .qli-actions { display:flex; gap:8px; }
+
+  .tag { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-family:'Space Mono',monospace; letter-spacing:0.5px; border:1px solid; }
+  .tag-cyan { color:var(--accent); border-color:rgba(0,245,255,0.3); background:rgba(0,245,255,0.08); }
+  .tag-purple { color:#a78bfa; border-color:rgba(167,139,250,0.3); background:rgba(167,139,250,0.08); }
+  .tag-green { color:var(--accent3); border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.08); }
+  .tag-orange { color:#fb923c; border-color:rgba(251,146,60,0.3); background:rgba(251,146,60,0.08); }
+
+  .explanation { background:rgba(0,245,255,0.05); border:1px solid rgba(0,245,255,0.15); border-radius:10px; padding:14px 16px; margin-top:14px; font-size:14px; color:var(--muted); line-height:1.6; text-align:left; display:none; }
+  .explanation.show { display:block; animation:fadeIn 0.3s ease; }
+  .explanation strong { color:var(--accent); }
+
+  /* LEADERBOARD */
+  .lb-filters { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .lb-row {
+    display:flex; align-items:center; gap:12px;
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:12px; padding:12px 16px; margin-bottom:8px;
+    transition:all 0.2s;
   }
-  .question-item:hover { border-color: rgba(124,58,237,0.3); }
-
-  .q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-
-  .q-num {
-    font-family: 'Orbitron', monospace; font-size: 11px; color: var(--accent2);
-    letter-spacing: 2px; display: flex; align-items: center; gap: 6px;
+  .lb-row:hover { border-color:rgba(0,245,255,0.2); }
+  .lb-rank {
+    font-family:'Orbitron',monospace; font-size:14px; font-weight:700;
+    width:32px; text-align:center; flex-shrink:0;
   }
-  .q-num::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
-
-  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-  .option-input { display: flex; align-items: center; gap: 8px; }
-  .option-label {
-    width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
-    background: rgba(0,245,255,0.08); border: 1px solid rgba(0,245,255,0.15);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Orbitron', monospace; font-size: 11px; color: var(--accent);
+  .lb-rank.gold { color:#fbbf24; text-shadow:0 0 10px rgba(251,191,36,0.5); }
+  .lb-rank.silver { color:#9ca3af; }
+  .lb-rank.bronze { color:#d97706; }
+  .lb-rank.other { color:var(--muted); }
+  .lb-avatar {
+    width:38px; height:38px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Orbitron',monospace; font-size:13px; font-weight:700; color:#fff;
+    border:2px solid transparent;
   }
-  .option-input input[type="text"] { margin-bottom: 0; flex: 1; }
+  .lb-avatar.me { border-color:var(--accent); box-shadow:0 0 10px rgba(0,245,255,0.3); }
+  .lb-info { flex:1; min-width:0; }
+  .lb-name { font-size:15px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lb-sub { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:0.5px; }
+  .lb-score { font-family:'Orbitron',monospace; font-size:16px; font-weight:700; color:var(--accent); text-align:right; }
+  .lb-score-sub { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); text-align:right; }
+  .lb-me-row { background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(0,245,255,0.05)); border-color:rgba(0,245,255,0.25); }
 
-  .correct-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-  .correct-btn {
-    padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
-    background: none; color: var(--muted); font-family: 'Space Mono', monospace;
-    font-size: 11px; cursor: pointer; transition: all 0.2s;
+  /* PROFILE */
+  .profile-hero {
+    text-align:center; padding:28px 20px 20px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(0,245,255,0.05));
+    border:1px solid var(--border); border-radius:20px; margin-bottom:16px;
   }
-  .correct-btn.selected { background: rgba(16,185,129,0.2); border-color: var(--accent3); color: var(--accent3); box-shadow: 0 0 8px rgba(16,185,129,0.2); }
-
-  .quiz-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-  .quiz-title-big { font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 700; color: var(--accent); text-shadow: var(--glow); }
-
-  .progress-bar { height: 4px; background: var(--surface2); border-radius: 2px; margin-bottom: 28px; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 2px; transition: width 0.4s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 0 8px var(--accent); }
-
-  .q-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 20px; text-align: center; }
-  .q-counter { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted); letter-spacing: 2px; margin-bottom: 20px; }
-  .q-text { font-size: 22px; font-weight: 600; color: var(--text); line-height: 1.4; margin-bottom: 28px; font-family: 'Rajdhani', sans-serif; letter-spacing: 0.3px; }
-
-  .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .answer-btn {
-    padding: 14px 18px; background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 12px; color: var(--text); font-family: 'Rajdhani', sans-serif;
-    font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;
-    text-align: left; display: flex; align-items: center; gap: 10px; letter-spacing: 0.3px;
+  .profile-avatar {
+    width:72px; height:72px; border-radius:50%; margin:0 auto 12px;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Orbitron',monospace; font-size:24px; font-weight:900; color:#fff;
+    border:3px solid rgba(0,245,255,0.3); box-shadow:var(--glow);
   }
-  .answer-btn:hover:not(:disabled) { border-color: rgba(0,245,255,0.4); background: rgba(0,245,255,0.05); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,245,255,0.1); }
-  .answer-btn.correct { border-color: var(--accent3); background: rgba(16,185,129,0.15); color: var(--accent3); box-shadow: 0 0 12px rgba(16,185,129,0.2); }
-  .answer-btn.wrong { border-color: var(--danger); background: rgba(239,68,68,0.1); color: var(--danger); }
-  .answer-btn:disabled { cursor: default; }
+  .profile-name { font-family:'Orbitron',monospace; font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px; }
+  .profile-username { font-family:'Space Mono',monospace; font-size:12px; color:var(--muted); margin-bottom:16px; }
+  .profile-rank-pill { display:inline-flex; align-items:center; gap:6px; padding:5px 16px; border-radius:100px; background:rgba(251,191,36,0.15); border:1px solid rgba(251,191,36,0.3); font-family:'Orbitron',monospace; font-size:11px; color:#fbbf24; letter-spacing:1px; }
 
-  .ans-letter {
-    width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
-    background: rgba(124,58,237,0.2); display: flex; align-items: center; justify-content: center;
-    font-family: 'Orbitron', monospace; font-size: 11px;
-  }
+  .profile-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
+  .ps-box { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; }
+  .ps-val { font-family:'Orbitron',monospace; font-size:22px; font-weight:700; color:var(--accent); }
+  .ps-lbl { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:0.5px; margin-top:4px; }
 
-  .timer-ring { width: 60px; height: 60px; position: relative; flex-shrink: 0; }
-  .timer-ring svg { transform: rotate(-90deg); width: 60px; height: 60px; }
-  .timer-ring circle { fill: none; stroke-width: 4; r: 26; cx: 30; cy: 30; stroke-dasharray: 163; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
-  .timer-bg { stroke: var(--surface2); }
-  .timer-fill { stroke: var(--accent); }
-  .timer-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700; color: var(--accent); }
+  .achievement { display:flex; align-items:center; gap:12px; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; margin-bottom:8px; }
+  .ach-icon { font-size:28px; flex-shrink:0; }
+  .ach-name { font-size:14px; font-weight:600; color:var(--text); }
+  .ach-desc { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); }
+  .achievement.locked { opacity:0.4; }
 
-  .result-big { text-align: center; padding: 40px 20px; }
-  .result-score { font-family: 'Orbitron', monospace; font-size: 72px; font-weight: 900; background: linear-gradient(135deg, var(--accent2), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; margin-bottom: 8px; }
-  .result-label { font-size: 16px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 1px; margin-bottom: 28px; }
-  .result-stats { display: flex; justify-content: center; gap: 32px; margin-bottom: 32px; }
-  .r-stat { text-align: center; }
-  .r-stat-val { font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 700; }
-  .r-stat-val.green { color: var(--accent3); }
-  .r-stat-val.red { color: var(--danger); }
-  .r-stat-val.cyan { color: var(--accent); }
-  .r-stat-lbl { font-size: 12px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 1px; }
+  .recent-item { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
+  .recent-title { font-size:14px; color:var(--text); }
+  .recent-meta { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); margin-top:2px; }
 
-  .rank-badge { display: inline-block; padding: 8px 24px; background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(0,245,255,0.1)); border: 1px solid rgba(0,245,255,0.3); border-radius: 100px; font-family: 'Orbitron', monospace; font-size: 14px; letter-spacing: 2px; color: var(--accent); margin-bottom: 28px; box-shadow: var(--glow); }
+  .export-box { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:16px; font-family:'Space Mono',monospace; font-size:12px; color:var(--muted); line-height:1.8; white-space:pre-wrap; word-break:break-all; margin-top:12px; max-height:300px; overflow-y:auto; }
 
-  .quiz-list-item {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 14px; padding: 18px 20px; margin-bottom: 10px;
-    display: flex; align-items: center; justify-content: space-between;
-    transition: all 0.2s; cursor: pointer;
-  }
-  .quiz-list-item:hover { border-color: rgba(0,245,255,0.25); transform: translateX(4px); box-shadow: -4px 0 0 var(--accent); }
-  .qli-name { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  .qli-meta { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
-  .qli-actions { display: flex; gap: 8px; }
+  .flex { display:flex; }
+  .flex-center { display:flex; align-items:center; }
+  .gap-8 { gap:8px; }
+  .gap-12 { gap:12px; }
+  .mb-8 { margin-bottom:8px; }
+  .muted { color:var(--muted); font-size:13px; font-family:'Space Mono',monospace; }
+  .divider { height:1px; background:var(--border); margin:20px 0; }
+  .streak-display { display:inline-flex; align-items:center; gap:6px; padding:4px 14px; background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:100px; font-family:'Orbitron',monospace; font-size:12px; color:#fb923c; letter-spacing:1px; }
+  .empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+  .empty-icon { font-size:48px; margin-bottom:16px; opacity:0.5; }
+  .empty-title { font-size:18px; font-weight:600; color:var(--text); margin-bottom:8px; font-family:'Rajdhani',sans-serif; }
+  .loading { text-align:center; padding:40px; color:var(--muted); font-family:'Space Mono',monospace; font-size:12px; letter-spacing:1px; }
+  .loading::after { content:''; animation:dots 1.5s infinite; }
+  @keyframes dots { 0%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
 
-  .tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 0.5px; border: 1px solid; }
-  .tag-cyan { color: var(--accent); border-color: rgba(0,245,255,0.3); background: rgba(0,245,255,0.08); }
-  .tag-purple { color: #a78bfa; border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.08); }
-  .tag-green { color: var(--accent3); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08); }
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:var(--surface); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 
-  .explanation { background: rgba(0,245,255,0.05); border: 1px solid rgba(0,245,255,0.15); border-radius: 10px; padding: 14px 16px; margin-top: 14px; font-size: 14px; color: var(--muted); line-height: 1.6; text-align: left; display: none; }
-  .explanation.show { display: block; animation: fadeIn 0.3s ease; }
-  .explanation strong { color: var(--accent); }
-
-  .flex { display: flex; }
-  .flex-center { display: flex; align-items: center; }
-  .gap-8 { gap: 8px; }
-  .gap-12 { gap: 12px; }
-  .mt-16 { margin-top: 16px; }
-  .mb-8 { margin-bottom: 8px; }
-  .muted { color: var(--muted); font-size: 13px; font-family: 'Space Mono', monospace; }
-
-  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
-  .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
-  .empty-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; font-family: 'Rajdhani', sans-serif; }
-
-  .export-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted); line-height: 1.8; white-space: pre-wrap; word-break: break-all; margin-top: 12px; max-height: 300px; overflow-y: auto; }
-
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--surface); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--accent2); }
-
-  .hint { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.5px; margin-top: -10px; margin-bottom: 12px; padding-left: 2px; }
-  .divider { height: 1px; background: var(--border); margin: 20px 0; }
-
-  .streak-display { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; background: rgba(251,146,60,0.15); border: 1px solid rgba(251,146,60,0.3); border-radius: 100px; font-family: 'Orbitron', monospace; font-size: 12px; color: #fb923c; letter-spacing: 1px; }
-
-  @media (max-width: 600px) {
-    .options-grid { grid-template-columns: 1fr; }
-    .answers-grid { grid-template-columns: 1fr; }
-    .result-stats { gap: 20px; }
-    .result-score { font-size: 52px; }
-    .tabs { flex-wrap: wrap; }
+  @media (max-width:600px) {
+    .options-grid { grid-template-columns:1fr; }
+    .answers-grid { grid-template-columns:1fr; }
+    .result-stats { gap:16px; }
+    .result-score { font-size:52px; }
+    .profile-stats { grid-template-columns:repeat(2,1fr); }
   }
 </style>
 </head>
@@ -376,13 +337,15 @@
   </header>
 
   <div class="tabs">
-    <button class="tab admin-tab" id="tab-create" onclick="switchTab('create')" style="display:none">⚡ Тест жасау</button>
-    <button class="tab active" id="tab-library" onclick="switchTab('library')">📦 Кітапхана</button>
-    <button class="tab" id="tab-play" onclick="switchTab('play')">🎮 Ойнау</button>
+    <button class="tab admin-tab" id="tab-create" onclick="switchTab('create')" style="display:none">⚡ Жасау</button>
+    <button class="tab active" id="tab-library" onclick="switchTab('library')">📦 Тесттер</button>
+    <button class="tab" id="tab-play" onclick="switchTab('play')">🎮 Ойын</button>
+    <button class="tab" id="tab-leaderboard" onclick="switchTab('leaderboard')">🏆 Рейтинг</button>
+    <button class="tab" id="tab-profile" onclick="switchTab('profile')">👤 Бейін</button>
     <button class="tab admin-tab" id="tab-export" onclick="switchTab('export')" style="display:none">📤 Экспорт</button>
   </div>
 
-  <!-- CREATE TAB -->
+  <!-- CREATE -->
   <div class="panel" id="panel-create">
     <div class="card">
       <div class="card-title">⚡ тест параметрлері</div>
@@ -390,31 +353,21 @@
       <input type="text" id="quizTitle" placeholder="Мысалы: Тарих — Алтын Орда" />
       <label>Санат</label>
       <select id="quizCategory">
-        <option>🧠 Жалпы білім</option>
-        <option>📖 Тарих</option>
-        <option>🔬 Ғылым</option>
-        <option>💻 Технология</option>
-        <option>🌍 География</option>
-        <option>🎭 Мәдениет</option>
-        <option>🔢 Математика</option>
-        <option>📚 Әдебиет</option>
-        <option>⚽ Спорт</option>
-        <option>🎯 Өзге</option>
+        <option>🧠 Жалпы білім</option><option>📖 Тарих</option><option>🔬 Ғылым</option>
+        <option>💻 Технология</option><option>🌍 География</option><option>🎭 Мәдениет</option>
+        <option>🔢 Математика</option><option>📚 Әдебиет</option><option>⚽ Спорт</option><option>🎯 Өзге</option>
       </select>
       <div class="flex gap-12">
         <div style="flex:1">
-          <label>Уақыт (секунд/сұрақ)</label>
+          <label>Уақыт (сек/сұрақ)</label>
           <select id="quizTimer">
-            <option value="0">⏸ Таймерсіз</option>
-            <option value="10">⚡ 10 сек</option>
-            <option value="15">🔥 15 сек</option>
-            <option value="20" selected>🎯 20 сек</option>
-            <option value="30">💡 30 сек</option>
-            <option value="60">🐢 60 сек</option>
+            <option value="0">⏸ Таймерсіз</option><option value="10">⚡ 10 сек</option>
+            <option value="15">🔥 15 сек</option><option value="20" selected>🎯 20 сек</option>
+            <option value="30">💡 30 сек</option><option value="60">🐢 60 сек</option>
           </select>
         </div>
         <div style="flex:1">
-          <label>Қиындық деңгейі</label>
+          <label>Қиындық</label>
           <select id="quizDifficulty">
             <option value="easy">🟢 Оңай</option>
             <option value="medium" selected>🟡 Орта</option>
@@ -423,22 +376,18 @@
         </div>
       </div>
     </div>
-
     <div class="card">
       <div class="card-title">❓ сұрақтар</div>
       <div id="questionsList"></div>
-      <button class="btn btn-cyan" onclick="addQuestion()" style="width:100%; justify-content:center; margin-top:4px;">
-        + Сұрақ қосу
-      </button>
+      <button class="btn btn-cyan" onclick="addQuestion()" style="width:100%;justify-content:center;margin-top:4px">+ Сұрақ қосу</button>
     </div>
-
-    <div style="display:flex; gap:12px; justify-content:flex-end; flex-wrap:wrap;">
+    <div style="display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap">
       <button class="btn btn-danger" onclick="clearAll()">🗑 Тазалау</button>
-      <button class="btn btn-primary" onclick="saveQuiz()">💾 Тестті сақтау</button>
+      <button class="btn btn-primary" onclick="saveQuiz()">💾 Сақтау</button>
     </div>
   </div>
 
-  <!-- LIBRARY TAB -->
+  <!-- LIBRARY -->
   <div class="panel active" id="panel-library">
     <div class="card">
       <div class="card-title">📦 тесттер</div>
@@ -446,87 +395,105 @@
     </div>
   </div>
 
-  <!-- PLAY TAB -->
+  <!-- PLAY -->
   <div class="panel" id="panel-play">
     <div id="playContent">
       <div class="empty-state">
         <div class="empty-icon">🎮</div>
         <div class="empty-title">Тест таңдаңыз</div>
-        <p class="muted">Кітапханадан тест ашып, «Ойнау» батырмасын басыңыз</p>
+        <p class="muted">Тесттер қойындысынан тест таңдаңыз</p>
       </div>
     </div>
   </div>
 
-  <!-- EXPORT TAB -->
+  <!-- LEADERBOARD -->
+  <div class="panel" id="panel-leaderboard">
+    <div class="card">
+      <div class="card-title">🏆 рейтинг</div>
+      <div class="lb-filters">
+        <button class="btn btn-sm btn-ghost active" id="lbf-all" onclick="loadLeaderboard('all')">🌍 Жалпы</button>
+        <button class="btn btn-sm btn-ghost" id="lbf-weekly" onclick="loadLeaderboard('weekly')">📅 Апталық</button>
+      </div>
+      <div id="leaderboardContent"><div class="loading">Жүктелуде</div></div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="panel" id="panel-profile">
+    <div id="profileContent"><div class="loading">Жүктелуде</div></div>
+  </div>
+
+  <!-- EXPORT -->
   <div class="panel" id="panel-export">
     <div class="card">
       <div class="card-title">📤 telegram экспорт</div>
-      <p style="color:var(--muted); font-size:14px; margin-bottom:16px; line-height:1.6;">
-        Тестті Telegram Quiz Poll форматына экспорттаңыз — тікелей чатқа жіберуге дайын.
-      </p>
-      <label>Экспорт үшін тест таңдаңыз</label>
-      <select id="exportSelect">
-        <option value="">— Тест таңдаңыз —</option>
-      </select>
-      <button class="btn btn-cyan" onclick="generateExport()" style="margin-bottom:12px;">⚡ Генерациялау</button>
+      <label>Тест таңдаңыз</label>
+      <select id="exportSelect"><option value="">— Тест таңдаңыз —</option></select>
+      <button class="btn btn-cyan" onclick="generateExport()" style="margin-bottom:12px">⚡ Генерациялау</button>
       <div id="exportOutput" style="display:none">
         <div class="flex-center gap-8 mb-8">
-          <span style="font-family:Space Mono; font-size:12px; color:var(--muted);">Telegram Bot API форматы:</span>
+          <span style="font-family:Space Mono;font-size:12px;color:var(--muted)">Telegram Bot API:</span>
           <button class="btn btn-sm btn-success" onclick="copyExport()">📋 Көшіру</button>
         </div>
         <div class="export-box" id="exportBox"></div>
       </div>
     </div>
-
     <div class="card">
       <div class="card-title">📊 статистика</div>
-      <div id="statsPanel" style="color:var(--muted); font-size:14px; text-align:center; padding:20px;">
-        Статистика үшін алдымен тест ойнаңыз
-      </div>
+      <div id="statsPanel" style="color:var(--muted);font-size:14px;text-align:center;padding:20px">Статистика үшін алдымен тест ойнаңыз</div>
     </div>
   </div>
 
 </div>
 
 <script>
-// ╔══════════════════════════════════════════╗
-// ║  ⚙️  ADMIN CONFIG                        ║
-// ║  @userinfobot-тан алған ID қойыңыз       ║
-// ╚══════════════════════════════════════════╝
-const ADMIN_ID = 7860596454;
-//               ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
-// Мысалы: const ADMIN_ID = 123456789;
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+const API_BASE = '/api';
 
-// ─── TELEGRAM ────────────────────────────────────────
+// ── TELEGRAM ──────────────────────────────
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
+function getTgUser() { return tg?.initDataUnsafe?.user || null; }
+function getTgInitData() { return tg?.initData || ''; }
+
 function isAdmin() {
-  const uid = tg?.initDataUnsafe?.user?.id ?? null;
-  return uid !== null && uid === ADMIN_ID;
+  const uid = getTgUser()?.id ?? null;
+  // Admin ID Vercel Environment Variable-да сақталған
+  // Бұл жерде тек UI үшін тексереміз, нақты тексеру серверде
+  return uid !== null && String(uid) === String(window.__ADMIN_ID__);
 }
 
-// ─── STATE ───────────────────────────────────────────
+// ── STATE ─────────────────────────────────
 let state = {
   quizzes: JSON.parse(localStorage.getItem('qbit_quizzes') || '[]'),
-  plays: JSON.parse(localStorage.getItem('qbit_plays') || '0'),
-  currentPlay: null,
-  playState: null,
-  timer: null,
-  questionCounter: 0,
+  plays: parseInt(localStorage.getItem('qbit_plays') || '0'),
+  currentPlay: null, playState: null, timer: null, questionCounter: 0,
 };
-
 let questions = [];
 
-// ─── INIT ────────────────────────────────────────────
-function init() {
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+async function init() {
+  // Admin ID-ті серверден аламыз (қауіпсіз)
+  try {
+    const r = await fetch(`${API_BASE}/config`);
+    if (r.ok) {
+      const d = await r.json();
+      window.__ADMIN_ID__ = d.adminId;
+    }
+  } catch {}
+
   if (isAdmin()) {
     document.getElementById('tab-create').style.display = '';
     document.getElementById('tab-export').style.display = '';
     document.getElementById('adminBadge').innerHTML =
       `<div class="admin-badge"><div class="admin-dot"></div>ADMIN</div>`;
-    switchTab('create');
   }
+
   updateHeader();
   renderLibrary();
   updateExportSelect();
@@ -539,26 +506,185 @@ function updateHeader() {
   document.getElementById('totalPlays').textContent = state.plays;
 }
 
-// ─── TABS ────────────────────────────────────────────
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
 function switchTab(tab) {
   if ((tab === 'create' || tab === 'export') && !isAdmin()) {
-    showToast('🔒 Тек әкімшіге қол жетімді');
-    return;
+    showToast('🔒 Тек әкімшіге қол жетімді'); return;
   }
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   const tabEl = document.getElementById('tab-' + tab);
   if (tabEl) tabEl.classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'leaderboard') loadLeaderboard('all');
+  if (tab === 'profile') loadProfile();
   if (tab === 'export') { updateExportSelect(); renderStats(); }
   if (tab === 'library') renderLibrary();
 }
 
-// ─── QUESTION BUILDER ────────────────────────────────
+// ══════════════════════════════════════════
+// LEADERBOARD
+// ══════════════════════════════════════════
+async function loadLeaderboard(type, quizId) {
+  // Filter buttons
+  document.querySelectorAll('[id^="lbf-"]').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('lbf-' + type);
+  if (btn) btn.classList.add('active');
+
+  const container = document.getElementById('leaderboardContent');
+  container.innerHTML = '<div class="loading">Жүктелуде</div>';
+
+  try {
+    let url = `${API_BASE}/leaderboard?type=${type}`;
+    if (quizId) url += `&quiz_id=${quizId}`;
+    const r = await fetch(url);
+    const d = await r.json();
+
+    if (!d.ok || !d.data.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">Деректер жоқ</div><p class="muted">Алғашқы болыңыз!</p></div>`;
+      return;
+    }
+
+    const myId = getTgUser()?.id;
+    container.innerHTML = d.data.map((u, i) => {
+      const rankNum = i + 1;
+      const rankClass = rankNum === 1 ? 'gold' : rankNum === 2 ? 'silver' : rankNum === 3 ? 'bronze' : 'other';
+      const rankIcon = rankNum === 1 ? '🥇' : rankNum === 2 ? '🥈' : rankNum === 3 ? '🥉' : rankNum;
+      const isMe = u.id === myId || u.user_id === myId;
+      const name = u.first_name || 'Қолданушы';
+      const initial = name[0].toUpperCase();
+
+      let scoreVal, scoreSub;
+      if (type === 'all') {
+        const pct = u.total_questions > 0 ? Math.round(u.total_correct / u.total_questions * 100) : 0;
+        scoreVal = pct + '%';
+        scoreSub = u.total_games + ' ойын';
+      } else if (type === 'weekly') {
+        scoreVal = (u.avg_score || 0) + '%';
+        scoreSub = u.games + ' ойын';
+      } else {
+        scoreVal = (u.score || 0) + '%';
+        scoreSub = u.time_sec + 'с';
+      }
+
+      return `
+        <div class="lb-row ${isMe ? 'lb-me-row' : ''}">
+          <div class="lb-rank ${rankClass}">${rankIcon}</div>
+          <div class="lb-avatar ${isMe ? 'me' : ''}">${initial}</div>
+          <div class="lb-info">
+            <div class="lb-name">${esc(name)}${isMe ? ' 👈' : ''}</div>
+            <div class="lb-sub">${u.username ? '@'+u.username : ''}</div>
+          </div>
+          <div>
+            <div class="lb-score">${scoreVal}</div>
+            <div class="lb-score-sub">${scoreSub}</div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div><p class="muted">Сервермен байланыс жоқ</p></div>`;
+  }
+}
+
+// ══════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════
+async function loadProfile() {
+  const container = document.getElementById('profileContent');
+  const user = getTgUser();
+
+  if (!user) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Telegram арқылы кіріңіз</div></div>`;
+    return;
+  }
+
+  container.innerHTML = '<div class="loading">Жүктелуде</div>';
+
+  try {
+    const r = await fetch(`${API_BASE}/profile`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: getTgInitData() }),
+    });
+    const d = await r.json();
+
+    if (!d.ok) throw new Error();
+
+    const u = d.user;
+    const pct = u.total_questions > 0 ? Math.round(u.total_correct / u.total_questions * 100) : 0;
+    const initial = (u.first_name || 'Q')[0].toUpperCase();
+
+    // Жетістіктер
+    const achievements = [
+      { icon:'🎯', name:'Алғашқы қадам', desc:'Бірінші тестті аяқтадыңыз', unlocked: u.total_games >= 1 },
+      { icon:'🔥', name:'Streak x5', desc:'5 дұрыс жауап қатарынан', unlocked: u.best_streak >= 5 },
+      { icon:'⭐', name:'Жүлдегер', desc:'Орташа нәтиже 80%+', unlocked: pct >= 80 },
+      { icon:'🏆', name:'Чемпион', desc:'10 тест ойнадыңыз', unlocked: u.total_games >= 10 },
+      { icon:'🧠', name:'Білгір', desc:'50 дұрыс жауап', unlocked: u.total_correct >= 50 },
+      { icon:'⚡', name:'Жылдам', desc:'Streak x10', unlocked: u.best_streak >= 10 },
+    ];
+
+    container.innerHTML = `
+      <div class="profile-hero">
+        <div class="profile-avatar">${initial}</div>
+        <div class="profile-name">${esc(u.first_name || 'Қолданушы')}</div>
+        <div class="profile-username">${u.username ? '@'+u.username : 'ID: '+u.id}</div>
+        <div class="profile-rank-pill">🏅 Жалпы рейтинг: #${d.rank}</div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="ps-box"><div class="ps-val">${u.total_games}</div><div class="ps-lbl">ОЙЫН</div></div>
+        <div class="ps-box"><div class="ps-val" style="color:var(--accent3)">${pct}%</div><div class="ps-lbl">ОРТАША</div></div>
+        <div class="ps-box"><div class="ps-val" style="color:#fb923c">${u.best_streak}🔥</div><div class="ps-lbl">STREAK</div></div>
+        <div class="ps-box"><div class="ps-val" style="color:#a78bfa">${u.total_correct}</div><div class="ps-lbl">ДҰРЫС</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🏅 жетістіктер</div>
+        ${achievements.map(a => `
+          <div class="achievement ${a.unlocked ? '' : 'locked'}">
+            <div class="ach-icon">${a.icon}</div>
+            <div>
+              <div class="ach-name">${a.name}</div>
+              <div class="ach-desc">${a.desc}</div>
+            </div>
+            ${a.unlocked ? '<div style="margin-left:auto;color:var(--accent3);font-size:18px">✓</div>' : ''}
+          </div>
+        `).join('')}
+      </div>
+
+      ${d.recentResults?.length ? `
+        <div class="card">
+          <div class="card-title">📋 соңғы ойындар</div>
+          ${d.recentResults.map(r => `
+            <div class="recent-item">
+              <div>
+                <div class="recent-title">${esc(r.quiz_title || 'Тест')}</div>
+                <div class="recent-meta">${new Date(r.played_at).toLocaleDateString('kk-KZ')} · ${r.time_sec}с</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-family:Orbitron,monospace;font-size:16px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div>
+                <div class="recent-meta">${r.correct}✓ ${r.wrong}✗</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    `;
+  } catch {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Бейін жоқ</div><p class="muted">Алдымен тест ойнаңыз!</p></div>`;
+  }
+}
+
+// ══════════════════════════════════════════
+// QUESTION BUILDER
+// ══════════════════════════════════════════
 function addQuestion(q = null) {
   state.questionCounter++;
   const id = 'q_' + Date.now() + '_' + state.questionCounter;
-  const question = q || { id, text: '', options: ['','','',''], correct: 0, explanation: '' };
+  const question = q || { id, text:'', options:['','','',''], correct:0, explanation:'' };
   if (!q) question.id = id;
   questions.push(question);
   renderQuestions();
@@ -572,10 +698,10 @@ function renderQuestions() {
     div.className = 'question-item';
     div.innerHTML = `
       <div class="q-header">
-        <div class="q-num">СҰРАҚ ${idx + 1}</div>
+        <div class="q-num">СҰРАҚ ${idx+1}</div>
         <div style="display:flex;gap:6px">
-          ${idx > 0 ? `<button class="btn btn-sm btn-cyan" onclick="moveQuestion(${idx},-1)">↑</button>` : ''}
-          ${idx < questions.length-1 ? `<button class="btn btn-sm btn-cyan" onclick="moveQuestion(${idx},1)">↓</button>` : ''}
+          ${idx>0?`<button class="btn btn-sm btn-cyan" onclick="moveQuestion(${idx},-1)">↑</button>`:''}
+          ${idx<questions.length-1?`<button class="btn btn-sm btn-cyan" onclick="moveQuestion(${idx},1)">↓</button>`:''}
           <button class="btn btn-sm btn-danger" onclick="removeQuestion(${idx})">✕</button>
         </div>
       </div>
@@ -583,183 +709,133 @@ function renderQuestions() {
       <input type="text" value="${esc(q.text)}" placeholder="Сұрақты жазыңыз..." oninput="questions[${idx}].text=this.value" />
       <label>Жауап нұсқалары</label>
       <div class="options-grid">
-        ${['A','B','C','D'].map((letter,oi) => `
+        ${['A','B','C','D'].map((l,oi)=>`
           <div class="option-input">
-            <div class="option-label">${letter}</div>
-            <input type="text" value="${esc(q.options[oi]||'')}" placeholder="${letter} нұсқасы"
-              oninput="questions[${idx}].options[${oi}]=this.value" />
-          </div>
-        `).join('')}
+            <div class="option-label">${l}</div>
+            <input type="text" value="${esc(q.options[oi]||'')}" placeholder="${l} нұсқасы" oninput="questions[${idx}].options[${oi}]=this.value"/>
+          </div>`).join('')}
       </div>
       <label>Дұрыс жауап</label>
       <div class="correct-selector">
-        ${['A','B','C','D'].map((letter,oi) => `
-          <button class="correct-btn ${q.correct===oi?'selected':''}"
-            onclick="setCorrect(${idx},${oi})">
-            ✓ ${letter}
-          </button>
-        `).join('')}
+        ${['A','B','C','D'].map((l,oi)=>`
+          <button class="correct-btn ${q.correct===oi?'selected':''}" onclick="setCorrect(${idx},${oi})">✓ ${l}</button>`).join('')}
       </div>
       <label>Түсіндірме (міндетті емес)</label>
-      <input type="text" value="${esc(q.explanation||'')}" placeholder="Дұрыс жауаптың түсіндірмесі..."
-        oninput="questions[${idx}].explanation=this.value" />
+      <input type="text" value="${esc(q.explanation||'')}" placeholder="Түсіндірме..." oninput="questions[${idx}].explanation=this.value"/>
     `;
     list.appendChild(div);
   });
 }
 
-function setCorrect(qIdx, optIdx) {
-  questions[qIdx].correct = optIdx;
-  renderQuestions();
-}
+function setCorrect(qi,oi) { questions[qi].correct=oi; renderQuestions(); }
+function removeQuestion(idx) { if(questions.length<=1)return showToast('⚠️ Кем дегенде 1 сұрақ!'); questions.splice(idx,1); renderQuestions(); }
+function moveQuestion(idx,dir) { const ni=idx+dir; if(ni<0||ni>=questions.length)return; [questions[idx],questions[ni]]=[questions[ni],questions[idx]]; renderQuestions(); }
+function clearAll() { if(confirm('Тазалайсыз ба?')){ questions=[]; addQuestion(); document.getElementById('quizTitle').value=''; } }
 
-function removeQuestion(idx) {
-  if (questions.length <= 1) return showToast('⚠️ Кем дегенде 1 сұрақ болуы керек!');
-  questions.splice(idx, 1);
-  renderQuestions();
-}
-
-function moveQuestion(idx, dir) {
-  const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= questions.length) return;
-  [questions[idx], questions[newIdx]] = [questions[newIdx], questions[idx]];
-  renderQuestions();
-}
-
-function clearAll() {
-  if (confirm('Барлық сұрақтарды тазалайсыз ба?')) {
-    questions = [];
-    addQuestion();
-    document.getElementById('quizTitle').value = '';
-  }
-}
-
-// ─── SAVE QUIZ ───────────────────────────────────────
+// ══════════════════════════════════════════
+// SAVE QUIZ
+// ══════════════════════════════════════════
 function saveQuiz() {
   if (!isAdmin()) return;
   const title = document.getElementById('quizTitle').value.trim();
   if (!title) return showToast('⚠️ Тест атауын енгізіңіз!');
-  const validQs = questions.filter(q => q.text.trim() && q.options.some(o => o.trim()));
-  if (validQs.length < 2) return showToast('⚠️ Кем дегенде 2 толық сұрақ керек!');
-
+  const validQs = questions.filter(q => q.text.trim() && q.options.some(o=>o.trim()));
+  if (validQs.length < 2) return showToast('⚠️ Кем дегенде 2 сұрақ!');
   const quiz = {
-    id: 'quiz_' + Date.now(),
-    title,
+    id: 'quiz_'+Date.now(), title,
     category: document.getElementById('quizCategory').value,
     timer: parseInt(document.getElementById('quizTimer').value),
     difficulty: document.getElementById('quizDifficulty').value,
-    questions: validQs.map(q => ({...q, options: q.options.filter(o => o.trim())})),
+    questions: validQs.map(q=>({...q,options:q.options.filter(o=>o.trim())})),
     created: new Date().toLocaleDateString('kk-KZ'),
-    playCount: 0,
-    bestScore: 0,
+    playCount:0, bestScore:0,
   };
-
   state.quizzes.unshift(quiz);
   localStorage.setItem('qbit_quizzes', JSON.stringify(state.quizzes));
-  updateHeader();
-  updateExportSelect();
-  questions = [];
-  addQuestion();
-  document.getElementById('quizTitle').value = '';
+  updateHeader(); updateExportSelect();
+  questions=[]; addQuestion();
+  document.getElementById('quizTitle').value='';
   showToast(`✅ "${title}" сақталды!`);
   switchTab('library');
 }
 
-// ─── LIBRARY ─────────────────────────────────────────
+// ══════════════════════════════════════════
+// LIBRARY
+// ══════════════════════════════════════════
 function renderLibrary() {
-  const container = document.getElementById('quizLibrary');
-  if (state.quizzes.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">📭</div>
-        <div class="empty-title">Тест жоқ</div>
-        <p class="muted">Әкімші тест жасаса осында көрінеді</p>
-      </div>`;
+  const c = document.getElementById('quizLibrary');
+  if (!state.quizzes.length) {
+    c.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div><p class="muted">Әкімші тест жасаса осында көрінеді</p></div>`;
     return;
   }
-  container.innerHTML = state.quizzes.map(quiz => `
+  c.innerHTML = state.quizzes.map(quiz=>`
     <div class="quiz-list-item" onclick="startPlay('${quiz.id}')">
       <div>
         <div class="qli-name">${esc(quiz.title)}</div>
-        <div class="qli-meta">${quiz.category} &nbsp;·&nbsp; ${quiz.questions.length} сұрақ &nbsp;·&nbsp; ${quiz.created}</div>
-        <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap">
-          <span class="tag tag-cyan">${quiz.timer > 0 ? quiz.timer+'с' : 'таймерсіз'}</span>
-          <span class="tag ${quiz.difficulty==='easy'?'tag-green':quiz.difficulty==='hard'?'tag-purple':'tag-cyan'}">
-            ${quiz.difficulty==='easy'?'оңай':quiz.difficulty==='hard'?'қиын':'орта'}
-          </span>
-          ${quiz.playCount > 0 ? `<span class="tag tag-green">▶ ${quiz.playCount}x</span>` : ''}
-          ${quiz.bestScore > 0 ? `<span class="tag tag-purple">⭐ ${quiz.bestScore}%</span>` : ''}
+        <div class="qli-meta">${quiz.category} · ${quiz.questions.length} сұрақ · ${quiz.created}</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="tag tag-cyan">${quiz.timer>0?quiz.timer+'с':'∞'}</span>
+          <span class="tag ${quiz.difficulty==='easy'?'tag-green':quiz.difficulty==='hard'?'tag-purple':'tag-cyan'}">${quiz.difficulty==='easy'?'оңай':quiz.difficulty==='hard'?'қиын':'орта'}</span>
+          ${quiz.playCount>0?`<span class="tag tag-green">▶ ${quiz.playCount}x</span>`:''}
+          ${quiz.bestScore>0?`<span class="tag tag-purple">⭐ ${quiz.bestScore}%</span>`:''}
         </div>
       </div>
       <div class="qli-actions" onclick="event.stopPropagation()">
         <button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}')">▶ Ойна</button>
-        ${isAdmin() ? `<button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">✕</button>` : ''}
+        ${isAdmin()?`<button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">✕</button>`:''}
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 function deleteQuiz(id) {
   if (!isAdmin()) return;
   if (!confirm('Жоюға сенімдісіз бе?')) return;
-  state.quizzes = state.quizzes.filter(q => q.id !== id);
+  state.quizzes = state.quizzes.filter(q=>q.id!==id);
   localStorage.setItem('qbit_quizzes', JSON.stringify(state.quizzes));
-  updateHeader();
-  renderLibrary();
-  updateExportSelect();
+  updateHeader(); renderLibrary(); updateExportSelect();
 }
 
-// ─── PLAY ────────────────────────────────────────────
+// ══════════════════════════════════════════
+// PLAY
+// ══════════════════════════════════════════
 function startPlay(quizId) {
-  const quiz = state.quizzes.find(q => q.id === quizId);
+  const quiz = state.quizzes.find(q=>q.id===quizId);
   if (!quiz) return;
   state.currentPlay = quiz;
-  state.playState = {
-    idx: 0, correct: 0, wrong: 0, answers: [],
-    startTime: Date.now(), streak: 0, maxStreak: 0,
-  };
+  state.playState = { idx:0, correct:0, wrong:0, answers:[], startTime:Date.now(), streak:0, maxStreak:0 };
   switchTab('play');
   renderQuestion();
 }
 
 function renderQuestion() {
-  const quiz = state.currentPlay;
-  const ps = state.playState;
+  const quiz = state.currentPlay, ps = state.playState;
   const q = quiz.questions[ps.idx];
-  const total = quiz.questions.length;
-  const pct = Math.round((ps.idx / total) * 100);
+  const pct = Math.round((ps.idx/quiz.questions.length)*100);
   clearTimeout(state.timer);
 
-  const html = `
+  document.getElementById('playContent').innerHTML = `
     <div class="quiz-header-bar">
       <div>
         <div class="quiz-title-big">${esc(quiz.title)}</div>
         <div class="muted">${quiz.category}</div>
       </div>
       <div style="display:flex;align-items:center;gap:16px">
-        ${ps.streak >= 2 ? `<div class="streak-display">🔥 ${ps.streak}</div>` : ''}
-        ${quiz.timer > 0 ? `<div class="timer-ring">
-          <svg viewBox="0 0 60 60"><circle class="timer-bg" /><circle class="timer-fill" id="timerCircle" /></svg>
-          <div class="timer-text" id="timerText">${quiz.timer}</div>
-        </div>` : ''}
+        ${ps.streak>=2?`<div class="streak-display">🔥 ${ps.streak}</div>`:''}
+        ${quiz.timer>0?`<div class="timer-ring"><svg viewBox="0 0 60 60"><circle class="timer-bg"/><circle class="timer-fill" id="timerCircle"/></svg><div class="timer-text" id="timerText">${quiz.timer}</div></div>`:''}
       </div>
     </div>
-    <div class="progress-bar">
-      <div class="progress-fill" style="width:${pct}%"></div>
-    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
     <div class="q-card">
-      <div class="q-counter">СҰРАҚ ${ps.idx+1} / ${total}</div>
+      <div class="q-counter">СҰРАҚ ${ps.idx+1} / ${quiz.questions.length}</div>
       <div class="q-text">${esc(q.text)}</div>
       <div class="answers-grid" id="answersGrid">
-        ${q.options.map((opt,i) => `
-          <button class="answer-btn" id="ansBtn_${i}" onclick="selectAnswer(${i})">
-            <div class="ans-letter">${'ABCD'[i]}</div>
-            ${esc(opt)}
-          </button>
-        `).join('')}
+        ${q.options.map((opt,i)=>`
+          <button class="answer-btn" id="ab_${i}" onclick="selectAnswer(${i})">
+            <div class="ans-letter">${'ABCD'[i]}</div>${esc(opt)}
+          </button>`).join('')}
       </div>
       <div class="explanation" id="explanation">
-        <strong>💡 Түсіндірме:</strong> ${esc(q.explanation || 'Дұрыс жауап — ' + 'ABCD'[q.correct] + ' нұсқасы.')}
+        <strong>💡 Түсіндірме:</strong> ${esc(q.explanation||'Дұрыс жауап — '+'ABCD'[q.correct]+' нұсқасы.')}
       </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center">
@@ -768,89 +844,94 @@ function renderQuestion() {
         <span class="tag" style="color:var(--danger);border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08)">✗ ${ps.wrong}</span>
       </div>
       <button class="btn btn-danger btn-sm" onclick="endPlay()">⏹ Тоқтату</button>
-    </div>
-  `;
+    </div>`;
 
-  document.getElementById('playContent').innerHTML = html;
-  if (quiz.timer > 0) startTimer(quiz.timer);
+  if (quiz.timer>0) startTimer(quiz.timer);
 }
 
 function startTimer(secs) {
-  const circle = document.getElementById('timerCircle');
-  const text = document.getElementById('timerText');
-  const circumference = 163;
-  let remaining = secs;
+  const C=163; let rem=secs;
   function tick() {
+    const circle=document.getElementById('timerCircle'), text=document.getElementById('timerText');
     if (!circle) return;
-    const fraction = remaining / secs;
-    circle.style.strokeDashoffset = circumference * (1 - fraction);
-    circle.style.stroke = remaining <= 5 ? '#ef4444' : remaining <= 10 ? '#f59e0b' : 'var(--accent)';
-    text.textContent = remaining;
-    text.style.color = remaining <= 5 ? '#ef4444' : 'var(--accent)';
-    if (remaining <= 0) { autoAnswer(); return; }
-    remaining--;
-    state.timer = setTimeout(tick, 1000);
+    circle.style.strokeDashoffset=C*(1-rem/secs);
+    circle.style.stroke=rem<=5?'#ef4444':rem<=10?'#f59e0b':'var(--accent)';
+    text.textContent=rem; text.style.color=rem<=5?'#ef4444':'var(--accent)';
+    if(rem<=0){autoAnswer();return;}
+    rem--; state.timer=setTimeout(tick,1000);
   }
   tick();
 }
 
 function selectAnswer(optIdx) {
   clearTimeout(state.timer);
-  const quiz = state.currentPlay;
-  const ps = state.playState;
-  const q = quiz.questions[ps.idx];
-  const isCorrect = optIdx === q.correct;
-  document.querySelectorAll('.answer-btn').forEach((btn, i) => {
-    btn.disabled = true;
-    if (i === q.correct) btn.classList.add('correct');
-    else if (i === optIdx && !isCorrect) btn.classList.add('wrong');
+  const quiz=state.currentPlay, ps=state.playState, q=quiz.questions[ps.idx];
+  const ok=optIdx===q.correct;
+  document.querySelectorAll('.answer-btn').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===q.correct)btn.classList.add('correct');
+    else if(i===optIdx&&!ok)btn.classList.add('wrong');
   });
-  const exp = document.getElementById('explanation');
-  if (exp) exp.classList.add('show');
-  if (isCorrect) { ps.correct++; ps.streak++; ps.maxStreak = Math.max(ps.maxStreak, ps.streak); }
-  else { ps.wrong++; ps.streak = 0; }
-  ps.answers.push(isCorrect);
-  setTimeout(nextQuestion, 1500);
+  const exp=document.getElementById('explanation');
+  if(exp)exp.classList.add('show');
+  if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}
+  else{ps.wrong++;ps.streak=0;}
+  ps.answers.push(ok);
+  setTimeout(nextQuestion,1500);
 }
 
 function autoAnswer() {
-  const quiz = state.currentPlay;
-  const ps = state.playState;
-  const q = quiz.questions[ps.idx];
-  document.querySelectorAll('.answer-btn').forEach((btn, i) => {
-    btn.disabled = true;
-    if (i === q.correct) btn.classList.add('correct');
-  });
-  const exp = document.getElementById('explanation');
-  if (exp) exp.classList.add('show');
-  ps.wrong++; ps.streak = 0; ps.answers.push(false);
-  setTimeout(nextQuestion, 1500);
+  const q=state.currentPlay.questions[state.playState.idx];
+  document.querySelectorAll('.answer-btn').forEach((btn,i)=>{btn.disabled=true;if(i===q.correct)btn.classList.add('correct');});
+  const exp=document.getElementById('explanation');
+  if(exp)exp.classList.add('show');
+  state.playState.wrong++;state.playState.streak=0;state.playState.answers.push(false);
+  setTimeout(nextQuestion,1500);
 }
 
 function nextQuestion() {
-  const ps = state.playState;
-  ps.idx++;
-  if (ps.idx >= state.currentPlay.questions.length) showResults();
+  state.playState.idx++;
+  if(state.playState.idx>=state.currentPlay.questions.length)showResults();
   else renderQuestion();
 }
 
-function endPlay() { clearTimeout(state.timer); showResults(); }
+function endPlay(){clearTimeout(state.timer);showResults();}
 
-function showResults() {
-  const quiz = state.currentPlay;
-  const ps = state.playState;
-  const total = quiz.questions.length;
-  const score = Math.round((ps.correct / total) * 100);
-  const time = Math.round((Date.now() - ps.startTime) / 1000);
-  quiz.playCount = (quiz.playCount || 0) + 1;
-  quiz.bestScore = Math.max(quiz.bestScore || 0, score);
-  state.plays = parseInt(state.plays) + 1;
-  localStorage.setItem('qbit_quizzes', JSON.stringify(state.quizzes));
-  localStorage.setItem('qbit_plays', state.plays);
+async function showResults() {
+  const quiz=state.currentPlay, ps=state.playState;
+  const total=quiz.questions.length;
+  const score=Math.round((ps.correct/total)*100);
+  const time=Math.round((Date.now()-ps.startTime)/1000);
+  quiz.playCount=(quiz.playCount||0)+1;
+  quiz.bestScore=Math.max(quiz.bestScore||0,score);
+  state.plays=parseInt(state.plays)+1;
+  localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
+  localStorage.setItem('qbit_plays',state.plays);
   updateHeader();
-  const rank = score >= 90 ? 'MASTER' : score >= 70 ? 'EXPERT' : score >= 50 ? 'STUDENT' : 'ROOKIE';
-  const rankEmoji = score >= 90 ? '🏆' : score >= 70 ? '⭐' : score >= 50 ? '📚' : '🌱';
-  document.getElementById('playContent').innerHTML = `
+
+  // Нәтижені серверге жіберу
+  const initData=getTgInitData();
+  if (initData) {
+    try {
+      await fetch(`${API_BASE}/save-result`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          initData,
+          result:{
+            quizId:quiz.id, quizTitle:quiz.title,
+            score, correct:ps.correct, wrong:ps.wrong,
+            timeSec:time, maxStreak:ps.maxStreak,
+          }
+        })
+      });
+    } catch {}
+  }
+
+  const rank=score>=90?'MASTER':score>=70?'EXPERT':score>=50?'STUDENT':'ROOKIE';
+  const rankEmoji=score>=90?'🏆':score>=70?'⭐':score>=50?'📚':'🌱';
+
+  document.getElementById('playContent').innerHTML=`
     <div class="result-big">
       <div class="rank-badge">${rankEmoji} ${rank}</div>
       <div class="result-score">${score}%</div>
@@ -863,117 +944,88 @@ function showResults() {
       </div>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
         <button class="btn btn-primary" onclick="startPlay('${quiz.id}')">🔄 Қайта ойна</button>
-        <button class="btn btn-cyan" onclick="switchTab('library')">📦 Кітапхана</button>
+        <button class="btn btn-cyan" onclick="switchTab('leaderboard')">🏆 Рейтинг</button>
+        <button class="btn btn-ghost" onclick="switchTab('library')">📦 Тесттер</button>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
-// ─── EXPORT ──────────────────────────────────────────
+// ══════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════
 function updateExportSelect() {
-  const sel = document.getElementById('exportSelect');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">— Тест таңдаңыз —</option>';
-  state.quizzes.forEach(q => {
-    const opt = document.createElement('option');
-    opt.value = q.id; opt.textContent = q.title; sel.appendChild(opt);
-  });
+  const sel=document.getElementById('exportSelect');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Тест таңдаңыз —</option>';
+  state.quizzes.forEach(q=>{const opt=document.createElement('option');opt.value=q.id;opt.textContent=q.title;sel.appendChild(opt);});
 }
 
 function generateExport() {
-  if (!isAdmin()) return;
-  const id = document.getElementById('exportSelect').value;
-  if (!id) return showToast('⚠️ Тест таңдаңыз!');
-  const quiz = state.quizzes.find(q => q.id === id);
-  if (!quiz) return;
-  let out = `# 📦 ${quiz.title}\n# ${quiz.category} | ${quiz.questions.length} сұрақ\n\n`;
-  out += `# ─── Telegram Bot API (sendPoll) ───\n\n`;
-  quiz.questions.forEach((q, i) => {
-    out += `# Сұрақ ${i+1}\nPOST /sendPoll\n{\n  "question": "${q.text}",\n  "options": [\n`;
-    q.options.forEach((opt, oi) => { out += `    "${opt}"${oi < q.options.length-1 ? ',' : ''}\n`; });
-    out += `  ],\n  "type": "quiz",\n  "correct_option_id": ${q.correct},\n  "is_anonymous": false`;
-    if (q.explanation) out += `,\n  "explanation": "${q.explanation}"`;
-    out += `\n}\n\n`;
+  if(!isAdmin())return;
+  const id=document.getElementById('exportSelect').value;
+  if(!id)return showToast('⚠️ Тест таңдаңыз!');
+  const quiz=state.quizzes.find(q=>q.id===id);
+  if(!quiz)return;
+  let out=`# 📦 ${quiz.title}\n# ${quiz.category} | ${quiz.questions.length} сұрақ\n\n`;
+  quiz.questions.forEach((q,i)=>{
+    out+=`# Сұрақ ${i+1}\nPOST /sendPoll\n{\n  "question": "${q.text}",\n  "options": [\n`;
+    q.options.forEach((opt,oi)=>{out+=`    "${opt}"${oi<q.options.length-1?',':''}\n`;});
+    out+=`  ],\n  "type": "quiz",\n  "correct_option_id": ${q.correct},\n  "is_anonymous": false`;
+    if(q.explanation)out+=`,\n  "explanation": "${q.explanation}"`;
+    out+=`\n}\n\n`;
   });
-  document.getElementById('exportOutput').style.display = 'block';
-  document.getElementById('exportBox').textContent = out;
+  document.getElementById('exportOutput').style.display='block';
+  document.getElementById('exportBox').textContent=out;
 }
 
-function copyExport() {
-  navigator.clipboard.writeText(document.getElementById('exportBox').textContent)
-    .then(() => showToast('✅ Алмасу буферіне көшірілді!'));
-}
+function copyExport(){navigator.clipboard.writeText(document.getElementById('exportBox').textContent).then(()=>showToast('✅ Көшірілді!'));}
 
-// ─── STATS ───────────────────────────────────────────
+// ══════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════
 function renderStats() {
-  const panel = document.getElementById('statsPanel');
-  if (!panel) return;
-  if (state.quizzes.length === 0) {
-    panel.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">Статистика үшін алдымен тест жасаңыз</div>';
-    return;
-  }
-  const total = state.quizzes.reduce((a,q) => a + (q.playCount||0), 0);
-  const played = state.quizzes.filter(q => q.playCount > 0);
-  const avgBest = played.length ? Math.round(played.reduce((a,q) => a + q.bestScore, 0) / played.length) : 0;
-  panel.innerHTML = `
+  const panel=document.getElementById('statsPanel');
+  if(!panel||!state.quizzes.length)return;
+  const total=state.quizzes.reduce((a,q)=>a+(q.playCount||0),0);
+  const played=state.quizzes.filter(q=>q.playCount>0);
+  const avg=played.length?Math.round(played.reduce((a,q)=>a+q.bestScore,0)/played.length):0;
+  panel.innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;padding:8px 0">
-      <div><div class="r-stat-val cyan" style="font-size:32px">${state.quizzes.length}</div><div class="r-stat-lbl">жасалған тест</div></div>
-      <div><div class="r-stat-val green" style="font-size:32px">${total}</div><div class="r-stat-lbl">жалпы ойын</div></div>
-      <div><div class="r-stat-val" style="font-size:32px;color:var(--accent2)">${avgBest}%</div><div class="r-stat-lbl">орт. үздік нәтиже</div></div>
-    </div>
-    <div class="divider"></div>
-    <div style="font-family:Space Mono;font-size:12px;color:var(--muted);margin-bottom:10px;letter-spacing:1px">ТОП ТЕСТТЕР</div>
-    ${state.quizzes.slice(0,5).map(q => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:14px">${esc(q.title)}</span>
-        <div style="display:flex;gap:8px">
-          ${q.playCount > 0 ? `<span class="tag tag-cyan">▶ ${q.playCount}</span>` : ''}
-          ${q.bestScore > 0 ? `<span class="tag tag-green">⭐ ${q.bestScore}%</span>` : ''}
-        </div>
-      </div>
-    `).join('')}
-  `;
+      <div><div class="r-stat-val cyan" style="font-size:28px">${state.quizzes.length}</div><div class="r-stat-lbl">тест</div></div>
+      <div><div class="r-stat-val green" style="font-size:28px">${total}</div><div class="r-stat-lbl">ойын</div></div>
+      <div><div class="r-stat-val" style="font-size:28px;color:var(--accent2)">${avg}%</div><div class="r-stat-lbl">үздік орт.</div></div>
+    </div>`;
 }
 
-// ─── UTILS ───────────────────────────────────────────
-function esc(str) {
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function esc(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function showToast(msg){
+  const t=document.createElement('div');
+  t.style.cssText=`position:fixed;bottom:24px;right:24px;background:#0d1117;border:1px solid rgba(0,245,255,0.3);color:#00f5ff;padding:12px 20px;border-radius:10px;font-family:Rajdhani,sans-serif;font-size:15px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,245,255,0.2);animation:fadeIn 0.3s ease`;
+  t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
 }
 
-function showToast(msg) {
-  const t = document.createElement('div');
-  t.style.cssText = `position:fixed;bottom:24px;right:24px;background:#0d1117;border:1px solid rgba(0,245,255,0.3);color:#00f5ff;padding:12px 20px;border-radius:10px;font-family:Rajdhani,sans-serif;font-size:15px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,245,255,0.2);animation:fadeIn 0.3s ease`;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2500);
-}
-
-// ─── SAMPLE DATA ─────────────────────────────────────
-function loadSample() {
-  const sample = {
-    id: 'quiz_sample',
-    title: 'Қазақстан тарихы — Негіздер',
-    category: '📖 Тарих',
-    timer: 20, difficulty: 'medium',
-    created: new Date().toLocaleDateString('kk-KZ'),
-    playCount: 0, bestScore: 0,
-    questions: [
-      { id:'s1', text:'Қазақ хандығы қай жылы құрылды?', options:['1465','1500','1480','1520'], correct:0, explanation:'Қазақ хандығы 1465 жылы Керей мен Жәнібек хандар тарапынан құрылды.' },
-      { id:'s2', text:'Қазақстанның астанасы қалай аталады?', options:['Алматы','Шымкент','Астана','Орал'], correct:2, explanation:'2022 жылы Астана атауына қайтарылды.' },
-      { id:'s3', text:'Қазақстан тәуелсіздігін қай жылы алды?', options:['1990','1991','1992','1993'], correct:1, explanation:'Қазақстан 1991 жылы 16 желтоқсанда тәуелсіздігін жариялады.' },
-      { id:'s4', text:'Ұлы Жібек жолы қандай екі аймақты байланыстырды?', options:['Қытай — Еуропа','Үндістан — Африка','Ресей — Жапония','Орта Азия — Солтүстік Америка'], correct:0, explanation:'Ұлы Жібек жолы Қытайдан Еуропаға дейін созылып, сауда мен мәдениетті байланыстырды.' },
-    ]
-  };
-  if (!state.quizzes.find(q => q.id === 'quiz_sample')) {
-    state.quizzes.push(sample);
-    localStorage.setItem('qbit_quizzes', JSON.stringify(state.quizzes));
-    updateHeader(); renderLibrary(); updateExportSelect();
-    showToast('📚 Үлгі тест жүктелді!');
+// ══════════════════════════════════════════
+// SAMPLE DATA
+// ══════════════════════════════════════════
+function loadSample(){
+  const s={id:'quiz_sample',title:'Қазақстан тарихы — Негіздер',category:'📖 Тарих',timer:20,difficulty:'medium',created:new Date().toLocaleDateString('kk-KZ'),playCount:0,bestScore:0,questions:[
+    {id:'s1',text:'Қазақ хандығы қай жылы құрылды?',options:['1465','1500','1480','1520'],correct:0,explanation:'1465 жылы Керей мен Жәнібек хандар тарапынан құрылды.'},
+    {id:'s2',text:'Қазақстанның астанасы қандай?',options:['Алматы','Шымкент','Астана','Орал'],correct:2,explanation:'2022 жылы Астана атауына қайтарылды.'},
+    {id:'s3',text:'Тәуелсіздік жарияланған жыл?',options:['1990','1991','1992','1993'],correct:1,explanation:'1991 жылы 16 желтоқсанда жарияланды.'},
+    {id:'s4',text:'Ұлы Жібек жолы қайды байланыстырды?',options:['Қытай–Еуропа','Үндістан–Африка','Ресей–Жапония','Арабия–Қытай'],correct:0,explanation:'Қытайдан Еуропаға дейін созылды.'},
+  ]};
+  if(!state.quizzes.find(q=>q.id==='quiz_sample')){
+    state.quizzes.push(s);
+    localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
+    updateHeader();renderLibrary();updateExportSelect();
   }
 }
 
-if (state.quizzes.length === 0) setTimeout(loadSample, 500);
-
+if(state.quizzes.length===0)setTimeout(loadSample,500);
 init();
 </script>
 </body>
