@@ -10,34 +10,15 @@
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@300;500;700&family=Orbitron:wght@400;700;900&display=swap');
 
   :root {
-    --bg: #030712;
-    --surface: #0d1117;
-    --surface2: #161b22;
-    --border: #21262d;
-    --accent: #00f5ff;
-    --accent2: #7c3aed;
-    --accent3: #10b981;
-    --danger: #ef4444;
-    --warn: #f59e0b;
-    --text: #e6edf3;
-    --muted: #8b949e;
+    --bg: #030712; --surface: #0d1117; --surface2: #161b22; --border: #21262d;
+    --accent: #00f5ff; --accent2: #7c3aed; --accent3: #10b981;
+    --danger: #ef4444; --warn: #f59e0b; --text: #e6edf3; --muted: #8b949e;
     --glow: 0 0 20px rgba(0,245,255,0.3);
   }
-
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; overflow-x:hidden; }
-
-  body::before {
-    content:''; position:fixed; inset:0;
-    background-image: linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);
-    background-size:40px 40px; pointer-events:none; z-index:0;
-  }
-  body::after {
-    content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
-    background: radial-gradient(ellipse at 30% 20%,rgba(124,58,237,0.08) 0%,transparent 50%), radial-gradient(ellipse at 70% 80%,rgba(0,245,255,0.06) 0%,transparent 50%);
-    pointer-events:none; z-index:0;
-  }
-
+  body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
+  body::after { content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(ellipse at 30% 20%,rgba(124,58,237,0.08) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(0,245,255,0.06) 0%,transparent 50%); pointer-events:none; z-index:0; }
   #app { position:relative; z-index:1; max-width:900px; margin:0 auto; padding:20px; padding-bottom:90px; min-height:100vh; }
 
   header { display:flex; align-items:center; justify-content:space-between; padding:16px 0 24px; border-bottom:1px solid var(--border); margin-bottom:24px; }
@@ -50,12 +31,10 @@
   .stat-chip { display:flex; flex-direction:column; align-items:flex-end; }
   .stat-val { font-family:'Orbitron',monospace; font-size:16px; font-weight:700; color:var(--accent); }
   .stat-label { font-size:9px; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:1px; text-transform:uppercase; }
-
   .admin-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:20px; background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,245,255,0.1)); border:1px solid rgba(0,245,255,0.35); font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1.5px; color:var(--accent); }
   .admin-dot { width:5px; height:5px; border-radius:50%; background:var(--accent3); box-shadow:0 0 6px var(--accent3); animation:admBlink 2s infinite; }
   @keyframes admBlink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-  /* BOTTOM NAV */
   .tabs { position:fixed; bottom:0; left:0; right:0; display:flex; background:rgba(13,17,23,0.97); border-top:1px solid var(--border); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:1000; padding:0 4px; padding-bottom:env(safe-area-inset-bottom,0px); }
   .tab { flex:1; padding:10px 2px 8px; background:none; border:none; color:var(--muted); font-family:'Rajdhani',sans-serif; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; position:relative; min-width:0; }
   .tab-icon { font-size:22px; line-height:1; transition:all 0.2s; }
@@ -95,7 +74,6 @@
   .btn-sm { padding:5px 12px; font-size:13px; }
   .btn-lg { padding:14px 28px; font-size:17px; }
 
-  /* QUESTION BUILDER */
   .question-item { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:10px; transition:all 0.2s; }
   .question-item:hover { border-color:rgba(124,58,237,0.3); }
   .q-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
@@ -109,7 +87,6 @@
   .correct-btn { padding:4px 11px; border-radius:20px; border:1px solid var(--border); background:none; color:var(--muted); font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; transition:all 0.2s; }
   .correct-btn.selected { background:rgba(16,185,129,0.2); border-color:var(--accent3); color:var(--accent3); }
 
-  /* QUIZ PLAY */
   .quiz-header-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
   .quiz-title-big { font-family:'Orbitron',monospace; font-size:20px; font-weight:700; color:var(--accent); text-shadow:var(--glow); }
   .progress-bar { height:3px; background:var(--surface2); border-radius:2px; margin-bottom:22px; overflow:hidden; }
@@ -132,7 +109,6 @@
   .timer-fill { stroke:var(--accent); }
   .timer-text { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:13px; font-weight:700; color:var(--accent); }
 
-  /* RESULTS */
   .result-big { text-align:center; padding:32px 20px; }
   .result-score { font-family:'Orbitron',monospace; font-size:64px; font-weight:900; background:linear-gradient(135deg,var(--accent2),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1; margin-bottom:8px; }
   .result-label { font-size:14px; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:1px; margin-bottom:24px; }
@@ -145,7 +121,6 @@
   .r-stat-lbl { font-size:10px; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:1px; }
   .rank-badge { display:inline-block; padding:7px 20px; background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,245,255,0.1)); border:1px solid rgba(0,245,255,0.3); border-radius:100px; font-family:'Orbitron',monospace; font-size:13px; letter-spacing:2px; color:var(--accent); margin-bottom:24px; box-shadow:var(--glow); }
 
-  /* LIBRARY */
   .quiz-list-item { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; transition:all 0.2s; cursor:pointer; }
   .quiz-list-item:hover { border-color:rgba(0,245,255,0.25); transform:translateX(3px); box-shadow:-3px 0 0 var(--accent); }
   .qli-name { font-size:16px; font-weight:600; color:var(--text); margin-bottom:3px; }
@@ -162,7 +137,6 @@
   .explanation.show { display:block; animation:fadeIn 0.3s ease; }
   .explanation strong { color:var(--accent); }
 
-  /* LEADERBOARD */
   .lb-filters { display:flex; gap:7px; margin-bottom:14px; flex-wrap:wrap; }
   .lb-row { display:flex; align-items:center; gap:11px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:11px 14px; margin-bottom:7px; transition:all 0.2s; }
   .lb-row:hover { border-color:rgba(0,245,255,0.2); }
@@ -180,7 +154,6 @@
   .lb-score-sub { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); text-align:right; }
   .lb-me-row { background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(0,245,255,0.05)); border-color:rgba(0,245,255,0.25); }
 
-  /* PROFILE */
   .profile-hero { text-align:center; padding:24px 20px 18px; background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(0,245,255,0.05)); border:1px solid var(--border); border-radius:18px; margin-bottom:14px; }
   .profile-avatar { width:68px; height:68px; border-radius:50%; margin:0 auto 10px; background:linear-gradient(135deg,var(--accent2),var(--accent)); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:22px; font-weight:900; color:#fff; border:3px solid rgba(0,245,255,0.3); box-shadow:var(--glow); }
   .profile-name { font-family:'Orbitron',monospace; font-size:16px; font-weight:700; color:var(--text); margin-bottom:3px; }
@@ -199,34 +172,18 @@
   .recent-title { font-size:13px; color:var(--text); }
   .recent-meta { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); margin-top:2px; }
 
-  /* GAME - KAHOOT STYLE */
-  .game-code-display {
-    text-align:center; padding:32px 20px;
-    background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(0,245,255,0.08));
-    border:1px solid rgba(0,245,255,0.3); border-radius:20px; margin-bottom:16px;
-  }
+  .game-code-display { text-align:center; padding:32px 20px; background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(0,245,255,0.08)); border:1px solid rgba(0,245,255,0.3); border-radius:20px; margin-bottom:16px; }
   .game-code { font-family:'Orbitron',monospace; font-size:48px; font-weight:900; color:var(--accent); text-shadow:var(--glow); letter-spacing:8px; margin:12px 0; }
   .game-code-label { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
-
   .player-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; margin-bottom:16px; }
   .player-chip { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px; text-align:center; transition:all 0.3s; animation:popIn 0.3s ease; }
   .player-chip.me { border-color:var(--accent); background:rgba(0,245,255,0.08); }
   @keyframes popIn { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
   .player-chip-name { font-size:13px; font-weight:600; color:var(--text); }
   .player-chip-score { font-family:'Orbitron',monospace; font-size:11px; color:var(--accent); margin-top:2px; }
-
-  .game-question-header { text-align:center; margin-bottom:20px; }
-  .game-q-num { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:2px; margin-bottom:8px; }
   .game-q-text { font-size:22px; font-weight:700; color:var(--text); line-height:1.3; }
-
   .game-answers { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; }
-  .game-ans-btn {
-    padding:18px 14px; border-radius:14px; border:none; cursor:pointer;
-    font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700;
-    transition:all 0.15s; text-align:center; color:#fff;
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    min-height:70px; position:relative; overflow:hidden;
-  }
+  .game-ans-btn { padding:18px 14px; border-radius:14px; border:none; cursor:pointer; font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700; transition:all 0.15s; text-align:center; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; min-height:70px; position:relative; overflow:hidden; }
   .game-ans-btn:nth-child(1) { background:linear-gradient(135deg,#e74c3c,#c0392b); }
   .game-ans-btn:nth-child(2) { background:linear-gradient(135deg,#3498db,#2980b9); }
   .game-ans-btn:nth-child(3) { background:linear-gradient(135deg,#f39c12,#d68910); }
@@ -236,36 +193,18 @@
   .game-ans-btn.selected { transform:scale(0.96); box-shadow:0 0 0 3px var(--accent) !important; }
   .game-ans-btn.reveal-correct { opacity:1 !important; box-shadow:0 0 20px rgba(16,185,129,0.6) !important; border:3px solid var(--accent3); }
   .game-ans-btn.reveal-wrong { opacity:0.3 !important; }
-
   .game-waiting { text-align:center; padding:40px 20px; }
   .game-waiting-icon { font-size:60px; margin-bottom:16px; animation:pulse 2s infinite; }
   @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
-
-  .points-popup {
-    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-    background:linear-gradient(135deg,var(--accent2),var(--accent));
-    color:#fff; font-family:'Orbitron',monospace; font-size:28px; font-weight:900;
-    padding:20px 40px; border-radius:20px; z-index:9999;
-    animation:pointsPop 1.5s ease forwards;
-  }
-  @keyframes pointsPop {
-    0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}
-    20%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}
-    40%{transform:translate(-50%,-50%) scale(1)}
-    70%{opacity:1;transform:translate(-50%,-60%)}
-    100%{opacity:0;transform:translate(-50%,-80%)}
-  }
-
-  .scoreboard-row { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; margin-bottom:7px; transition:all 0.3s; }
+  .points-popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg,var(--accent2),var(--accent)); color:#fff; font-family:'Orbitron',monospace; font-size:28px; font-weight:900; padding:20px 40px; border-radius:20px; z-index:9999; animation:pointsPop 1.5s ease forwards; }
+  @keyframes pointsPop { 0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)} 20%{opacity:1;transform:translate(-50%,-50%) scale(1.1)} 40%{transform:translate(-50%,-50%) scale(1)} 70%{opacity:1;transform:translate(-50%,-60%)} 100%{opacity:0;transform:translate(-50%,-80%)} }
+  .scoreboard-row { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; margin-bottom:7px; }
   .scoreboard-row.highlight { background:linear-gradient(135deg,rgba(251,191,36,0.15),rgba(251,191,36,0.05)); border-color:rgba(251,191,36,0.3); }
 
-  /* EXPORT */
   .export-box { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px; font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); line-height:1.8; white-space:pre-wrap; word-break:break-all; margin-top:10px; max-height:280px; overflow-y:auto; }
-
   .adm-nav { transition:all 0.2s; }
   .flex { display:flex; } .flex-center { display:flex; align-items:center; }
-  .gap-8 { gap:8px; } .gap-12 { gap:12px; }
-  .mb-8 { margin-bottom:8px; }
+  .gap-8 { gap:8px; } .gap-12 { gap:12px; } .mb-8 { margin-bottom:8px; }
   .muted { color:var(--muted); font-size:12px; font-family:'Space Mono',monospace; }
   .divider { height:1px; background:var(--border); margin:16px 0; }
   .streak-display { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:100px; font-family:'Orbitron',monospace; font-size:11px; color:#fb923c; letter-spacing:1px; }
@@ -273,15 +212,12 @@
   .empty-icon { font-size:44px; margin-bottom:14px; opacity:0.5; }
   .empty-title { font-size:17px; font-weight:600; color:var(--text); margin-bottom:7px; font-family:'Rajdhani',sans-serif; }
   .loading { text-align:center; padding:40px; color:var(--muted); font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; }
-
   ::-webkit-scrollbar { width:3px; }
   ::-webkit-scrollbar-track { background:var(--surface); }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
-
   @media (max-width:480px) {
     .options-grid { grid-template-columns:1fr; }
     .answers-grid { grid-template-columns:1fr; }
-    .game-answers { grid-template-columns:1fr 1fr; }
     .result-stats { gap:14px; }
     .result-score { font-size:52px; }
     #app { padding:14px; padding-bottom:90px; }
@@ -290,7 +226,6 @@
 </head>
 <body>
 <div id="app">
-
   <header>
     <div class="logo">
       <div class="logo-icon">QB</div>
@@ -308,7 +243,7 @@
     </div>
   </header>
 
-  <!-- ⚡ ӘКІМШІ ТАҚТАСЫ -->
+  <!-- ⚡ ӘКІМШІ -->
   <div class="panel" id="panel-create">
     <div id="admin-dashboard">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
@@ -325,7 +260,6 @@
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('recent',event)">📜 Ойындар</button>
       </div>
 
-      <!-- ⚡ ТЕСТ ЖАСАУ -->
       <div id="adm-section-create">
         <div class="card">
           <div class="card-title">⚡ тест параметрлері</div>
@@ -363,11 +297,10 @@
         </div>
       </div>
 
-      <!-- 🎮 ОЙЫН ЖАСАУ (admin) -->
       <div id="adm-section-games" style="display:none">
         <div class="card">
           <div class="card-title">🎮 жарыс ойыны жасау</div>
-          <p style="color:var(--muted);font-size:13px;margin-bottom:14px;line-height:1.6">Тест таңдаңыз — ойын коды генерацияланады. Қатысушылар кодты енгізіп қосылады.</p>
+          <p style="color:var(--muted);font-size:13px;margin-bottom:14px;line-height:1.6">Тест таңдаңыз — ойын коды генерацияланады.</p>
           <label>Тест таңдаңыз</label>
           <select id="gameQuizSelect"><option value="">— Тест таңдаңыз —</option></select>
           <button class="btn btn-primary btn-lg" onclick="createGame()" style="width:100%;justify-content:center">🚀 Ойын жасау</button>
@@ -386,7 +319,6 @@
               <button class="btn btn-danger btn-sm" onclick="cancelGame()">✕ Бітіру</button>
             </div>
           </div>
-          <!-- Хост сұрақ басқаруы -->
           <div id="hostQuestionPanel" style="display:none">
             <div class="card">
               <div class="card-title">🎯 хост басқармасы</div>
@@ -401,23 +333,18 @@
         </div>
       </div>
 
-      <!-- 📋 ТЕСТТЕР -->
       <div id="adm-section-quizzes" style="display:none">
         <div class="card">
           <div class="card-title">📋 барлық тесттер</div>
           <div id="adm-quizzes-list"></div>
         </div>
       </div>
-
-      <!-- 👥 ҚОЛДАНУШЫЛАР -->
       <div id="adm-section-users" style="display:none">
         <div class="card">
           <div class="card-title">👥 қолданушылар</div>
           <div id="adm-users-list"><div class="loading">Жүктелуде</div></div>
         </div>
       </div>
-
-      <!-- 📜 СОҢҒЫ ОЙЫНДАР -->
       <div id="adm-section-recent" style="display:none">
         <div class="card">
           <div class="card-title">📜 соңғы ойындар</div>
@@ -449,7 +376,6 @@
   <!-- 🎮 ОЙЫН -->
   <div class="panel" id="panel-game">
     <div id="gameContent">
-      <!-- LOBBY: код енгізу -->
       <div id="gameJoinScreen">
         <div class="card">
           <div class="card-title">🎮 ойынға қосылу</div>
@@ -460,13 +386,7 @@
             oninput="this.value=this.value.toUpperCase()"/>
           <button class="btn btn-primary btn-lg" onclick="joinGame()" style="width:100%;justify-content:center">🚀 Қосылу</button>
         </div>
-        <div class="card" style="margin-top:8px">
-          <div class="card-title">📋 соңғы ойындар</div>
-          <div id="recentGames" style="color:var(--muted);font-size:13px;text-align:center;padding:16px">Ойын тарихы жоқ</div>
-        </div>
       </div>
-
-      <!-- LOBBY: күту -->
       <div id="gameLobbyScreen" style="display:none">
         <div class="game-code-display">
           <div class="game-code-label">ОЙЫН КОДЫ</div>
@@ -482,8 +402,6 @@
           </div>
         </div>
       </div>
-
-      <!-- ОЙЫН: сұрақ -->
       <div id="gamePlayScreen" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
           <div class="tag tag-purple" id="gameQCounter">1/1</div>
@@ -498,8 +416,6 @@
         </div>
         <div class="game-answers" id="gameAnswers"></div>
       </div>
-
-      <!-- ОЙЫН: нәтиже/scoreboard -->
       <div id="gameScoreScreen" style="display:none">
         <div class="card">
           <div class="card-title">🏆 scoreboard</div>
@@ -575,36 +491,26 @@
       <span class="tab-icon">📤</span><span class="tab-label">Экспорт</span>
     </button>
   </div>
-
 </div>
+
 <script>
 const API_BASE = '/api';
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 function getTgUser() { return tg?.initDataUnsafe?.user || null; }
 function getTgInitData() { return tg?.initData || ''; }
-function isAdmin() { return getTgUser()?.id !== null && String(getTgUser()?.id) === String(window.__ADMIN_ID__); }
+function isAdmin() { const u=getTgUser(); return u && String(u.id)===String(window.__ADMIN_ID__); }
 
-// Supabase client (realtime үшін)
 let supabaseClient = null;
-
 let state = {
   quizzes: JSON.parse(localStorage.getItem('qbit_quizzes') || '[]'),
   plays: parseInt(localStorage.getItem('qbit_plays') || '0'),
   currentPlay:null, playState:null, timer:null, questionCounter:0,
 };
 let questions = [];
-
-// Game state
 let gameState = {
-  code: null,
-  session: null,
-  isHost: false,
-  myScore: 0,
-  currentQ: 0,
-  answerStartTime: null,
-  realtimeSub: null,
-  gameTimer: null,
+  code:null, session:null, isHost:false, myScore:0,
+  currentQ:0, answerStartTime:null, realtimeSub:null, gameTimer:null,
 };
 
 // ══════════════════════════════════════════
@@ -616,13 +522,11 @@ async function init() {
     if (r.ok) {
       const d = await r.json();
       window.__ADMIN_ID__ = d.adminId;
-      // Supabase client init
       if (d.supabaseUrl && d.supabaseKey) {
         supabaseClient = supabase.createClient(d.supabaseUrl, d.supabaseKey);
       }
     }
   } catch {}
-
   if (isAdmin()) {
     document.getElementById('tab-create').style.display = '';
     document.getElementById('tab-export').style.display = '';
@@ -657,7 +561,7 @@ function switchTab(tab) {
 }
 
 // ══════════════════════════════════════════
-// ADMIN DASHBOARD
+// ADMIN
 // ══════════════════════════════════════════
 function admSection(name, e) {
   ['create','games','quizzes','users','recent'].forEach(s => {
@@ -700,10 +604,7 @@ function updateGameQuizSelect() {
 
 function renderAdminQuizzes() {
   const c = document.getElementById('adm-quizzes-list');
-  if (!state.quizzes.length) {
-    c.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div></div>`;
-    return;
-  }
+  if (!state.quizzes.length) { c.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div></div>`; return; }
   c.innerHTML = state.quizzes.map(quiz=>`
     <div class="lb-row" style="margin-bottom:8px">
       <div style="flex:1;min-width:0">
@@ -725,160 +626,112 @@ async function loadAdminUsers() {
   const c = document.getElementById('adm-users-list');
   c.innerHTML = '<div class="loading">Жүктелуде</div>';
   try {
-    const r = await fetch(`${API_BASE}/admin`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ initData: getTgInitData(), action:'users' })
-    });
+    const r = await fetch(`${API_BASE}/admin`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'users' }) });
     const d = await r.json();
-    if (!d.ok || !d.data.length) {
-      c.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Қолданушы жоқ</div></div>`;
-      return;
-    }
+    if (!d.ok || !d.data.length) { c.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Қолданушы жоқ</div></div>`; return; }
     c.innerHTML = d.data.map((u,i)=>{
       const pct = u.total_questions>0 ? Math.round(u.total_correct/u.total_questions*100) : 0;
-      return `
-        <div class="lb-row">
-          <div class="lb-rank other">${i+1}</div>
-          <div class="lb-avatar">${(u.first_name||'?')[0].toUpperCase()}</div>
-          <div class="lb-info">
-            <div class="lb-name">${esc(u.first_name||'Қолданушы')}</div>
-            <div class="lb-sub">${u.username?'@'+u.username:''} · ${u.total_games} ойын</div>
-          </div>
-          <div><div class="lb-score">${pct}%</div><div class="lb-score-sub">${u.total_correct} дұрыс</div></div>
-        </div>`;
+      return `<div class="lb-row"><div class="lb-rank other">${i+1}</div><div class="lb-avatar">${(u.first_name||'?')[0].toUpperCase()}</div><div class="lb-info"><div class="lb-name">${esc(u.first_name||'Қолданушы')}</div><div class="lb-sub">${u.username?'@'+u.username:''} · ${u.total_games} ойын</div></div><div><div class="lb-score">${pct}%</div><div class="lb-score-sub">${u.total_correct} дұрыс</div></div></div>`;
     }).join('');
-  } catch {
-    c.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>`;
-  }
+  } catch { c.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>`; }
 }
 
 async function loadAdminRecent() {
   const c = document.getElementById('adm-recent-list');
   c.innerHTML = '<div class="loading">Жүктелуде</div>';
   try {
-    const r = await fetch(`${API_BASE}/admin`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ initData: getTgInitData(), action:'recent_games' })
-    });
+    const r = await fetch(`${API_BASE}/admin`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'recent_games' }) });
     const d = await r.json();
-    if (!d.ok || !d.data.length) {
-      c.innerHTML=`<div class="empty-state"><div class="empty-icon">📜</div><div class="empty-title">Ойын жоқ</div></div>`;
-      return;
-    }
+    if (!d.ok || !d.data.length) { c.innerHTML=`<div class="empty-state"><div class="empty-icon">📜</div><div class="empty-title">Ойын жоқ</div></div>`; return; }
     c.innerHTML = d.data.map(r=>`
       <div class="recent-item">
-        <div>
-          <div class="recent-title">${esc(r.users?.first_name||'Қолданушы')}</div>
-          <div class="recent-meta">${esc(r.quiz_title||'Тест')} · ${new Date(r.played_at).toLocaleString('kk-KZ')}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div>
-          <div class="recent-meta">${r.correct}✓ ${r.wrong}✗ · ${r.time_sec}с</div>
-        </div>
+        <div><div class="recent-title">${esc(r.users?.first_name||'Қолданушы')}</div><div class="recent-meta">${esc(r.quiz_title||'Тест')} · ${new Date(r.played_at).toLocaleString('kk-KZ')}</div></div>
+        <div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div><div class="recent-meta">${r.correct}✓ ${r.wrong}✗ · ${r.time_sec}с</div></div>
       </div>`).join('');
-  } catch {
-    c.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>`;
-  }
+  } catch { c.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>`; }
 }
 
 // ══════════════════════════════════════════
-// GAME — HOST SIDE
+// GAME — HOST
 // ══════════════════════════════════════════
 async function createGame() {
   const quizId = document.getElementById('gameQuizSelect').value;
   if (!quizId) return showToast('⚠️ Тест таңдаңыз!');
   const quiz = state.quizzes.find(q => q.id === quizId);
   if (!quiz) return;
-
   try {
-    const r = await fetch(`${API_BASE}/game`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ initData: getTgInitData(), action:'create', payload:{ quizData: quiz } })
-    });
+    const r = await fetch(`${API_BASE}/game`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'create', payload:{ quizData: quiz } }) });
     const d = await r.json();
     if (!d.ok) return showToast('⚠️ ' + d.error);
-
     gameState.code = d.code;
     gameState.isHost = true;
     gameState.session = d.session;
-
+    gameState.currentQ = 0;
     document.getElementById('activeGameCode').textContent = d.code;
     document.getElementById('activeGamePanel').style.display = 'block';
-
-    // Realtime subscribe
+    document.getElementById('hostQuestionPanel').style.display = 'none';
     subscribeToGame(d.code, true);
     showToast(`✅ Ойын жасалды: ${d.code}`);
-  } catch {
-    showToast('⚠️ Қате');
-  }
+  } catch { showToast('⚠️ Қате'); }
 }
 
 async function startGame() {
-  const r = await fetch(`${API_BASE}/game`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ initData: getTgInitData(), action:'start', payload:{ code: gameState.code } })
-  });
+  const r = await fetch(`${API_BASE}/game`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'start', payload:{ code: gameState.code } }) });
   const d = await r.json();
-  if (!d.ok) return showToast('⚠️ ' + d.error);
-  // Realtime арқылы барлығына хабарланады
+  if (!d.ok) showToast('⚠️ ' + d.error);
+}
+
+async function showAnswers() {
+  document.getElementById('btnShowAnswers').disabled = true;
+  try {
+    const r = await fetch(`${API_BASE}/game`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action:'reveal_answers', payload:{ code: gameState.code } })
+    });
+    const d = await r.json();
+    if (!d.ok) { showToast('⚠️ Қате'); document.getElementById('btnShowAnswers').disabled = false; }
+  } catch { document.getElementById('btnShowAnswers').disabled = false; }
 }
 
 async function hostNextQuestion() {
-  const r = await fetch(`${API_BASE}/game`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ initData: getTgInitData(), action:'next_question', payload:{ code: gameState.code } })
-  });
+  document.getElementById('btnNext').disabled = true;
+  const r = await fetch(`${API_BASE}/game`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'next_question', payload:{ code: gameState.code } }) });
   const d = await r.json();
-  if (d.finished) {
-    showGameScoreboard();
-  }
-}
-
-function showAnswers() {
-  document.getElementById('btnShowAnswers').style.display = 'none';
-  document.getElementById('btnNext').style.display = '';
-  // Жауаптарды ашу — realtime арқылы барлығына
-  const q = gameState.session.quiz_data.questions[gameState.currentQ];
-  revealAnswers(q.correct);
+  if (d.finished) showGameScoreboard();
 }
 
 function cancelGame() {
   if (gameState.realtimeSub) gameState.realtimeSub.unsubscribe();
   document.getElementById('activeGamePanel').style.display = 'none';
+  document.getElementById('hostQuestionPanel').style.display = 'none';
   gameState = { code:null, session:null, isHost:false, myScore:0, currentQ:0, realtimeSub:null, gameTimer:null };
 }
 
 // ══════════════════════════════════════════
-// GAME — PLAYER SIDE
+// GAME — PLAYER
 // ══════════════════════════════════════════
 async function joinGame() {
   const code = document.getElementById('gameCodeInput').value.trim().toUpperCase();
   if (code.length < 4) return showToast('⚠️ Кодты толық енгізіңіз!');
-
   try {
-    const r = await fetch(`${API_BASE}/game`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ initData: getTgInitData(), action:'join', payload:{ code } })
-    });
+    const r = await fetch(`${API_BASE}/game`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'join', payload:{ code } }) });
     const d = await r.json();
     if (!d.ok) return showToast('⚠️ ' + d.error);
-
     gameState.code = code;
     gameState.session = d.session;
     gameState.isHost = false;
     gameState.myScore = 0;
-
+    gameState.currentQ = d.session.current_question || 0;
     document.getElementById('lobbyCode').textContent = code;
     document.getElementById('lobbyQuizName').textContent = d.session.quiz_data?.title || '';
     showGameScreen('lobby');
     subscribeToGame(code, false);
-  } catch {
-    showToast('⚠️ Қате');
-  }
+  } catch { showToast('⚠️ Қате'); }
 }
 
 function backToGameJoin() {
   if (gameState.realtimeSub) gameState.realtimeSub.unsubscribe();
+  clearInterval(gameState.gameTimer);
   gameState = { code:null, session:null, isHost:false, myScore:0, currentQ:0, realtimeSub:null, gameTimer:null };
   showGameScreen('join');
 }
@@ -899,12 +752,12 @@ function subscribeToGame(code, isHost) {
     })
     .on('postgres_changes', {
       event:'INSERT', schema:'public', table:'game_players', filter:`session_id=eq.${code}`
-    }, (payload) => {
-      refreshLobbyPlayers(code);
-    })
+    }, () => { refreshLobbyPlayers(code); })
+    .on('postgres_changes', {
+      event:'UPDATE', schema:'public', table:'game_players', filter:`session_id=eq.${code}`
+    }, () => { refreshLobbyPlayers(code); })
     .subscribe();
 
-  // Лобби қатысушыларын жүктеу
   refreshLobbyPlayers(code);
 }
 
@@ -915,59 +768,110 @@ async function refreshLobbyPlayers(code) {
   const players = data || [];
   const myId = getTgUser()?.id;
 
-  // Admin lobby
   const lobbyEl = document.getElementById('lobbyPlayers');
   const countEl = document.getElementById('playerCount');
   if (lobbyEl) {
     lobbyEl.innerHTML = players.map(p => `
-      <div class="player-chip ${p.user_id===myId?'me':''}">
+      <div class="player-chip ${p.user_id==myId?'me':''}">
         <div class="player-chip-name">${esc(p.first_name||'?')}</div>
         <div class="player-chip-score">${p.score} ⭐</div>
       </div>`).join('');
   }
   if (countEl) countEl.textContent = players.length;
 
-  // Player lobby
   const lobbyPlayerList = document.getElementById('lobbyPlayerList');
   const lobbyCount = document.getElementById('lobbyPlayerCount');
   if (lobbyPlayerList) {
     lobbyPlayerList.innerHTML = players.map(p => `
-      <div class="player-chip ${p.user_id===myId?'me':''}">
+      <div class="player-chip ${p.user_id==myId?'me':''}">
         <div class="player-chip-name">${esc(p.first_name||'?')}</div>
       </div>`).join('');
   }
   if (lobbyCount) lobbyCount.textContent = players.length;
 }
 
+// ══════════════════════════════════════════
+// HANDLE SESSION UPDATE — ТҮЗЕТІЛГЕН
+// ══════════════════════════════════════════
 function handleSessionUpdate(session, isHost) {
+  const prevQ = gameState.currentQ;
+  const prevStatus = gameState.session?.status;
   gameState.session = session;
-  gameState.currentQ = session.current_question;
 
-  if (session.status === 'playing') {
+  // ── ОЙЫН АЯҚТАЛДЫ ─────────────────────
+  if (session.status === 'finished') {
+    clearInterval(gameState.gameTimer);
+    showGameScoreboard();
+    return;
+  }
+
+  // ── ЖАУАПТАРДЫ REVEAL ─────────────────
+  if (session.status === 'playing' && session.show_answers) {
     const q = session.quiz_data.questions[session.current_question];
-    showGameQuestion(q, session.current_question, session.quiz_data.questions.length, session.quiz_data.timer);
-
+    revealAnswers(q.correct);
     if (isHost) {
-      document.getElementById('activeGamePanel').style.display = 'block';
-      document.getElementById('hostQuestionPanel').style.display = 'block';
-      document.getElementById('hostQText').textContent = q.text;
-      document.getElementById('btnShowAnswers').style.display = '';
-      document.getElementById('btnNext').style.display = 'none';
-      document.getElementById('hostAnswerStats').innerHTML = '';
+      document.getElementById('btnShowAnswers').style.display = 'none';
+      document.getElementById('btnNext').style.display = '';
+      document.getElementById('btnNext').disabled = false;
+      loadAnswerStats(session.id, session.current_question, q);
+    }
+    return;
+  }
+
+  // ── ЖАҢА СҰРАҚ немесе ОЙЫН БАСТАЛДЫ ──
+  if (session.status === 'playing' && !session.show_answers) {
+    const isNewGame = prevStatus !== 'playing';
+    const isNewQuestion = session.current_question !== prevQ;
+
+    if (isNewGame || isNewQuestion) {
+      gameState.currentQ = session.current_question;
+      const q = session.quiz_data.questions[session.current_question];
+      showGameQuestion(q, session.current_question, session.quiz_data.questions.length, session.quiz_data.timer);
+
+      if (isHost) {
+        document.getElementById('hostQuestionPanel').style.display = 'block';
+        document.getElementById('hostQText').textContent = q.text;
+        document.getElementById('btnShowAnswers').style.display = '';
+        document.getElementById('btnShowAnswers').disabled = false;
+        document.getElementById('btnNext').style.display = 'none';
+        document.getElementById('hostAnswerStats').innerHTML = '';
+      }
     }
   }
+}
 
-  if (session.status === 'finished') {
-    showGameScoreboard();
-  }
+async function loadAnswerStats(sessionId, qIdx, q) {
+  if (!supabaseClient) return;
+  const { data } = await supabaseClient
+    .from('game_answers').select('answer_idx, is_correct')
+    .eq('session_id', sessionId).eq('question_idx', qIdx);
+  if (!data) return;
+  const total = data.length;
+  const correct = data.filter(a => a.is_correct).length;
+  const counts = [0,0,0,0];
+  data.forEach(a => { if(a.answer_idx >= 0 && a.answer_idx <= 3) counts[a.answer_idx]++; });
+  document.getElementById('hostAnswerStats').innerHTML = `
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted)">Жауап берді: ${total}</span>
+        <span style="color:var(--accent3);font-family:Space Mono,monospace;font-size:11px">${correct} дұрыс ✓</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        ${counts.map((c,i)=>`
+          <div style="background:var(--surface);border:1px solid ${i===q.correct?'var(--accent3)':'var(--border)'};border-radius:8px;padding:8px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-family:Orbitron,monospace;font-size:11px;color:${i===q.correct?'var(--accent3)':'var(--muted)'}">${'ABCD'[i]}</span>
+            <span style="font-family:Orbitron,monospace;font-size:14px;color:var(--text)">${c}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
 }
 
 // ══════════════════════════════════════════
 // GAME — QUESTION UI
 // ══════════════════════════════════════════
 function showGameScreen(screen) {
-  ['join','lobby','play','score'].forEach(s => {
-    const el = document.getElementById('game'+s.charAt(0).toUpperCase()+s.slice(1)+'Screen');
+  ['Join','Lobby','Play','Score'].forEach(s => {
+    const el = document.getElementById('game'+s+'Screen');
     if (el) el.style.display = 'none';
   });
   const target = document.getElementById('game'+screen.charAt(0).toUpperCase()+screen.slice(1)+'Screen');
@@ -978,19 +882,18 @@ function showGameScreen(screen) {
 function showGameQuestion(q, idx, total, timerSecs) {
   showGameScreen('play');
   gameState.answerStartTime = Date.now();
+  clearInterval(gameState.gameTimer);
 
   document.getElementById('gameQCounter').textContent = `${idx+1}/${total}`;
   document.getElementById('gameQText').textContent = q.text;
   document.getElementById('myGameScore').textContent = gameState.myScore + ' ⭐';
 
   const shapes = ['▲','●','■','⬟'];
-  const answersEl = document.getElementById('gameAnswers');
-  answersEl.innerHTML = q.options.map((opt,i) => `
+  document.getElementById('gameAnswers').innerHTML = q.options.map((opt,i) => `
     <button class="game-ans-btn" onclick="submitGameAnswer(${i})" id="gab_${i}">
       <span style="font-size:20px">${shapes[i]}</span> ${esc(opt)}
     </button>`).join('');
 
-  // Timer
   if (timerSecs > 0) startGameTimer(timerSecs);
 }
 
@@ -1014,19 +917,12 @@ function startGameTimer(secs) {
 async function submitGameAnswer(optIdx) {
   clearInterval(gameState.gameTimer);
   const timeMs = Date.now() - (gameState.answerStartTime || Date.now());
-
-  document.querySelectorAll('.game-ans-btn').forEach(b => {
-    b.disabled = true; b.classList.remove('selected');
-  });
+  document.querySelectorAll('.game-ans-btn').forEach(b => b.disabled = true);
   document.getElementById('gab_'+optIdx)?.classList.add('selected');
-
   try {
     const r = await fetch(`${API_BASE}/game`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        initData: getTgInitData(), action:'answer',
-        payload: { code: gameState.code, questionIdx: gameState.currentQ, answerIdx: optIdx, timeMs }
-      })
+      body: JSON.stringify({ initData: getTgInitData(), action:'answer', payload:{ code: gameState.code, questionIdx: gameState.currentQ, answerIdx: optIdx, timeMs } })
     });
     const d = await r.json();
     if (d.isCorrect) {
@@ -1035,8 +931,6 @@ async function submitGameAnswer(optIdx) {
       showPointsPopup('+' + d.points);
     }
   } catch {}
-
-  // Жауапты күт (хост reveal етеді)
 }
 
 function autoGameAnswer() {
@@ -1053,8 +947,7 @@ function revealAnswers(correctIdx) {
 
 function showPointsPopup(text) {
   const el = document.createElement('div');
-  el.className = 'points-popup';
-  el.textContent = text;
+  el.className = 'points-popup'; el.textContent = text;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1600);
 }
@@ -1062,28 +955,21 @@ function showPointsPopup(text) {
 async function showGameScoreboard() {
   clearInterval(gameState.gameTimer);
   try {
-    const r = await fetch(`${API_BASE}/game`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ initData: getTgInitData(), action:'scoreboard', payload:{ code: gameState.code } })
-    });
+    const r = await fetch(`${API_BASE}/game`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'scoreboard', payload:{ code: gameState.code } }) });
     const d = await r.json();
     if (!d.ok) return;
-
     const myId = getTgUser()?.id;
-    const html = d.players.map((p,i) => {
-      const n = i+1;
-      const icon = n===1?'🥇':n===2?'🥈':n===3?'🥉':'#'+n;
-      const isMe = p.user_id === myId;
-      return `
-        <div class="scoreboard-row ${isMe?'highlight':''}">
-          <div style="font-family:Orbitron,monospace;font-size:16px;width:32px">${icon}</div>
-          <div class="lb-avatar">${(p.first_name||'?')[0].toUpperCase()}</div>
-          <div style="flex:1"><div class="lb-name">${esc(p.first_name||'Ойыншы')}${isMe?' 👈':''}</div></div>
-          <div style="font-family:Orbitron,monospace;font-size:16px;color:var(--accent)">${p.score} ⭐</div>
-        </div>`;
+    document.getElementById('gameScoreboard').innerHTML = d.players.map((p,i) => {
+      const n=i+1;
+      const icon=n===1?'🥇':n===2?'🥈':n===3?'🥉':'#'+n;
+      const isMe=p.user_id==myId;
+      return `<div class="scoreboard-row ${isMe?'highlight':''}">
+        <div style="font-family:Orbitron,monospace;font-size:16px;width:32px">${icon}</div>
+        <div class="lb-avatar">${(p.first_name||'?')[0].toUpperCase()}</div>
+        <div style="flex:1"><div class="lb-name">${esc(p.first_name||'Ойыншы')}${isMe?' 👈':''}</div></div>
+        <div style="font-family:Orbitron,monospace;font-size:16px;color:var(--accent)">${p.score} ⭐</div>
+      </div>`;
     }).join('');
-
-    document.getElementById('gameScoreboard').innerHTML = html;
     showGameScreen('score');
   } catch {}
 }
@@ -1100,34 +986,25 @@ async function loadLeaderboard(type) {
   try {
     const r = await fetch(`${API_BASE}/leaderboard?type=${type}`);
     const d = await r.json();
-    if (!d.ok || !d.data.length) {
-      c.innerHTML=`<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">Деректер жоқ</div><p class="muted">Алғашқы болыңыз!</p></div>`;
-      return;
-    }
+    if (!d.ok || !d.data.length) { c.innerHTML=`<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">Деректер жоқ</div><p class="muted">Алғашқы болыңыз!</p></div>`; return; }
     const myId = getTgUser()?.id;
     c.innerHTML = d.data.map((u,i)=>{
       const n=i+1;
       const rc=n===1?'gold':n===2?'silver':n===3?'bronze':'other';
       const ri=n===1?'🥇':n===2?'🥈':n===3?'🥉':n;
-      const isMe=(u.id===myId||u.user_id===myId);
+      const isMe=(u.id==myId||u.user_id==myId);
       const name=u.first_name||'Қолданушы';
       let sv,ss;
       if(type==='all'){const p=u.total_questions>0?Math.round(u.total_correct/u.total_questions*100):0;sv=p+'%';ss=u.total_games+' ойын';}
       else{sv=(u.avg_score||0)+'%';ss=u.games+' ойын';}
-      return `
-        <div class="lb-row ${isMe?'lb-me-row':''}">
-          <div class="lb-rank ${rc}">${ri}</div>
-          <div class="lb-avatar ${isMe?'me':''}">${name[0].toUpperCase()}</div>
-          <div class="lb-info">
-            <div class="lb-name">${esc(name)}${isMe?' 👈':''}</div>
-            <div class="lb-sub">${u.username?'@'+u.username:''}</div>
-          </div>
-          <div><div class="lb-score">${sv}</div><div class="lb-score-sub">${ss}</div></div>
-        </div>`;
+      return `<div class="lb-row ${isMe?'lb-me-row':''}">
+        <div class="lb-rank ${rc}">${ri}</div>
+        <div class="lb-avatar ${isMe?'me':''}">${name[0].toUpperCase()}</div>
+        <div class="lb-info"><div class="lb-name">${esc(name)}${isMe?' 👈':''}</div><div class="lb-sub">${u.username?'@'+u.username:''}</div></div>
+        <div><div class="lb-score">${sv}</div><div class="lb-score-sub">${ss}</div></div>
+      </div>`;
     }).join('');
-  } catch {
-    c.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div><p class="muted">Сервермен байланыс жоқ</p></div>`;
-  }
+  } catch { c.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div><p class="muted">Сервермен байланыс жоқ</p></div>`; }
 }
 
 // ══════════════════════════════════════════
@@ -1168,32 +1045,14 @@ async function loadProfile() {
       </div>
       <div class="card">
         <div class="card-title">🏅 жетістіктер</div>
-        ${achievements.map(a=>`
-          <div class="achievement ${a.unlocked?'':'locked'}">
-            <div class="ach-icon">${a.icon}</div>
-            <div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>
-            ${a.unlocked?'<div style="margin-left:auto;color:var(--accent3);font-size:18px">✓</div>':''}
-          </div>`).join('')}
+        ${achievements.map(a=>`<div class="achievement ${a.unlocked?'':'locked'}"><div class="ach-icon">${a.icon}</div><div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>${a.unlocked?'<div style="margin-left:auto;color:var(--accent3);font-size:18px">✓</div>':''}</div>`).join('')}
       </div>
-      ${d.recentResults?.length?`
-        <div class="card">
-          <div class="card-title">📋 соңғы ойындар</div>
-          ${d.recentResults.map(r=>`
-            <div class="recent-item">
-              <div><div class="recent-title">${esc(r.quiz_title||'Тест')}</div><div class="recent-meta">${new Date(r.played_at).toLocaleDateString('kk-KZ')} · ${r.time_sec}с</div></div>
-              <div style="text-align:right">
-                <div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div>
-                <div class="recent-meta">${r.correct}✓ ${r.wrong}✗</div>
-              </div>
-            </div>`).join('')}
-        </div>`:''}`;
-  } catch {
-    c.innerHTML=`<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Бейін жоқ</div><p class="muted">Алдымен тест ойнаңыз!</p></div>`;
-  }
+      ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div class="recent-title">${esc(r.quiz_title||'Тест')}</div><div class="recent-meta">${new Date(r.played_at).toLocaleDateString('kk-KZ')} · ${r.time_sec}с</div></div><div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div><div class="recent-meta">${r.correct}✓ ${r.wrong}✗</div></div></div>`).join('')}</div>`:''}`;
+  } catch { c.innerHTML=`<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Бейін жоқ</div><p class="muted">Алдымен тест ойнаңыз!</p></div>`; }
 }
 
 // ══════════════════════════════════════════
-// QUIZ PLAY (жеке тест)
+// QUIZ PLAY
 // ══════════════════════════════════════════
 function startPlay(quizId) {
   const quiz=state.quizzes.find(q=>q.id===quizId);
@@ -1211,10 +1070,7 @@ function renderQuestion() {
   clearTimeout(state.timer);
   document.getElementById('playContent').innerHTML=`
     <div class="quiz-header-bar">
-      <div>
-        <div class="quiz-title-big">${esc(quiz.title)}</div>
-        <div class="muted">${quiz.category}</div>
-      </div>
+      <div><div class="quiz-title-big">${esc(quiz.title)}</div><div class="muted">${quiz.category}</div></div>
       <div style="display:flex;align-items:center;gap:12px">
         ${ps.streak>=2?`<div class="streak-display">🔥 ${ps.streak}</div>`:''}
         ${quiz.timer>0?`<div class="timer-ring"><svg viewBox="0 0 54 54"><circle class="timer-bg"/><circle class="timer-fill" id="timerCircle"/></svg><div class="timer-text" id="timerText">${quiz.timer}</div></div>`:''}
@@ -1225,14 +1081,9 @@ function renderQuestion() {
       <div class="q-counter">СҰРАҚ ${ps.idx+1} / ${quiz.questions.length}</div>
       <div class="q-text">${esc(q.text)}</div>
       <div class="answers-grid">
-        ${q.options.map((opt,i)=>`
-          <button class="answer-btn" id="ab_${i}" onclick="selectAnswer(${i})">
-            <div class="ans-letter">${'ABCD'[i]}</div>${esc(opt)}
-          </button>`).join('')}
+        ${q.options.map((opt,i)=>`<button class="answer-btn" id="ab_${i}" onclick="selectAnswer(${i})"><div class="ans-letter">${'ABCD'[i]}</div>${esc(opt)}</button>`).join('')}
       </div>
-      <div class="explanation" id="explanation">
-        <strong>💡 Түсіндірме:</strong> ${esc(q.explanation||'Дұрыс жауап — '+'ABCD'[q.correct]+' нұсқасы.')}
-      </div>
+      <div class="explanation" id="explanation"><strong>💡 Түсіндірме:</strong> ${esc(q.explanation||'Дұрыс жауап — '+'ABCD'[q.correct]+' нұсқасы.')}</div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center">
       <div class="flex gap-8">
@@ -1305,10 +1156,7 @@ async function showResults() {
   const initData=getTgInitData();
   if(initData){
     try{
-      await fetch(`${API_BASE}/save-result`,{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({initData,result:{quizId:quiz.id,quizTitle:quiz.title,score,correct:ps.correct,wrong:ps.wrong,timeSec:time,maxStreak:ps.maxStreak}})
-      });
+      await fetch(`${API_BASE}/save-result`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,result:{quizId:quiz.id,quizTitle:quiz.title,score,correct:ps.correct,wrong:ps.wrong,timeSec:time,maxStreak:ps.maxStreak}})});
     }catch{}
   }
   const rank=score>=90?'MASTER':score>=70?'EXPERT':score>=50?'STUDENT':'ROOKIE';
@@ -1337,10 +1185,7 @@ async function showResults() {
 // ══════════════════════════════════════════
 function renderLibrary() {
   const c=document.getElementById('quizLibrary');
-  if(!state.quizzes.length){
-    c.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div><p class="muted">Әкімші тест жасаса осында көрінеді</p></div>`;
-    return;
-  }
+  if(!state.quizzes.length){ c.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div><p class="muted">Әкімші тест жасаса осында көрінеді</p></div>`; return; }
   c.innerHTML=state.quizzes.map(quiz=>`
     <div class="quiz-list-item" onclick="startPlay('${quiz.id}')">
       <div>
@@ -1394,20 +1239,12 @@ function generateExport(){
 }
 function copyExport(){navigator.clipboard.writeText(document.getElementById('exportBox').textContent).then(()=>showToast('✅ Көшірілді!'));}
 
-// ══════════════════════════════════════════
-// STATS
-// ══════════════════════════════════════════
 function renderStats(){
   const panel=document.getElementById('statsPanel');if(!panel||!state.quizzes.length)return;
   const total=state.quizzes.reduce((a,q)=>a+(q.playCount||0),0);
   const played=state.quizzes.filter(q=>q.playCount>0);
   const avg=played.length?Math.round(played.reduce((a,q)=>a+q.bestScore,0)/played.length):0;
-  panel.innerHTML=`
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;padding:6px 0">
-      <div><div class="r-stat-val cyan" style="font-size:26px">${state.quizzes.length}</div><div class="r-stat-lbl">тест</div></div>
-      <div><div class="r-stat-val green" style="font-size:26px">${total}</div><div class="r-stat-lbl">ойын</div></div>
-      <div><div class="r-stat-val" style="font-size:26px;color:var(--accent2)">${avg}%</div><div class="r-stat-lbl">үздік</div></div>
-    </div>`;
+  panel.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;padding:6px 0"><div><div class="r-stat-val cyan" style="font-size:26px">${state.quizzes.length}</div><div class="r-stat-lbl">тест</div></div><div><div class="r-stat-val green" style="font-size:26px">${total}</div><div class="r-stat-lbl">ойын</div></div><div><div class="r-stat-val" style="font-size:26px;color:var(--accent2)">${avg}%</div><div class="r-stat-lbl">үздік</div></div></div>`;
 }
 
 // ══════════════════════════════════════════
@@ -1439,16 +1276,11 @@ function renderQuestions() {
       <input type="text" value="${esc(q.text)}" placeholder="Сұрақты жазыңыз..." oninput="questions[${idx}].text=this.value"/>
       <label>Жауап нұсқалары</label>
       <div class="options-grid">
-        ${['A','B','C','D'].map((l,oi)=>`
-          <div class="option-input">
-            <div class="option-label">${l}</div>
-            <input type="text" value="${esc(q.options[oi]||'')}" placeholder="${l}" oninput="questions[${idx}].options[${oi}]=this.value"/>
-          </div>`).join('')}
+        ${['A','B','C','D'].map((l,oi)=>`<div class="option-input"><div class="option-label">${l}</div><input type="text" value="${esc(q.options[oi]||'')}" placeholder="${l}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
       </div>
       <label>Дұрыс жауап</label>
       <div class="correct-selector">
-        ${['A','B','C','D'].map((l,oi)=>`
-          <button class="correct-btn ${q.correct===oi?'selected':''}" onclick="setCorrect(${idx},${oi})">✓ ${l}</button>`).join('')}
+        ${['A','B','C','D'].map((l,oi)=>`<button class="correct-btn ${q.correct===oi?'selected':''}" onclick="setCorrect(${idx},${oi})">✓ ${l}</button>`).join('')}
       </div>
       <label>Түсіндірме (міндетті емес)</label>
       <input type="text" value="${esc(q.explanation||'')}" placeholder="Түсіндірме..." oninput="questions[${idx}].explanation=this.value"/>`;
@@ -1466,15 +1298,7 @@ function saveQuiz() {
   if(!title)return showToast('⚠️ Тест атауын енгізіңіз!');
   const validQs=questions.filter(q=>q.text.trim()&&q.options.some(o=>o.trim()));
   if(validQs.length<2)return showToast('⚠️ Кем дегенде 2 сұрақ!');
-  const quiz={
-    id:'quiz_'+Date.now(),title,
-    category:document.getElementById('quizCategory').value,
-    timer:parseInt(document.getElementById('quizTimer').value),
-    difficulty:document.getElementById('quizDifficulty').value,
-    questions:validQs.map(q=>({...q,options:q.options.filter(o=>o.trim())})),
-    created:new Date().toLocaleDateString('kk-KZ'),
-    playCount:0,bestScore:0,
-  };
+  const quiz={id:'quiz_'+Date.now(),title,category:document.getElementById('quizCategory').value,timer:parseInt(document.getElementById('quizTimer').value),difficulty:document.getElementById('quizDifficulty').value,questions:validQs.map(q=>({...q,options:q.options.filter(o=>o.trim())})),created:new Date().toLocaleDateString('kk-KZ'),playCount:0,bestScore:0};
   state.quizzes.unshift(quiz);
   localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
   updateHeader();updateExportSelect();updateGameQuizSelect();
@@ -1494,9 +1318,6 @@ function showToast(msg){
   t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
 }
 
-// ══════════════════════════════════════════
-// SAMPLE DATA
-// ══════════════════════════════════════════
 function loadSample(){
   const s={id:'quiz_sample',title:'Қазақстан тарихы — Негіздер',category:'📖 Тарих',timer:20,difficulty:'medium',created:new Date().toLocaleDateString('kk-KZ'),playCount:0,bestScore:0,questions:[
     {id:'s1',text:'Қазақ хандығы қай жылы құрылды?',options:['1465','1500','1480','1520'],correct:0,explanation:'1465 жылы Керей мен Жәнібек хандар тарапынан құрылды.'},
