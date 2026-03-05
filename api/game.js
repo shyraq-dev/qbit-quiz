@@ -84,6 +84,7 @@ module.exports = async (req, res) => {
 
       if (!session) return res.json({ ok: false, error: 'Ойын табылмады' });
       if (session.status === 'finished') return res.json({ ok: false, error: 'Ойын аяқталған' });
+      if (session.status === 'playing') return res.json({ ok: false, error: 'Ойын басталып кетті! Келесі ойынды күтіңіз 🙏' });
 
       await supabase.from('game_players').upsert({
         session_id: session.id,
@@ -189,6 +190,34 @@ module.exports = async (req, res) => {
       }
 
       return res.json({ ok: true, isCorrect, points });
+    }
+
+    // ── LIVE STATS (Әкімші бақылауы) ──────────
+    if (action === 'live_stats') {
+      const { code } = payload;
+      const { data: session } = await supabase
+        .from('game_sessions').select('*').eq('id', code).single();
+      if (!session) return res.json({ ok: false, error: 'Ойын табылмады' });
+
+      const { data: players } = await supabase
+        .from('game_players').select('*')
+        .eq('session_id', code)
+        .order('score', { ascending: false });
+
+      const { data: answers } = await supabase
+        .from('game_answers').select('*')
+        .eq('session_id', code);
+
+      const totalQuestions = session.current_question + 1;
+      const playerStats = (players || []).map(p => {
+        const pAnswers = (answers || []).filter(a => a.user_id === p.user_id);
+        const correct = pAnswers.filter(a => a.is_correct).length;
+        const wrong = pAnswers.filter(a => !a.is_correct).length;
+        const accuracy = pAnswers.length > 0 ? Math.round(correct / pAnswers.length * 100) : 0;
+        return { ...p, correct, wrong, accuracy, totalAnswered: pAnswers.length };
+      });
+
+      return res.json({ ok: true, session, playerStats });
     }
 
     // ── SCOREBOARD ────────────────────────────
