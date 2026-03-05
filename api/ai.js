@@ -14,6 +14,87 @@ function verifyTelegram(initData) {
   } catch { return false; }
 }
 
+// Бірнеше модель — бірі қате берсе келесісі сынайды
+const MODELS = [
+  'meta-llama/llama-3.1-8b-instruct:free',
+  'mistralai/mistral-7b-instruct:free',
+  'google/gemma-2-9b-it:free',
+];
+
+async function callOpenRouter(prompt) {
+  let lastError = null;
+
+  for (const model of MODELS) {
+    try {
+      console.log(`🤖 Модель сынауда: ${model}`);
+      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://qbit-quiz.vercel.app',
+          'X-Title': 'QBit Quiz',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+          max_tokens: 3000,
+        })
+      });
+
+      const raw = await r.text();
+      console.log(`📥 Raw response (${model}):`, raw.substring(0, 200));
+
+      if (!r.ok) {
+        lastError = `HTTP ${r.status}: ${raw.substring(0, 100)}`;
+        continue;
+      }
+
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        lastError = `JSON parse қате: ${raw.substring(0, 100)}`;
+        continue;
+      }
+
+      if (!data.choices?.[0]?.message?.content) {
+        lastError = 'Жауап бос';
+        continue;
+      }
+
+      let text = data.choices[0].message.content.trim();
+      // Markdown code block тазалау
+      text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+      // JSON бөлімін табу
+      const jsonStart = text.indexOf('{');
+      const jsonEnd = text.lastIndexOf('}');
+      if (jsonStart === -1 || jsonEnd === -1) {
+        lastError = `JSON табылмады: ${text.substring(0, 100)}`;
+        continue;
+      }
+      text = text.substring(jsonStart, jsonEnd + 1);
+
+      const parsed = JSON.parse(text);
+      if (!parsed.questions || !Array.isArray(parsed.questions)) {
+        lastError = 'questions массиві жоқ';
+        continue;
+      }
+
+      console.log(`✅ Сәтті: ${model}, ${parsed.questions.length} сұрақ`);
+      return parsed.questions;
+
+    } catch (e) {
+      lastError = e.message;
+      console.error(`❌ ${model} қате:`, e.message);
+    }
+  }
+
+  throw new Error(lastError || 'Барлық модельдер сәтсіз');
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -27,126 +108,75 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  // ── ТАҚЫРЫП БОЙЫНША СҰРАҚ ЖАСАУ ──────────
-  if (action === 'generate_from_topic') {
-    const { topic, count = 5, difficulty = 'medium', language = 'kk' } = payload;
+  if (!process.env.OPENROUTER_API_KEY) {
+    return res.status(500).json({ ok: false, error: 'OPENROUTER_API_KEY орнатылмаған' });
+  }
 
-    const langMap = { kk: 'қазақ тілінде', ru: 'на русском языке', en: 'in English' };
-    const diffMap = { easy: 'оңай (мектеп деңгейі)', medium: 'орта (университет деңгейі)', hard: 'қиын (эксперт деңгейі)' };
+  try {
 
-    const prompt = `Сен викторина сұрақтарын жасайтын көмекшісің.
+    // ── ТАҚЫРЫП БОЙЫНША ───────────────────────
+    if (action === 'generate_from_topic') {
+      const { topic, count = 5, difficulty = 'medium', language = 'kk' } = payload;
+
+      const langMap = {
+        kk: 'қазақ тілінде жаз',
+        ru: 'напиши на русском языке',
+        en: 'write in English',
+      };
+      const diffMap = {
+        easy: 'оңай, мектеп деңгейінде',
+        medium: 'орта, университет деңгейінде',
+        hard: 'қиын, эксперт деңгейінде',
+      };
+
+      const prompt = `Сен викторина жасаушысың. ${langMap[language] || langMap.kk}.
 
 Тақырып: "${topic}"
 Сұрақ саны: ${count}
 Қиындық: ${diffMap[difficulty] || diffMap.medium}
-Тіл: ${langMap[language] || langMap.kk}
 
-Дәл ${count} сұрақ жаса. Әр сұрақта 4 жауап нұсқасы болсын, тек біреуі дұрыс.
+МАҢЫЗДЫ: Тек JSON форматында жауап бер. Басқа мәтін жазба. Формат:
+{"questions":[{"text":"сұрақ","options":["А","Б","В","Г"],"correct":0,"explanation":"түсіндірме"}]}
 
-ТЕК JSON форматында жауап бер, басқа ештеңе жазба:
-{
-  "questions": [
-    {
-      "text": "Сұрақ мәтіні",
-      "options": ["А нұсқасы", "Б нұсқасы", "В нұсқасы", "Г нұсқасы"],
-      "correct": 0,
-      "explanation": "Қысқа түсіндірме"
+correct — дұрыс жауап индексі (0,1,2 немесе 3).
+Дәл ${count} сұрақ жаса.`;
+
+      const questions = await callOpenRouter(prompt);
+      return res.json({ ok: true, questions });
     }
-  ]
-}
 
-correct — дұрыс жауаптың индексі (0,1,2,3).`;
+    // ── МӘТІННЕН ──────────────────────────────
+    if (action === 'generate_from_text') {
+      const { text, count = 5, difficulty = 'medium' } = payload;
 
-    try {
-      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://qbit-quiz.vercel.app',
-          'X-Title': 'QBit Quiz',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.0-flash-exp:free',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-          max_tokens: 3000,
-        })
-      });
+      const diffMap = {
+        easy: 'оңай',
+        medium: 'орта',
+        hard: 'қиын',
+      };
 
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error?.message || 'API қате');
-
-      let text = data.choices[0].message.content.trim();
-      // JSON тазалау
-      text = text.replace(/```json/g,'').replace(/```/g,'').trim();
-      const parsed = JSON.parse(text);
-
-      return res.json({ ok: true, questions: parsed.questions });
-    } catch(e) {
-      console.error('AI қате:', e);
-      return res.status(500).json({ ok: false, error: e.message });
-    }
-  }
-
-  // ── МӘТІННЕН СҰРАҚ ЖАСАУ ─────────────────
-  if (action === 'generate_from_text') {
-    const { text, count = 5, difficulty = 'medium' } = payload;
-
-    const diffMap = { easy: 'оңай', medium: 'орта', hard: 'қиын' };
-
-    const prompt = `Сен викторина сұрақтарын жасайтын көмекшісің.
+      const prompt = `Сен викторина жасаушысың. Қазақ тілінде жаз.
 
 Төмендегі мәтін негізінде ${count} сұрақ жаса.
-Қиындық деңгейі: ${diffMap[difficulty] || 'орта'}.
-Сұрақтар мәтіннің мазмұнына сәйкес болсын.
-Жауаптар мәтінде бар мәліметтерге негізделсін.
+Қиындық: ${diffMap[difficulty] || 'орта'}.
 
 МӘТІН:
-${text.substring(0, 3000)}
+${text.substring(0, 2000)}
 
-ТЕК JSON форматында жауап бер:
-{
-  "questions": [
-    {
-      "text": "Сұрақ мәтіні",
-      "options": ["А", "Б", "В", "Г"],
-      "correct": 0,
-      "explanation": "Түсіндірме"
+МАҢЫЗДЫ: Тек JSON форматында жауап бер. Басқа мәтін жазба. Формат:
+{"questions":[{"text":"сұрақ","options":["А","Б","В","Г"],"correct":0,"explanation":"түсіндірме"}]}
+
+correct — дұрыс жауап индексі (0,1,2 немесе 3).
+Дәл ${count} сұрақ жаса.`;
+
+      const questions = await callOpenRouter(prompt);
+      return res.json({ ok: true, questions });
     }
-  ]
-}`;
 
-    try {
-      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://qbit-quiz.vercel.app',
-          'X-Title': 'QBit Quiz',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.0-flash-exp:free',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-          max_tokens: 3000,
-        })
-      });
+    return res.status(400).json({ error: 'Unknown action' });
 
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error?.message || 'API қате');
-
-      let content = data.choices[0].message.content.trim();
-      content = content.replace(/```json/g,'').replace(/```/g,'').trim();
-      const parsed = JSON.parse(content);
-
-      return res.json({ ok: true, questions: parsed.questions });
-    } catch(e) {
-      console.error('AI қате:', e);
-      return res.status(500).json({ ok: false, error: e.message });
-    }
+  } catch (err) {
+    console.error('AI endpoint қате:', err);
+    return res.status(500).json({ ok: false, error: err.message });
   }
-
-  return res.status(400).json({ error: 'Unknown action' });
 };
