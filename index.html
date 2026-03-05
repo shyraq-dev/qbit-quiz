@@ -201,6 +201,11 @@
   .scoreboard-row { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; margin-bottom:7px; }
   .scoreboard-row.highlight { background:linear-gradient(135deg,rgba(251,191,36,0.15),rgba(251,191,36,0.05)); border-color:rgba(251,191,36,0.3); }
 
+  .realtime-status { position:fixed; top:16px; right:16px; z-index:9998; padding:6px 12px; border-radius:20px; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px; transition:all 0.3s; }
+  .realtime-status.connected { background:rgba(16,185,129,0.2); border:1px solid var(--accent3); color:var(--accent3); }
+  .realtime-status.connecting { background:rgba(245,158,11,0.2); border:1px solid var(--warn); color:var(--warn); }
+  .realtime-status.disconnected { background:rgba(239,68,68,0.2); border:1px solid var(--danger); color:var(--danger); }
+
   .export-box { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px; font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); line-height:1.8; white-space:pre-wrap; word-break:break-all; margin-top:10px; max-height:280px; overflow-y:auto; }
   .adm-nav { transition:all 0.2s; }
   .flex { display:flex; } .flex-center { display:flex; align-items:center; }
@@ -225,6 +230,7 @@
 </style>
 </head>
 <body>
+<div id="realtimeStatus" class="realtime-status" style="display:none"></div>
 <div id="app">
   <header>
     <div class="logo">
@@ -379,7 +385,7 @@
       <div id="gameJoinScreen">
         <div class="card">
           <div class="card-title">🎮 ойынға қосылу</div>
-          <p style="color:var(--muted);font-size:13px;margin-bottom:16px;line-height:1.6">Әкімші берген 6 таңбалы кодты енгізіңіз</p>
+          <p style="color:var(--muted);font-size:13px;margin-bottom:16px;line-height:1.6">Әкімші берген кодты енгізіңіз</p>
           <label>Ойын коды</label>
           <input type="text" id="gameCodeInput" placeholder="ABC123" maxlength="6"
             style="text-transform:uppercase;font-family:Orbitron,monospace;font-size:24px;text-align:center;letter-spacing:6px"
@@ -514,6 +520,26 @@ let gameState = {
 };
 
 // ══════════════════════════════════════════
+// REALTIME STATUS UI
+// ══════════════════════════════════════════
+function setRealtimeStatus(status) {
+  const el = document.getElementById('realtimeStatus');
+  if (!el) return;
+  const map = {
+    'SUBSCRIBED': { cls:'connected', text:'🟢 REALTIME' },
+    'CHANNEL_ERROR': { cls:'disconnected', text:'🔴 ҚАТЕ' },
+    'TIMED_OUT': { cls:'disconnected', text:'🔴 TIMEOUT' },
+    'CLOSED': { cls:'disconnected', text:'⚫ ЖАБЫҚ' },
+    'connecting': { cls:'connecting', text:'🟡 ҚОСЫЛУДА' },
+  };
+  const s = map[status] || { cls:'connecting', text:'🟡 ...' };
+  el.className = 'realtime-status ' + s.cls;
+  el.textContent = s.text;
+  el.style.display = 'block';
+  if (status === 'SUBSCRIBED') setTimeout(() => { el.style.display='none'; }, 3000);
+}
+
+// ══════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════
 async function init() {
@@ -523,10 +549,15 @@ async function init() {
       const d = await r.json();
       window.__ADMIN_ID__ = d.adminId;
       if (d.supabaseUrl && d.supabaseKey) {
-        supabaseClient = supabase.createClient(d.supabaseUrl, d.supabaseKey);
+        supabaseClient = supabase.createClient(d.supabaseUrl, d.supabaseKey, {
+          realtime: { params: { eventsPerSecond: 10 } }
+        });
+        console.log('✅ Supabase client инициализацияланды');
+      } else {
+        console.warn('⚠️ Supabase credentials жоқ!');
       }
     }
-  } catch {}
+  } catch(e) { console.error('Config қате:', e); }
   if (isAdmin()) {
     document.getElementById('tab-create').style.display = '';
     document.getElementById('tab-export').style.display = '';
@@ -660,7 +691,10 @@ async function createGame() {
   const quiz = state.quizzes.find(q => q.id === quizId);
   if (!quiz) return;
   try {
-    const r = await fetch(`${API_BASE}/game`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'create', payload:{ quizData: quiz } }) });
+    const r = await fetch(`${API_BASE}/game`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action:'create', payload:{ quizData: quiz } })
+    });
     const d = await r.json();
     if (!d.ok) return showToast('⚠️ ' + d.error);
     gameState.code = d.code;
@@ -672,13 +706,17 @@ async function createGame() {
     document.getElementById('hostQuestionPanel').style.display = 'none';
     subscribeToGame(d.code, true);
     showToast(`✅ Ойын жасалды: ${d.code}`);
-  } catch { showToast('⚠️ Қате'); }
+  } catch(e) { console.error(e); showToast('⚠️ Қате'); }
 }
 
 async function startGame() {
-  const r = await fetch(`${API_BASE}/game`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'start', payload:{ code: gameState.code } }) });
+  const r = await fetch(`${API_BASE}/game`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ initData: getTgInitData(), action:'start', payload:{ code: gameState.code } })
+  });
   const d = await r.json();
   if (!d.ok) showToast('⚠️ ' + d.error);
+  else showToast('▶ Ойын басталды!');
 }
 
 async function showAnswers() {
@@ -689,22 +727,31 @@ async function showAnswers() {
       body: JSON.stringify({ initData: getTgInitData(), action:'reveal_answers', payload:{ code: gameState.code } })
     });
     const d = await r.json();
-    if (!d.ok) { showToast('⚠️ Қате'); document.getElementById('btnShowAnswers').disabled = false; }
-  } catch { document.getElementById('btnShowAnswers').disabled = false; }
+    if (!d.ok) {
+      showToast('⚠️ Қате');
+      document.getElementById('btnShowAnswers').disabled = false;
+    }
+  } catch {
+    document.getElementById('btnShowAnswers').disabled = false;
+  }
 }
 
 async function hostNextQuestion() {
   document.getElementById('btnNext').disabled = true;
-  const r = await fetch(`${API_BASE}/game`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'next_question', payload:{ code: gameState.code } }) });
+  const r = await fetch(`${API_BASE}/game`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ initData: getTgInitData(), action:'next_question', payload:{ code: gameState.code } })
+  });
   const d = await r.json();
   if (d.finished) showGameScoreboard();
 }
 
 function cancelGame() {
-  if (gameState.realtimeSub) gameState.realtimeSub.unsubscribe();
+  if (gameState.realtimeSub) { gameState.realtimeSub.unsubscribe(); }
   document.getElementById('activeGamePanel').style.display = 'none';
   document.getElementById('hostQuestionPanel').style.display = 'none';
   gameState = { code:null, session:null, isHost:false, myScore:0, currentQ:0, realtimeSub:null, gameTimer:null };
+  document.getElementById('realtimeStatus').style.display = 'none';
 }
 
 // ══════════════════════════════════════════
@@ -714,7 +761,10 @@ async function joinGame() {
   const code = document.getElementById('gameCodeInput').value.trim().toUpperCase();
   if (code.length < 4) return showToast('⚠️ Кодты толық енгізіңіз!');
   try {
-    const r = await fetch(`${API_BASE}/game`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'join', payload:{ code } }) });
+    const r = await fetch(`${API_BASE}/game`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action:'join', payload:{ code } })
+    });
     const d = await r.json();
     if (!d.ok) return showToast('⚠️ ' + d.error);
     gameState.code = code;
@@ -726,45 +776,110 @@ async function joinGame() {
     document.getElementById('lobbyQuizName').textContent = d.session.quiz_data?.title || '';
     showGameScreen('lobby');
     subscribeToGame(code, false);
-  } catch { showToast('⚠️ Қате'); }
+  } catch(e) { console.error(e); showToast('⚠️ Қате'); }
 }
 
 function backToGameJoin() {
   if (gameState.realtimeSub) gameState.realtimeSub.unsubscribe();
   clearInterval(gameState.gameTimer);
   gameState = { code:null, session:null, isHost:false, myScore:0, currentQ:0, realtimeSub:null, gameTimer:null };
+  document.getElementById('realtimeStatus').style.display = 'none';
   showGameScreen('join');
 }
 
 // ══════════════════════════════════════════
-// GAME — REALTIME
+// GAME — REALTIME (ТҮЗЕТІЛГЕН)
 // ══════════════════════════════════════════
 function subscribeToGame(code, isHost) {
-  if (!supabaseClient) return;
-  if (gameState.realtimeSub) gameState.realtimeSub.unsubscribe();
+  if (!supabaseClient) {
+    console.error('❌ supabaseClient null! Config тексеріңіз.');
+    showToast('⚠️ Realtime қосылмады');
+    return;
+  }
+  if (gameState.realtimeSub) {
+    gameState.realtimeSub.unsubscribe();
+    gameState.realtimeSub = null;
+  }
 
-  gameState.realtimeSub = supabaseClient
-    .channel('game_'+code)
+  setRealtimeStatus('connecting');
+  console.log('📡 Realtime каналға жазылуда:', 'game_'+code);
+
+  const channel = supabaseClient.channel('game_' + code, {
+    config: { broadcast: { self: true } }
+  });
+
+  channel
     .on('postgres_changes', {
-      event:'UPDATE', schema:'public', table:'game_sessions', filter:`id=eq.${code}`
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'game_sessions',
+      filter: `id=eq.${code}`
     }, (payload) => {
+      console.log('📨 Session update:', payload.new);
       handleSessionUpdate(payload.new, isHost);
     })
     .on('postgres_changes', {
-      event:'INSERT', schema:'public', table:'game_players', filter:`session_id=eq.${code}`
-    }, () => { refreshLobbyPlayers(code); })
+      event: 'INSERT',
+      schema: 'public',
+      table: 'game_players',
+      filter: `session_id=eq.${code}`
+    }, (payload) => {
+      console.log('👤 Жаңа ойыншы:', payload.new);
+      refreshLobbyPlayers(code);
+    })
     .on('postgres_changes', {
-      event:'UPDATE', schema:'public', table:'game_players', filter:`session_id=eq.${code}`
-    }, () => { refreshLobbyPlayers(code); })
-    .subscribe();
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'game_players',
+      filter: `session_id=eq.${code}`
+    }, () => {
+      refreshLobbyPlayers(code);
+    })
+    .subscribe((status, err) => {
+      console.log('🔌 Realtime статус:', status, err || '');
+      setRealtimeStatus(status);
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Realtime сәтті қосылды!');
+        // Бастапқы деректерді жүктеу
+        refreshLobbyPlayers(code);
+        // Ағымдағы session күйін тексеру
+        checkCurrentSession(code, isHost);
+      }
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        console.error('❌ Realtime қате:', status);
+        showToast('⚠️ Realtime қосылмады, қайта жазылуда...');
+        setTimeout(() => subscribeToGame(code, isHost), 3000);
+      }
+    });
 
-  refreshLobbyPlayers(code);
+  gameState.realtimeSub = channel;
+}
+
+// Ағымдағы session күйін тексеру (Realtime жіберіп алса)
+async function checkCurrentSession(code, isHost) {
+  if (!supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from('game_sessions')
+      .select('*')
+      .eq('id', code)
+      .single();
+    if (error) { console.error('Session тексеру қатесі:', error); return; }
+    if (data) {
+      console.log('📋 Ағымдағы session:', data);
+      handleSessionUpdate(data, isHost);
+    }
+  } catch(e) { console.error(e); }
 }
 
 async function refreshLobbyPlayers(code) {
   if (!supabaseClient) return;
-  const { data } = await supabaseClient
-    .from('game_players').select('*').eq('session_id', code).order('score', { ascending: false });
+  const { data, error } = await supabaseClient
+    .from('game_players')
+    .select('*')
+    .eq('session_id', code)
+    .order('score', { ascending: false });
+  if (error) { console.error('Players қате:', error); return; }
   const players = data || [];
   const myId = getTgUser()?.id;
 
@@ -791,12 +906,15 @@ async function refreshLobbyPlayers(code) {
 }
 
 // ══════════════════════════════════════════
-// HANDLE SESSION UPDATE — ТҮЗЕТІЛГЕН
+// HANDLE SESSION UPDATE
 // ══════════════════════════════════════════
 function handleSessionUpdate(session, isHost) {
   const prevQ = gameState.currentQ;
   const prevStatus = gameState.session?.status;
+  const prevShowAnswers = gameState.session?.show_answers;
   gameState.session = session;
+
+  console.log('🔄 Session update:', { status: session.status, currentQ: session.current_question, showAnswers: session.show_answers });
 
   // ── ОЙЫН АЯҚТАЛДЫ ─────────────────────
   if (session.status === 'finished') {
@@ -806,13 +924,14 @@ function handleSessionUpdate(session, isHost) {
   }
 
   // ── ЖАУАПТАРДЫ REVEAL ─────────────────
-  if (session.status === 'playing' && session.show_answers) {
+  if (session.status === 'playing' && session.show_answers && !prevShowAnswers) {
     const q = session.quiz_data.questions[session.current_question];
     revealAnswers(q.correct);
     if (isHost) {
-      document.getElementById('btnShowAnswers').style.display = 'none';
-      document.getElementById('btnNext').style.display = '';
-      document.getElementById('btnNext').disabled = false;
+      const btnShow = document.getElementById('btnShowAnswers');
+      const btnNext = document.getElementById('btnNext');
+      if (btnShow) btnShow.style.display = 'none';
+      if (btnNext) { btnNext.style.display = ''; btnNext.disabled = false; }
       loadAnswerStats(session.id, session.current_question, q);
     }
     return;
@@ -829,12 +948,16 @@ function handleSessionUpdate(session, isHost) {
       showGameQuestion(q, session.current_question, session.quiz_data.questions.length, session.quiz_data.timer);
 
       if (isHost) {
-        document.getElementById('hostQuestionPanel').style.display = 'block';
-        document.getElementById('hostQText').textContent = q.text;
-        document.getElementById('btnShowAnswers').style.display = '';
-        document.getElementById('btnShowAnswers').disabled = false;
-        document.getElementById('btnNext').style.display = 'none';
-        document.getElementById('hostAnswerStats').innerHTML = '';
+        const panel = document.getElementById('hostQuestionPanel');
+        const hostQText = document.getElementById('hostQText');
+        const btnShow = document.getElementById('btnShowAnswers');
+        const btnNext = document.getElementById('btnNext');
+        const stats = document.getElementById('hostAnswerStats');
+        if (panel) panel.style.display = 'block';
+        if (hostQText) hostQText.textContent = q.text;
+        if (btnShow) { btnShow.style.display = ''; btnShow.disabled = false; }
+        if (btnNext) btnNext.style.display = 'none';
+        if (stats) stats.innerHTML = '';
       }
     }
   }
@@ -843,14 +966,18 @@ function handleSessionUpdate(session, isHost) {
 async function loadAnswerStats(sessionId, qIdx, q) {
   if (!supabaseClient) return;
   const { data } = await supabaseClient
-    .from('game_answers').select('answer_idx, is_correct')
-    .eq('session_id', sessionId).eq('question_idx', qIdx);
+    .from('game_answers')
+    .select('answer_idx, is_correct')
+    .eq('session_id', sessionId)
+    .eq('question_idx', qIdx);
   if (!data) return;
   const total = data.length;
   const correct = data.filter(a => a.is_correct).length;
   const counts = [0,0,0,0];
   data.forEach(a => { if(a.answer_idx >= 0 && a.answer_idx <= 3) counts[a.answer_idx]++; });
-  document.getElementById('hostAnswerStats').innerHTML = `
+  const statsEl = document.getElementById('hostAnswerStats');
+  if (!statsEl) return;
+  statsEl.innerHTML = `
     <div style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;margin-bottom:6px">
         <span style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted)">Жауап берді: ${total}</span>
@@ -874,9 +1001,14 @@ function showGameScreen(screen) {
     const el = document.getElementById('game'+s+'Screen');
     if (el) el.style.display = 'none';
   });
-  const target = document.getElementById('game'+screen.charAt(0).toUpperCase()+screen.slice(1)+'Screen');
+  const name = screen.charAt(0).toUpperCase() + screen.slice(1);
+  const target = document.getElementById('game'+name+'Screen');
   if (target) target.style.display = 'block';
-  switchTab('game');
+  // Game табына ауысу (егер game панелінде болмасак)
+  const gamePanel = document.getElementById('panel-game');
+  if (gamePanel && !gamePanel.classList.contains('active')) {
+    switchTab('game');
+  }
 }
 
 function showGameQuestion(q, idx, total, timerSecs) {
@@ -922,7 +1054,10 @@ async function submitGameAnswer(optIdx) {
   try {
     const r = await fetch(`${API_BASE}/game`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ initData: getTgInitData(), action:'answer', payload:{ code: gameState.code, questionIdx: gameState.currentQ, answerIdx: optIdx, timeMs } })
+      body: JSON.stringify({
+        initData: getTgInitData(), action:'answer',
+        payload:{ code: gameState.code, questionIdx: gameState.currentQ, answerIdx: optIdx, timeMs }
+      })
     });
     const d = await r.json();
     if (d.isCorrect) {
@@ -930,7 +1065,7 @@ async function submitGameAnswer(optIdx) {
       document.getElementById('myGameScore').textContent = gameState.myScore + ' ⭐';
       showPointsPopup('+' + d.points);
     }
-  } catch {}
+  } catch(e) { console.error(e); }
 }
 
 function autoGameAnswer() {
@@ -938,6 +1073,7 @@ function autoGameAnswer() {
 }
 
 function revealAnswers(correctIdx) {
+  console.log('✅ Жауап ашылды, дұрысы:', correctIdx);
   document.querySelectorAll('.game-ans-btn').forEach((b,i) => {
     b.disabled = true;
     if (i === correctIdx) b.classList.add('reveal-correct');
@@ -955,7 +1091,10 @@ function showPointsPopup(text) {
 async function showGameScoreboard() {
   clearInterval(gameState.gameTimer);
   try {
-    const r = await fetch(`${API_BASE}/game`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ initData: getTgInitData(), action:'scoreboard', payload:{ code: gameState.code } }) });
+    const r = await fetch(`${API_BASE}/game`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action:'scoreboard', payload:{ code: gameState.code } })
+    });
     const d = await r.json();
     if (!d.ok) return;
     const myId = getTgUser()?.id;
@@ -971,7 +1110,7 @@ async function showGameScoreboard() {
       </div>`;
     }).join('');
     showGameScreen('score');
-  } catch {}
+  } catch(e) { console.error(e); }
 }
 
 // ══════════════════════════════════════════
