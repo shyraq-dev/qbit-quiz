@@ -2,6 +2,7 @@
   "name": "qbit-quiz",
   "version": "1.0.0",
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "node-fetch": "^2.6.9"
   }
 }
