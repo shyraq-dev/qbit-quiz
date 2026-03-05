@@ -16,9 +16,9 @@ function verifyTelegram(initData) {
 
 // Бірнеше модель — бірі қате берсе келесісі сынайды
 const MODELS = [
-  'meta-llama/llama-3.1-8b-instruct:free',
   'mistralai/mistral-7b-instruct:free',
-  'google/gemma-2-9b-it:free',
+  'huggingfaceh4/zephyr-7b-beta:free',
+  'openchat/openchat-7b:free',
 ];
 
 async function callOpenRouter(prompt) {
