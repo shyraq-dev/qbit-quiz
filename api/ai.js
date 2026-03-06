@@ -153,7 +153,6 @@ correct — дұрыс жауаптың индексі (0, 1, 2 немесе 3).
     return res.status(500).json({ ok: false, error: err.message });
   }
 };
-index.html — тек ЖИ КӨМЕКШІ бөлімін ауыстырыңыз, тіл таңдау жоқ:
 <!-- ЖИ КӨМЕКШІ -->
 <div class="card ai-card">
   <div class="card-title" style="color:#a78bfa">🤖 жи көмекші</div>
