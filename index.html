@@ -115,8 +115,7 @@
   .explanation{background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.15);border-radius:10px;padding:12px 14px;margin-top:12px;font-size:13px;color:var(--muted);line-height:1.6;text-align:left;display:none;}
   .explanation.show{display:block;animation:fadeIn 0.3s ease;}
   .explanation strong{color:var(--accent);}
-  .lb-filters{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
-  .lb-row{display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 14px;margin-bottom:7px;transition:all 0.2s;}
+  .lb-row{display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 14px;margin-bottom:7px;}
   .lb-rank{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;width:28px;text-align:center;flex-shrink:0;}
   .lb-rank.gold{color:#fbbf24;}
   .lb-rank.silver{color:#9ca3af;}
@@ -259,6 +258,7 @@
             <button class="ai-mode-btn active" id="aiMode-topic" onclick="setAiMode('topic')">💡 Тақырып бойынша</button>
             <button class="ai-mode-btn" id="aiMode-text" onclick="setAiMode('text')">📝 Мәтіннен</button>
           </div>
+          <!-- Тақырып -->
           <div id="aiTopicPanel">
             <label>Тақырып</label>
             <input type="text" id="aiTopic" placeholder="Мысалы: Қазақстан тарихы, Python негіздері..."/>
@@ -271,12 +271,9 @@
                 <label>Қиындық</label>
                 <select id="aiDifficulty"><option value="easy">🟢 Оңай</option><option value="medium" selected>🟡 Орта</option><option value="hard">🔴 Қиын</option></select>
               </div>
-              <div style="flex:1">
-                <label>Тіл</label>
-                <select id="aiLanguage"><option value="kk" selected>🇰🇿 Қазақша</option><option value="ru">🇷🇺 Орысша</option><option value="en">🇬🇧 Ағылшын</option></select>
-              </div>
             </div>
           </div>
+          <!-- Мәтін -->
           <div id="aiTextPanel" style="display:none">
             <label>Мәтін енгізіңіз</label>
             <textarea id="aiText" rows="5" placeholder="Кез келген мәтінді қойыңыз — ЖИ сол мәтін негізінде сұрақ жасайды..."></textarea>
@@ -463,7 +460,7 @@
   <div class="panel" id="panel-leaderboard">
     <div class="card">
       <div class="card-title">🏆 рейтинг</div>
-      <div class="lb-filters">
+      <div style="display:flex;gap:7px;margin-bottom:14px">
         <button class="btn btn-sm btn-ghost active" id="lbf-all" onclick="loadLeaderboard('all')">🌍 Жалпы</button>
         <button class="btn btn-sm btn-ghost" id="lbf-weekly" onclick="loadLeaderboard('weekly')">📅 Апталық</button>
       </div>
@@ -484,9 +481,7 @@
       <select id="exportSelect"><option value="">— Тест таңдаңыз —</option></select>
       <button class="btn btn-cyan" onclick="generateExport()" style="margin-bottom:10px">⚡ Генерациялау</button>
       <div id="exportOutput" style="display:none">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <button class="btn btn-sm btn-success" onclick="copyExport()">📋 Көшіру</button>
-        </div>
+        <button class="btn btn-sm btn-success" onclick="copyExport()" style="margin-bottom:8px">📋 Көшіру</button>
         <div class="export-box" id="exportBox"></div>
       </div>
     </div>
@@ -524,7 +519,6 @@ let gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,answerSt
 let aiGeneratedQuestions=[];
 let currentAiMode='topic';
 
-// ══ REALTIME STATUS ══
 function setRealtimeStatus(s){
   const el=document.getElementById('realtimeStatus');if(!el)return;
   const m={'SUBSCRIBED':{c:'connected',t:'🟢 REALTIME'},'CHANNEL_ERROR':{c:'disconnected',t:'🔴 ҚАТЕ'},'TIMED_OUT':{c:'disconnected',t:'🔴 TIMEOUT'}};
@@ -533,7 +527,6 @@ function setRealtimeStatus(s){
   if(s==='SUBSCRIBED')setTimeout(()=>{el.style.display='none';},3000);
 }
 
-// ══ INIT ══
 async function init(){
   try{
     const r=await fetch(`${API_BASE}/config`);
@@ -560,7 +553,6 @@ function updateHeader(){
   document.getElementById('totalPlays').textContent=state.plays;
 }
 
-// ══ TABS ══
 function switchTab(tab){
   if((tab==='create'||tab==='export')&&!isAdmin()){showToast('🔒 Тек әкімшіге қол жетімді');return;}
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -574,7 +566,6 @@ function switchTab(tab){
   if(tab==='library')renderLibrary();
 }
 
-// ══ ADMIN ══
 function admSection(name,e){
   ['create','games','quizzes','users','recent'].forEach(s=>{
     const el=document.getElementById('adm-section-'+s);if(el)el.style.display='none';
@@ -643,12 +634,12 @@ async function loadAdminRecent(){
     c.innerHTML=d.data.map(r=>`
       <div class="recent-item">
         <div><div style="font-size:13px;color:var(--text)">${esc(r.users?.first_name||'Қолданушы')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${esc(r.quiz_title||'')} · ${new Date(r.played_at).toLocaleString('kk-KZ')}</div></div>
-        <div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div>
+        <div><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div>
       </div>`).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
 
-// ══ AI FUNCTIONS ══
+// ══ AI ══
 function setAiMode(mode){
   currentAiMode=mode;
   document.getElementById('aiTopicPanel').style.display=mode==='topic'?'block':'none';
@@ -667,7 +658,7 @@ async function generateAiQuestions(){
       const topic=document.getElementById('aiTopic').value.trim();
       if(!topic){showToast('⚠️ Тақырып енгізіңіз!');return;}
       action='generate_from_topic';
-      payload={topic,count:parseInt(document.getElementById('aiCount').value),difficulty:document.getElementById('aiDifficulty').value,language:document.getElementById('aiLanguage').value};
+      payload={topic,count:parseInt(document.getElementById('aiCount').value),difficulty:document.getElementById('aiDifficulty').value};
     }else{
       const text=document.getElementById('aiText').value.trim();
       if(!text||text.length<50){showToast('⚠️ Мәтін тым қысқа!');return;}
@@ -1020,7 +1011,6 @@ async function showGameScoreboard(){
   }catch(e){console.error(e);}
 }
 
-// ══ LEADERBOARD ══
 async function loadLeaderboard(type){
   document.querySelectorAll('[id^="lbf-"]').forEach(b=>b.classList.remove('active'));
   const btn=document.getElementById('lbf-'+type);if(btn)btn.classList.add('active');
@@ -1042,7 +1032,6 @@ async function loadLeaderboard(type){
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
 
-// ══ PROFILE ══
 async function loadProfile(){
   const c=document.getElementById('profileContent');const user=getTgUser();
   if(!user){c.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Telegram арқылы кіріңіз</div></div>';return;}
@@ -1077,11 +1066,10 @@ async function loadProfile(){
         <div class="card-title">🏅 жетістіктер</div>
         ${achievements.map(a=>`<div class="achievement ${a.unlocked?'':'locked'}"><div class="ach-icon">${a.icon}</div><div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>${a.unlocked?'<div style="margin-left:auto;color:var(--accent3);font-size:18px">✓</div>':''}</div>`).join('')}
       </div>
-      ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div style="font-size:13px;color:var(--text)">${esc(r.quiz_title||'Тест')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${new Date(r.played_at).toLocaleDateString('kk-KZ')} · ${r.time_sec}с</div></div><div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div></div>`).join('')}</div>`:''}`;
+      ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div style="font-size:13px;color:var(--text)">${esc(r.quiz_title||'Тест')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${new Date(r.played_at).toLocaleDateString('kk-KZ')} · ${r.time_sec}с</div></div><div><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div></div>`).join('')}</div>`:''}`;
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Бейін жоқ</div><p style="color:var(--muted);font-size:12px">Алдымен тест ойнаңыз!</p></div>';}
 }
 
-// ══ QUIZ PLAY ══
 function startPlay(quizId){
   const quiz=state.quizzes.find(q=>q.id===quizId);if(!quiz)return;
   state.currentPlay=quiz;
@@ -1188,7 +1176,6 @@ async function showResults(){
     </div>`;
 }
 
-// ══ LIBRARY ══
 function renderLibrary(){
   const c=document.getElementById('quizLibrary');
   if(!state.quizzes.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div></div>';return;}
@@ -1218,7 +1205,6 @@ function deleteQuiz(id){
   updateHeader();renderLibrary();updateExportSelect();
 }
 
-// ══ EXPORT ══
 function updateExportSelect(){
   const sel=document.getElementById('exportSelect');if(!sel)return;
   sel.innerHTML='<option value="">— Тест таңдаңыз —</option>';
@@ -1251,7 +1237,6 @@ function renderStats(){
   panel.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;padding:6px 0"><div><div class="r-stat-val cyan" style="font-size:26px">${state.quizzes.length}</div><div class="r-stat-lbl">тест</div></div><div><div class="r-stat-val green" style="font-size:26px">${total}</div><div class="r-stat-lbl">ойын</div></div><div><div class="r-stat-val" style="font-size:26px;color:var(--accent2)">${avg}%</div><div class="r-stat-lbl">үздік</div></div></div>`;
 }
 
-// ══ QUESTION BUILDER ══
 function addQuestion(q=null){
   state.questionCounter++;
   const id='q_'+Date.now()+'_'+state.questionCounter;
@@ -1307,7 +1292,6 @@ function saveQuiz(){
   showToast(`✅ "${title}" сақталды!`);switchTab('library');
 }
 
-// ══ UTILS ══
 function esc(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function showToast(msg){
