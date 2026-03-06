@@ -80,9 +80,9 @@ module.exports = async (req, res) => {
 
   const { initData, action, payload } = req.body;
 
-  if (!verifyTelegram(initData)) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+ // if (!verifyTelegram(initData)) {
+  //  return res.status(401).json({ error: 'Unauthorized' });
+ // }
 
   if (!process.env.GROQ_API_KEY) {
     return res.status(500).json({ ok: false, error: 'GROQ_API_KEY орнатылмаған' });
