@@ -47,8 +47,7 @@ async function callGroq(prompt) {
   };
 
   const res = await httpsPost(options, body);
-  console.log('📥 Groq status:', res.status);
-  console.log('📥 Groq raw:', res.body.substring(0, 300));
+  console.log('Groq status:', res.status);
 
   if (res.status !== 200) {
     throw new Error(`Groq HTTP ${res.status}: ${res.body.substring(0, 200)}`);
@@ -58,7 +57,6 @@ async function callGroq(prompt) {
   let text = data.choices?.[0]?.message?.content?.trim();
   if (!text) throw new Error('Groq жауап бос');
 
-  // JSON тазалау
   text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
   const jsonStart = text.indexOf('{');
   const jsonEnd = text.lastIndexOf('}');
@@ -92,28 +90,22 @@ module.exports = async (req, res) => {
 
   try {
 
-    // ── ТАҚЫРЫП БОЙЫНША ───────────────────────
     if (action === 'generate_from_topic') {
-      const { topic, count = 5, difficulty = 'medium', language = 'kk' } = payload;
+      const { topic, count = 5, difficulty = 'medium' } = payload;
 
-      const langMap = {
-        kk: 'қазақ тілінде жаз',
-        ru: 'напиши на русском языке',
-        en: 'write in English',
-      };
       const diffMap = {
         easy: 'оңай, мектеп деңгейінде',
         medium: 'орта, университет деңгейінде',
         hard: 'қиын, эксперт деңгейінде',
       };
 
-      const prompt = `Сен викторина жасаушысың. ${langMap[language] || langMap.kk}.
+      const prompt = `Сен викторина жасаушысың. Тек қазақ тілінде жаз.
 
 Тақырып: "${topic}"
 Сұрақ саны: ${count}
 Қиындық: ${diffMap[difficulty] || diffMap.medium}
 
-МАҢЫЗДЫ ЕРЕЖЕ: Тек таза JSON жауап бер. Ешқандай түсіндірме, кіріспе мәтін жазба.
+МАҢЫЗДЫ: Тек таза JSON жауап бер. Ешқандай түсіндірме, кіріспе мәтін жазба.
 
 Формат:
 {"questions":[{"text":"сұрақ мәтіні","options":["А нұсқа","Б нұсқа","В нұсқа","Г нұсқа"],"correct":0,"explanation":"қысқа түсіндірме"}]}
@@ -125,7 +117,6 @@ correct — дұрыс жауаптың индексі (0, 1, 2 немесе 3).
       return res.json({ ok: true, questions });
     }
 
-    // ── МӘТІННЕН ──────────────────────────────
     if (action === 'generate_from_text') {
       const { text, count = 5, difficulty = 'medium' } = payload;
 
@@ -135,7 +126,7 @@ correct — дұрыс жауаптың индексі (0, 1, 2 немесе 3).
         hard: 'қиын',
       };
 
-      const prompt = `Сен викторина жасаушысың. Қазақ тілінде жаз.
+      const prompt = `Сен викторина жасаушысың. Тек қазақ тілінде жаз.
 
 Төмендегі мәтін негізінде ${count} сұрақ жаса.
 Қиындық: ${diffMap[difficulty] || 'орта'}.
@@ -143,7 +134,7 @@ correct — дұрыс жауаптың индексі (0, 1, 2 немесе 3).
 МӘТІН:
 ${text.substring(0, 2000)}
 
-МАҢЫЗДЫ ЕРЕЖЕ: Тек таза JSON жауап бер. Ешқандай түсіндірме жазба.
+МАҢЫЗДЫ: Тек таза JSON жауап бер. Ешқандай түсіндірме жазба.
 
 Формат:
 {"questions":[{"text":"сұрақ мәтіні","options":["А нұсқа","Б нұсқа","В нұсқа","Г нұсқа"],"correct":0,"explanation":"қысқа түсіндірме"}]}
@@ -162,3 +153,51 @@ correct — дұрыс жауаптың индексі (0, 1, 2 немесе 3).
     return res.status(500).json({ ok: false, error: err.message });
   }
 };
+index.html — тек ЖИ КӨМЕКШІ бөлімін ауыстырыңыз, тіл таңдау жоқ:
+<!-- ЖИ КӨМЕКШІ -->
+<div class="card ai-card">
+  <div class="card-title" style="color:#a78bfa">🤖 жи көмекші</div>
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <button class="ai-mode-btn active" id="aiMode-topic" onclick="setAiMode('topic')">💡 Тақырып бойынша</button>
+    <button class="ai-mode-btn" id="aiMode-text" onclick="setAiMode('text')">📝 Мәтіннен</button>
+  </div>
+  <div id="aiTopicPanel">
+    <label>Тақырып</label>
+    <input type="text" id="aiTopic" placeholder="Мысалы: Қазақстан тарихы, Python негіздері..."/>
+    <div style="display:flex;gap:8px">
+      <div style="flex:1">
+        <label>Сұрақ саны</label>
+        <select id="aiCount"><option value="3">3</option><option value="5" selected>5</option><option value="10">10</option><option value="15">15</option></select>
+      </div>
+      <div style="flex:1">
+        <label>Қиындық</label>
+        <select id="aiDifficulty"><option value="easy">🟢 Оңай</option><option value="medium" selected>🟡 Орта</option><option value="hard">🔴 Қиын</option></select>
+      </div>
+    </div>
+  </div>
+  <div id="aiTextPanel" style="display:none">
+    <label>Мәтін енгізіңіз</label>
+    <textarea id="aiText" rows="5" placeholder="Кез келген мәтінді қойыңыз — ЖИ сол мәтін негізінде сұрақ жасайды..."></textarea>
+    <div style="display:flex;gap:8px">
+      <div style="flex:1">
+        <label>Сұрақ саны</label>
+        <select id="aiCountText"><option value="3">3</option><option value="5" selected>5</option><option value="10">10</option></select>
+      </div>
+      <div style="flex:1">
+        <label>Қиындық</label>
+        <select id="aiDifficultyText"><option value="easy">🟢 Оңай</option><option value="medium" selected>🟡 Орта</option><option value="hard">🔴 Қиын</option></select>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-ai" id="aiGenerateBtn" onclick="generateAiQuestions()" style="width:100%;justify-content:center">✨ ЖИ сұрақ жасасын</button>
+  <div id="aiResult" style="display:none;margin-top:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-family:Space Mono,monospace;font-size:11px;color:var(--accent3)">✅ Сұрақтар дайын!</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-success" onclick="addAiQuestionsToForm()">➕ Тестке қосу</button>
+        <button class="btn btn-sm btn-ghost" onclick="document.getElementById('aiResult').style.display='none'">✕</button>
+      </div>
+    </div>
+    <div id="aiPreview"></div>
+  </div>
+</div>
