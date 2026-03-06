@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const https = require('https');
 const crypto = require('crypto');
 
 function verifyTelegram(initData) {
@@ -14,85 +14,63 @@ function verifyTelegram(initData) {
   } catch { return false; }
 }
 
-// Бірнеше модель — бірі қате берсе келесісі сынайды
-const MODELS = [
-  'mistralai/mistral-7b-instruct:free',
-  'huggingfaceh4/zephyr-7b-beta:free',
-  'openchat/openchat-7b:free',
-];
+function httpsPost(options, body) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve({ status: res.statusCode, body: data }));
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
 
-async function callOpenRouter(prompt) {
-  let lastError = null;
+async function callGroq(prompt) {
+  const body = JSON.stringify({
+    model: 'llama-3.1-8b-instant',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.7,
+    max_tokens: 3000,
+  });
 
-  for (const model of MODELS) {
-    try {
-      console.log(`🤖 Модель сынауда: ${model}`);
-      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://qbit-quiz.vercel.app',
-          'X-Title': 'QBit Quiz',
-        },
-        body: JSON.stringify({
-          model,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-          max_tokens: 3000,
-        })
-      });
+  const options = {
+    hostname: 'api.groq.com',
+    path: '/openai/v1/chat/completions',
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(body),
+    },
+  };
 
-      const raw = await r.text();
-      console.log(`📥 Raw response (${model}):`, raw.substring(0, 200));
+  const res = await httpsPost(options, body);
+  console.log('📥 Groq status:', res.status);
+  console.log('📥 Groq raw:', res.body.substring(0, 300));
 
-      if (!r.ok) {
-        lastError = `HTTP ${r.status}: ${raw.substring(0, 100)}`;
-        continue;
-      }
-
-      let data;
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        lastError = `JSON parse қате: ${raw.substring(0, 100)}`;
-        continue;
-      }
-
-      if (!data.choices?.[0]?.message?.content) {
-        lastError = 'Жауап бос';
-        continue;
-      }
-
-      let text = data.choices[0].message.content.trim();
-      // Markdown code block тазалау
-      text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-
-      // JSON бөлімін табу
-      const jsonStart = text.indexOf('{');
-      const jsonEnd = text.lastIndexOf('}');
-      if (jsonStart === -1 || jsonEnd === -1) {
-        lastError = `JSON табылмады: ${text.substring(0, 100)}`;
-        continue;
-      }
-      text = text.substring(jsonStart, jsonEnd + 1);
-
-      const parsed = JSON.parse(text);
-      if (!parsed.questions || !Array.isArray(parsed.questions)) {
-        lastError = 'questions массиві жоқ';
-        continue;
-      }
-
-      console.log(`✅ Сәтті: ${model}, ${parsed.questions.length} сұрақ`);
-      return parsed.questions;
-
-    } catch (e) {
-      lastError = e.message;
-      console.error(`❌ ${model} қате:`, e.message);
-    }
+  if (res.status !== 200) {
+    throw new Error(`Groq HTTP ${res.status}: ${res.body.substring(0, 200)}`);
   }
 
-  throw new Error(lastError || 'Барлық модельдер сәтсіз');
+  const data = JSON.parse(res.body);
+  let text = data.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error('Groq жауап бос');
+
+  // JSON тазалау
+  text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+  const jsonStart = text.indexOf('{');
+  const jsonEnd = text.lastIndexOf('}');
+  if (jsonStart === -1 || jsonEnd === -1) throw new Error('JSON табылмады');
+  text = text.substring(jsonStart, jsonEnd + 1);
+
+  const parsed = JSON.parse(text);
+  if (!parsed.questions || !Array.isArray(parsed.questions)) {
+    throw new Error('questions массиві жоқ');
+  }
+
+  return parsed.questions;
 }
 
 module.exports = async (req, res) => {
@@ -108,8 +86,8 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  if (!process.env.OPENROUTER_API_KEY) {
-    return res.status(500).json({ ok: false, error: 'OPENROUTER_API_KEY орнатылмаған' });
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(500).json({ ok: false, error: 'GROQ_API_KEY орнатылмаған' });
   }
 
   try {
@@ -135,13 +113,15 @@ module.exports = async (req, res) => {
 Сұрақ саны: ${count}
 Қиындық: ${diffMap[difficulty] || diffMap.medium}
 
-МАҢЫЗДЫ: Тек JSON форматында жауап бер. Басқа мәтін жазба. Формат:
-{"questions":[{"text":"сұрақ","options":["А","Б","В","Г"],"correct":0,"explanation":"түсіндірме"}]}
+МАҢЫЗДЫ ЕРЕЖЕ: Тек таза JSON жауап бер. Ешқандай түсіндірме, кіріспе мәтін жазба.
 
-correct — дұрыс жауап индексі (0,1,2 немесе 3).
+Формат:
+{"questions":[{"text":"сұрақ мәтіні","options":["А нұсқа","Б нұсқа","В нұсқа","Г нұсқа"],"correct":0,"explanation":"қысқа түсіндірме"}]}
+
+correct — дұрыс жауаптың индексі (0, 1, 2 немесе 3).
 Дәл ${count} сұрақ жаса.`;
 
-      const questions = await callOpenRouter(prompt);
+      const questions = await callGroq(prompt);
       return res.json({ ok: true, questions });
     }
 
@@ -163,20 +143,22 @@ correct — дұрыс жауап индексі (0,1,2 немесе 3).
 МӘТІН:
 ${text.substring(0, 2000)}
 
-МАҢЫЗДЫ: Тек JSON форматында жауап бер. Басқа мәтін жазба. Формат:
-{"questions":[{"text":"сұрақ","options":["А","Б","В","Г"],"correct":0,"explanation":"түсіндірме"}]}
+МАҢЫЗДЫ ЕРЕЖЕ: Тек таза JSON жауап бер. Ешқандай түсіндірме жазба.
 
-correct — дұрыс жауап индексі (0,1,2 немесе 3).
+Формат:
+{"questions":[{"text":"сұрақ мәтіні","options":["А нұсқа","Б нұсқа","В нұсқа","Г нұсқа"],"correct":0,"explanation":"қысқа түсіндірме"}]}
+
+correct — дұрыс жауаптың индексі (0, 1, 2 немесе 3).
 Дәл ${count} сұрақ жаса.`;
 
-      const questions = await callOpenRouter(prompt);
+      const questions = await callGroq(prompt);
       return res.json({ ok: true, questions });
     }
 
     return res.status(400).json({ error: 'Unknown action' });
 
   } catch (err) {
-    console.error('AI endpoint қате:', err);
+    console.error('AI қате:', err);
     return res.status(500).json({ ok: false, error: err.message });
   }
 };
