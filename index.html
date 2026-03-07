@@ -122,7 +122,7 @@
   .lb-rank.silver{color:#9ca3af;}
   .lb-rank.bronze{color:#d97706;}
   .lb-rank.other{color:var(--muted);}
-  .lb-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:#fff;border:2px solid transparent;}
+  .lb-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid transparent;}
   .lb-avatar.me{border-color:var(--accent);box-shadow:0 0 10px rgba(0,245,255,0.3);}
   .lb-info{flex:1;min-width:0;}
   .lb-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -131,10 +131,23 @@
   .lb-score-sub{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);text-align:right;}
   .lb-me-row{background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(0,245,255,0.05));border-color:rgba(0,245,255,0.25);}
   .profile-hero{text-align:center;padding:24px 20px 18px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(0,245,255,0.05));border:1px solid var(--border);border-radius:18px;margin-bottom:14px;}
-  .profile-avatar{width:68px;height:68px;border-radius:50%;margin:0 auto 10px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:#fff;border:3px solid rgba(0,245,255,0.3);box-shadow:var(--glow);}
+  .profile-avatar{width:80px;height:80px;border-radius:50%;margin:0 auto 10px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:42px;border:3px solid rgba(0,245,255,0.3);box-shadow:var(--glow);cursor:pointer;transition:transform 0.2s;}
+  .profile-avatar:hover{transform:scale(1.06);}
   .profile-name{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);margin-bottom:3px;}
-  .profile-username{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:14px;}
+  .profile-username{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px;}
   .profile-rank-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 14px;border-radius:100px;background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.3);font-family:'Orbitron',monospace;font-size:10px;color:#fbbf24;letter-spacing:1px;}
+  .title-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 12px;border-radius:100px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;margin-top:6px;margin-bottom:8px;}
+  .avatar-modal{position:fixed;inset:0;background:rgba(3,7,18,0.92);z-index:9990;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.2s ease;}
+  .avatar-modal-box{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:520px;max-height:80vh;overflow-y:auto;}
+  .avatar-modal-title{font-family:'Orbitron',monospace;font-size:13px;color:var(--accent);letter-spacing:2px;margin-bottom:16px;text-align:center;}
+  .avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;}
+  .avatar-option{width:50px;height:50px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;transition:all 0.15s;margin:0 auto;}
+  .avatar-option:hover{border-color:var(--accent);transform:scale(1.1);}
+  .avatar-option.selected{border-color:var(--accent);background:rgba(0,245,255,0.12);box-shadow:0 0 12px rgba(0,245,255,0.35);}
+  .player-chip-avatar{font-size:26px;margin-bottom:3px;}
+  .player-chip{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;animation:popIn 0.3s ease;}
+  .player-chip.me{border-color:var(--accent);background:rgba(0,245,255,0.08);}
+  .live-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
   .profile-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:14px;}
   .ps-box{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:13px;text-align:center;}
   .ps-val{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--accent);}
@@ -484,6 +497,69 @@ function getTgInitData(){return tg?.initData||'';}
 function isAdmin(){const u=getTgUser();return u&&String(u.id)===String(window.__ADMIN_ID__);}
 
 let supabaseClient=null;
+
+// ══ АВАТАРЛАР ══
+const AVATARS=[
+  '🐱','🐶','🦊','🐼','🐨','🐯','🦁','🐸','🐺','🦝',
+  '🐻','🐮','🐷','🐙','🦄','🐲','🦋','🐬','🦅','🦉',
+  '🤖','👾','👻','🎃','🧙','🧝','🧛','🥷','👨‍🚀','🧑‍💻',
+  '⚡','🔥','💎','🌙','⭐','🍀','🎯','🏆','💜','🌊',
+];
+
+// Кейіпкер атақтар (ойын санына + нәтижеге байланысты)
+const TITLES=[
+  {id:'rookie',   label:'Жаңадан бастаушы', color:'#6b7280', bg:'rgba(107,114,128,0.15)', border:'rgba(107,114,128,0.3)', minGames:0,  minPct:0 },
+  {id:'student',  label:'Студент',           color:'#60a5fa', bg:'rgba(96,165,250,0.15)',  border:'rgba(96,165,250,0.3)',  minGames:3,  minPct:40},
+  {id:'warrior',  label:'Жауынгер',          color:'#10b981', bg:'rgba(16,185,129,0.15)',  border:'rgba(16,185,129,0.3)',  minGames:5,  minPct:55},
+  {id:'expert',   label:'Сарапшы',           color:'#f59e0b', bg:'rgba(245,158,11,0.15)',  border:'rgba(245,158,11,0.3)',  minGames:10, minPct:65},
+  {id:'master',   label:'Шебер',             color:'#a78bfa', bg:'rgba(167,139,250,0.15)', border:'rgba(167,139,250,0.3)', minGames:20, minPct:75},
+  {id:'legend',   label:'Аңыз',              color:'#fbbf24', bg:'rgba(251,191,36,0.15)',  border:'rgba(251,191,36,0.3)',  minGames:50, minPct:85},
+];
+
+function getTitle(totalGames=0, avgPct=0){
+  let best=TITLES[0];
+  for(const t of TITLES){
+    if(totalGames>=t.minGames && avgPct>=t.minPct) best=t;
+  }
+  return best;
+}
+
+function getMyAvatar(){return localStorage.getItem('qbit_avatar')||'🐱';}
+function setMyAvatar(a){localStorage.setItem('qbit_avatar',a);}
+
+function openAvatarModal(){
+  const cur=getMyAvatar();
+  const modal=document.createElement('div');
+  modal.className='avatar-modal';
+  modal.id='avatarModal';
+  modal.innerHTML=`
+    <div class="avatar-modal-box">
+      <div class="avatar-modal-title">🎭 АВАТАР ТАҢДАУ</div>
+      <div class="avatar-grid">
+        ${AVATARS.map(a=>`<div class="avatar-option ${a===cur?'selected':''}" onclick="selectAvatar('${a}')">${a}</div>`).join('')}
+      </div>
+      <button class="btn btn-cyan" style="width:100%;justify-content:center" onclick="closeAvatarModal()">✓ Жабу</button>
+    </div>`;
+  modal.addEventListener('click',e=>{if(e.target===modal)closeAvatarModal();});
+  document.body.appendChild(modal);
+}
+
+function selectAvatar(a){
+  setMyAvatar(a);
+  document.querySelectorAll('.avatar-option').forEach(el=>{
+    el.classList.toggle('selected', el.textContent===a);
+  });
+  // Профиль аватарын жаңарту
+  const pa=document.getElementById('profileAvatarEl');
+  if(pa)pa.textContent=a;
+  showToast(`${a} аватар таңдалды!`);
+}
+
+function closeAvatarModal(){
+  const m=document.getElementById('avatarModal');
+  if(m)m.remove();
+}
+
 let state={
   quizzes:JSON.parse(localStorage.getItem('qbit_quizzes')||'[]'),
   plays:parseInt(localStorage.getItem('qbit_plays')||'0'),
@@ -599,7 +675,7 @@ async function loadAdminUsers(){
     if(!d.ok||!d.data.length){c.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Жоқ</div></div>`;return;}
     c.innerHTML=d.data.map((u,i)=>{
       const pct=u.total_questions>0?Math.round(u.total_correct/u.total_questions*100):0;
-      return `<div class="lb-row"><div class="lb-rank other">${i+1}</div><div class="lb-avatar">${(u.first_name||'?')[0].toUpperCase()}</div><div class="lb-info"><div class="lb-name">${esc(u.first_name||'Қолданушы')}</div><div class="lb-sub">${u.username?'@'+u.username:''}</div></div><div><div class="lb-score">${pct}%</div><div class="lb-score-sub">${u.total_games} ойын</div></div></div>`;
+      return `<div class="lb-row"><div class="lb-rank other">${i+1}</div><div class="lb-avatar">${u.avatar||'🐱'}</div><div class="lb-info"><div class="lb-name">${esc(u.first_name||'Қолданушы')}</div><div class="lb-sub">${u.username?'@'+u.username:''}</div></div><div><div class="lb-score">${pct}%</div><div class="lb-score-sub">${u.total_games} ойын</div></div></div>`;
     }).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
@@ -648,7 +724,7 @@ function renderLiveMonitor(players,session){
     const isKicked=p.is_kicked;
     return `<div class="live-player-row ${rankClass}" style="${isKicked?'opacity:0.35;filter:grayscale(1)':''}">
       <div class="live-rank">${rankIcon}</div>
-      <div class="live-avatar">${(p.first_name||'?')[0].toUpperCase()}</div>
+      <div class="live-avatar">${p.avatar||'🐱'}</div>
       <div style="flex:1;min-width:0">
         <div class="live-name">${esc(p.first_name||'Ойыншы')}${isKicked?` <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--danger)">KICKED</span>`:''}
         </div>
@@ -673,7 +749,7 @@ async function createGame(){
   if(!quizId)return showToast('⚠️ Тест таңдаңыз!');
   const quiz=state.quizzes.find(q=>q.id===quizId);if(!quiz)return;
   try{
-    const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'create',payload:{quizData:quiz}})});
+    const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'create',payload:{quizData:quiz,avatar:getMyAvatar()}})});
     const d=await r.json();
     if(!d.ok)return showToast('⚠️ '+d.error);
     gameState.code=d.code;gameState.isHost=true;gameState.session=d.session;gameState.currentQ=0;
@@ -769,7 +845,7 @@ async function joinGame(){
   const code=document.getElementById('gameCodeInput').value.trim().toUpperCase();
   if(code.length<4)return showToast('⚠️ Кодты толық енгізіңіз!');
   try{
-    const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'join',payload:{code}})});
+    const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'join',payload:{code,avatar:getMyAvatar()}})});
     const d=await r.json();
     if(!d.ok)return showToast('⚠️ '+d.error);
     gameState.code=code;gameState.session=d.session;gameState.isHost=false;
@@ -833,11 +909,11 @@ async function refreshLobbyPlayers(code){
   const myId=getTgUser()?.id;
   const lobbyEl=document.getElementById('lobbyPlayers');
   const countEl=document.getElementById('playerCount');
-  if(lobbyEl)lobbyEl.innerHTML=players.map(p=>`<div class="player-chip ${p.user_id==myId?'me':''}"><div class="player-chip-name">${esc(p.first_name||'?')}</div><div class="player-chip-score">${p.score} ⭐</div></div>`).join('');
+  if(lobbyEl)lobbyEl.innerHTML=players.map(p=>{const av=p.user_id==myId?getMyAvatar():(p.avatar||'🐱');return `<div class="player-chip ${p.user_id==myId?'me':''}"><div class="player-chip-avatar">${av}</div><div class="player-chip-name">${esc(p.first_name||'?')}</div><div class="player-chip-score">${p.score} ⭐</div></div>`}).join('');
   if(countEl)countEl.textContent=players.length;
   const lobbyPlayerList=document.getElementById('lobbyPlayerList');
   const lobbyCount=document.getElementById('lobbyPlayerCount');
-  if(lobbyPlayerList)lobbyPlayerList.innerHTML=players.map(p=>`<div class="player-chip ${p.user_id==myId?'me':''}"><div class="player-chip-name">${esc(p.first_name||'?')}</div></div>`).join('');
+  if(lobbyPlayerList)lobbyPlayerList.innerHTML=players.map(p=>{const av=p.user_id==myId?getMyAvatar():(p.avatar||'🐱');return `<div class="player-chip ${p.user_id==myId?'me':''}"><div class="player-chip-avatar">${av}</div><div class="player-chip-name">${esc(p.first_name||'?')}</div></div>`}).join('');
   if(lobbyCount)lobbyCount.textContent=players.length;
 }
 
@@ -1041,7 +1117,8 @@ async function showGameScoreboard(){
     const myId=getTgUser()?.id;
     document.getElementById('gameScoreboard').innerHTML=d.players.map((p,i)=>{
       const n=i+1;const icon=n===1?'🥇':n===2?'🥈':n===3?'🥉':'#'+n;const isMe=p.user_id==myId;
-      return `<div class="scoreboard-row ${isMe?'highlight':''}"><div style="font-family:Orbitron,monospace;font-size:16px;width:32px">${icon}</div><div class="lb-avatar">${(p.first_name||'?')[0].toUpperCase()}</div><div style="flex:1"><div class="lb-name">${esc(p.first_name||'Ойыншы')}${isMe?' 👈':''}</div></div><div style="font-family:Orbitron,monospace;font-size:16px;color:var(--accent)">${p.score} ⭐</div></div>`;
+      const sbAv=isMe?getMyAvatar():(p.avatar||'🐱');
+      return `<div class="scoreboard-row ${isMe?'highlight':''}"><div style="font-family:Orbitron,monospace;font-size:16px;width:32px">${icon}</div><div class="lb-avatar">${sbAv}</div><div style="flex:1"><div class="lb-name">${esc(p.first_name||'Ойыншы')}${isMe?' 👈':''}</div></div><div style="font-family:Orbitron,monospace;font-size:16px;color:var(--accent)">${p.score} ⭐</div></div>`;
     }).join('');
     showGameScreen('score');
   }catch(e){console.error(e);}
@@ -1063,7 +1140,8 @@ async function loadLeaderboard(type){
       let sv,ss;
       if(type==='all'){const p=u.total_questions>0?Math.round(u.total_correct/u.total_questions*100):0;sv=p+'%';ss=u.total_games+' ойын';}
       else{sv=(u.avg_score||0)+'%';ss=u.games+' ойын';}
-      return `<div class="lb-row ${isMe?'lb-me-row':''}"><div class="lb-rank ${rc}">${ri}</div><div class="lb-avatar ${isMe?'me':''}">${name[0].toUpperCase()}</div><div class="lb-info"><div class="lb-name">${esc(name)}${isMe?' 👈':''}</div><div class="lb-sub">${u.username?'@'+u.username:''}</div></div><div><div class="lb-score">${sv}</div><div class="lb-score-sub">${ss}</div></div></div>`;
+      const uAvatar=isMe?getMyAvatar():(u.avatar||'🐱');
+      return `<div class="lb-row ${isMe?'lb-me-row':''}"><div class="lb-rank ${rc}">${ri}</div><div class="lb-avatar ${isMe?'me':''}">${uAvatar}</div><div class="lb-info"><div class="lb-name">${esc(name)}${isMe?' 👈':''}</div><div class="lb-sub">${u.username?'@'+u.username:''}</div></div><div><div class="lb-score">${sv}</div><div class="lb-score-sub">${ss}</div></div></div>`;
     }).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
@@ -1076,7 +1154,8 @@ async function loadProfile(){
     const r=await fetch(`${API_BASE}/profile`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData()})});
     const d=await r.json();if(!d.ok)throw new Error();
     const u=d.user;const pct=u.total_questions>0?Math.round(u.total_correct/u.total_questions*100):0;
-    const initial=(u.first_name||'Q')[0].toUpperCase();
+    const myAvatar=getMyAvatar();
+    const title=getTitle(u.total_games,pct);
     const achievements=[
       {icon:'🎯',name:'Алғашқы қадам',desc:'Бірінші тестті аяқтадыңыз',unlocked:u.total_games>=1},
       {icon:'🔥',name:'Streak x5',desc:'5 дұрыс жауап қатарынан',unlocked:u.best_streak>=5},
@@ -1087,9 +1166,11 @@ async function loadProfile(){
     ];
     c.innerHTML=`
       <div class="profile-hero">
-        <div class="profile-avatar">${initial}</div>
+        <div class="profile-avatar" id="profileAvatarEl" onclick="openAvatarModal()" title="Аватар өзгерту">${myAvatar}</div>
+        <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:8px;letter-spacing:1px">✏️ АВАТАР ӨЗГЕРТУ</div>
         <div class="profile-name">${esc(u.first_name||'Қолданушы')}</div>
         <div class="profile-username">${u.username?'@'+u.username:'ID: '+u.id}</div>
+        <div class="title-badge" style="color:${title.color};background:${title.bg};border:1px solid ${title.border}">${title.label}</div><br>
         <div class="profile-rank-pill">🏅 Рейтинг: #${d.rank}</div>
       </div>
       <div class="profile-stats">
@@ -1194,6 +1275,8 @@ async function showResults(){
   if(initData){try{await fetch(`${API_BASE}/save-result`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,result:{quizId:quiz.id,quizTitle:quiz.title,score,correct:ps.correct,wrong:ps.wrong,timeSec:time,maxStreak:ps.maxStreak}})});}catch{}}
   const rank=score>=90?'MASTER':score>=70?'EXPERT':score>=50?'STUDENT':'ROOKIE';
   const re=score>=90?'🏆':score>=70?'⭐':score>=50?'📚':'🌱';
+  // Жаңа title тексеру (ойыннан кейін)
+  const newTitle=getTitle((state.plays||1), score);
   document.getElementById('playContent').innerHTML=`
     <div class="result-big">
       <div class="rank-badge">${re} ${rank}</div>
