@@ -1,6 +1,8 @@
 const https = require('https');
 const crypto = require('crypto');
 
+const OYLAN_BASE = 'oylan.nu.edu.kz';
+
 function verifyTelegram(initData) {
   try {
     if (!initData) return false;
@@ -17,62 +19,146 @@ function verifyTelegram(initData) {
   } catch { return true; }
 }
 
-function httpsPost(options, body) {
+function httpsRequest(method, path, body, apiKey) {
   return new Promise((resolve, reject) => {
+    const bodyStr = body ? JSON.stringify(body) : '';
+    const options = {
+      hostname: OYLAN_BASE,
+      path,
+      method,
+      headers: {
+        'accept': 'application/json',
+        'Authorization': `Api-Key ${apiKey}`,
+        'Content-Type': 'application/json',
+        ...(bodyStr ? { 'Content-Length': Buffer.byteLength(bodyStr) } : {}),
+      },
+    };
+
     const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => resolve({ status: res.statusCode, body: data }));
     });
     req.on('error', reject);
-    req.write(body);
+    if (bodyStr) req.write(bodyStr);
     req.end();
   });
 }
 
-async function callGroq(prompt) {
-  const body = JSON.stringify({
-    model: 'llama-3.1-8b-instant',
-    messages: [{ role: 'user', content: prompt }],
-    temperature: 0.7,
+async function createAssistant(apiKey, systemPrompt) {
+  const res = await httpsRequest('POST', '/api/v1/assistant/', {
+    name: 'QBit Quiz Generator',
+    description: 'Викторина сұрақтарын жасайтын ассистент',
+    temperature: 0.5,
     max_tokens: 3000,
-  });
+    model: 'Oylan',
+    system_instructions: systemPrompt,
+    is_latin: false,
+  }, apiKey);
 
-  const options = {
-    hostname: 'api.groq.com',
-    path: '/openai/v1/chat/completions',
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(body),
-    },
-  };
+  console.log('Create assistant status:', res.status);
+  if (res.status !== 201) throw new Error(`Assistant жасалмады: ${res.body.substring(0, 200)}`);
+  return JSON.parse(res.body);
+}
 
-  const res = await httpsPost(options, body);
-  console.log('Groq status:', res.status);
-  console.log('Groq body:', res.body.substring(0, 300));
-
-  if (res.status !== 200) {
-    throw new Error(`Groq HTTP ${res.status}: ${res.body.substring(0, 200)}`);
+async function deleteAssistant(apiKey, assistantId) {
+  try {
+    await httpsRequest('DELETE', `/api/v1/assistant/${assistantId}/`, null, apiKey);
+  } catch(e) {
+    console.log('Assistant жою қатесі (елемейміз):', e.message);
   }
+}
+
+async function sendInteraction(apiKey, assistantId, userMessage) {
+  const res = await httpsRequest('POST', `/api/v1/assistant/${assistantId}/interaction/`, {
+    content: userMessage,
+  }, apiKey);
+
+  console.log('Interaction status:', res.status);
+  if (res.status === 402) throw new Error('Oylan токендері бітті');
+  if (res.status !== 201) throw new Error(`Interaction қатесі: ${res.body.substring(0, 200)}`);
 
   const data = JSON.parse(res.body);
-  let text = data.choices?.[0]?.message?.content?.trim();
-  if (!text) throw new Error('Groq жауап бос');
+  return data.response?.content || '';
+}
 
+function safeParseJSON(text) {
   text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
   const jsonStart = text.indexOf('{');
   const jsonEnd = text.lastIndexOf('}');
   if (jsonStart === -1 || jsonEnd === -1) throw new Error('JSON табылмады');
   text = text.substring(jsonStart, jsonEnd + 1);
 
-  const parsed = JSON.parse(text);
-  if (!parsed.questions || !Array.isArray(parsed.questions)) {
-    throw new Error('questions массиві жоқ');
-  }
+  try {
+    return JSON.parse(text);
+  } catch(e1) {
+    try {
+      const cleaned = text
+        .replace(/[\u0000-\u001F\u007F]/g, ' ')
+        .replace(/,\s*]/g, ']')
+        .replace(/,\s*}/g, '}');
+      return JSON.parse(cleaned);
+    } catch(e2) {
+      // Regex fallback
+      const questions = [];
+      const blocks = text.split(/"text"\s*:/);
+      for (let i = 1; i < blocks.length; i++) {
+        try {
+          const block = blocks[i];
+          const textMatch = block.match(/^\s*"([^"]+)"/);
+          const optionsMatch = block.match(/"options"\s*:\s*\[([^\]]+)\]/);
+          const correctMatch = block.match(/"correct"\s*:\s*(\d)/);
+          const explMatch = block.match(/"explanation"\s*:\s*"([^"]+)"/);
+          if (!textMatch) continue;
 
-  return parsed.questions;
+          let opts = ['А нұсқа', 'Б нұсқа', 'В нұсқа', 'Г нұсқа'];
+          if (optionsMatch) {
+            const rawOpts = optionsMatch[1].match(/"([^"]+)"/g);
+            if (rawOpts && rawOpts.length >= 2) {
+              opts = rawOpts.map(o => o.replace(/"/g, ''));
+              while (opts.length < 4) opts.push('—');
+            }
+          }
+
+          questions.push({
+            text: textMatch[1],
+            options: opts.slice(0, 4),
+            correct: correctMatch ? parseInt(correctMatch[1]) : 0,
+            explanation: explMatch ? explMatch[1] : '',
+          });
+        } catch {}
+      }
+      if (questions.length > 0) return { questions };
+      throw new Error('JSON parse мүмкін болмады: ' + e1.message);
+    }
+  }
+}
+
+async function generateQuestions(apiKey, userPrompt) {
+  const systemPrompt = `Сен викторина жасаушысың. Пайдаланушы сұраған тақырып немесе мәтін бойынша сұрақтар жасайсың.
+МАҢЫЗДЫ: Әрқашан тек таза JSON форматында жауап бер. Ешқандай түсіндірме немесе қосымша мәтін жазба.
+JSON форматы: {"questions":[{"text":"сұрақ","options":["A","B","C","D"],"correct":0,"explanation":"түсіндірме"}]}
+correct — дұрыс жауаптың индексі (0, 1, 2 немесе 3).
+Барлық мазмұн қазақ тілінде болуы керек.`;
+
+  let assistantId = null;
+  try {
+    const assistant = await createAssistant(apiKey, systemPrompt);
+    assistantId = assistant.id;
+    console.log('Assistant ID:', assistantId);
+
+    const responseText = await sendInteraction(apiKey, assistantId, userPrompt);
+    console.log('Oylan raw:', responseText.substring(0, 300));
+
+    const parsed = safeParseJSON(responseText);
+    if (!parsed.questions || !Array.isArray(parsed.questions)) {
+      throw new Error('questions массиві жоқ');
+    }
+    return parsed.questions;
+  } finally {
+    if (assistantId) await deleteAssistant(apiKey, assistantId);
+  }
 }
 
 module.exports = async (req, res) => {
@@ -88,8 +174,9 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  if (!process.env.GROQ_API_KEY) {
-    return res.status(500).json({ ok: false, error: 'GROQ_API_KEY орнатылмаған' });
+  const apiKey = process.env.OYLAN_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ ok: false, error: 'OYLAN_API_KEY орнатылмаған' });
   }
 
   try {
@@ -100,55 +187,35 @@ module.exports = async (req, res) => {
         medium: 'орта, университет деңгейінде',
         hard: 'қиын, эксперт деңгейінде',
       };
-      const prompt = `Сен викторина жасаушысың. Тек қазақ тілінде жаз.
-
-Тақырып: "${topic}"
+      const prompt = `Тақырып: "${topic}"
 Сұрақ саны: ${count}
 Қиындық: ${diffMap[difficulty] || diffMap.medium}
 
-МАҢЫЗДЫ: Тек таза JSON жауап бер. Ешқандай түсіндірме жазба.
+Дәл ${count} сұрақ жаса. Тек JSON:
+{"questions":[{"text":"сұрақ","options":["A","B","C","D"],"correct":0,"explanation":"түсіндірме"}]}`;
 
-Формат:
-{"questions":[{"text":"сұрақ мәтіні","options":["А нұсқа","Б нұсқа","В нұсқа","Г нұсқа"],"correct":0,"explanation":"қысқа түсіндірме"}]}
-
-correct — дұрыс жауаптың индексі (0, 1, 2 немесе 3).
-Дәл ${count} сұрақ жаса.`;
-
-      const questions = await callGroq(prompt);
+      const questions = await generateQuestions(apiKey, prompt);
       return res.json({ ok: true, questions });
     }
 
     if (action === 'generate_from_text') {
       const { text, count = 5, difficulty = 'medium' } = payload;
-      const diffMap = {
-        easy: 'оңай',
-        medium: 'орта',
-        hard: 'қиын',
-      };
-      const prompt = `Сен викторина жасаушысың. Тек қазақ тілінде жаз.
+      const diffMap = { easy: 'оңай', medium: 'орта', hard: 'қиын' };
+      const prompt = `Мәтін негізінде ${count} қазақша сұрақ жаса. Қиындық: ${diffMap[difficulty] || 'орта'}.
 
-Төмендегі мәтін негізінде ${count} сұрақ жаса.
-Қиындық: ${diffMap[difficulty] || 'орта'}.
+МӘТІН: ${text.substring(0, 2000)}
 
-МӘТІН:
-${text.substring(0, 2000)}
+Дәл ${count} сұрақ жаса. Тек JSON:
+{"questions":[{"text":"сұрақ","options":["A","B","C","D"],"correct":0,"explanation":"түсіндірме"}]}`;
 
-МАҢЫЗДЫ: Тек таза JSON жауап бер. Ешқандай түсіндірме жазба.
-
-Формат:
-{"questions":[{"text":"сұрақ мәтіні","options":["А нұсқа","Б нұсқа","В нұсқа","Г нұсқа"],"correct":0,"explanation":"қысқа түсіндірме"}]}
-
-correct — дұрыс жауаптың индексі (0, 1, 2 немесе 3).
-Дәл ${count} сұрақ жаса.`;
-
-      const questions = await callGroq(prompt);
+      const questions = await generateQuestions(apiKey, prompt);
       return res.json({ ok: true, questions });
     }
 
     return res.status(400).json({ error: 'Unknown action' });
 
   } catch (err) {
-    console.error('AI қате:', err);
+    console.error('AI қате:', err.message);
     return res.status(500).json({ ok: false, error: err.message });
   }
 };
