@@ -3,6 +3,10 @@ const crypto = require('crypto');
 
 const OYLAN_BASE = 'oylan.nu.edu.kz';
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function verifyTelegram(initData) {
   try {
     if (!initData) return false;
@@ -139,6 +143,8 @@ async function generateQuestions(apiKey, prompt) {
     const assistant = await createAssistant(apiKey);
     assistantId = assistant.id;
     console.log('Assistant ID:', assistantId);
+
+    await sleep(1500);
 
     const responseText = await sendInteraction(apiKey, assistantId, prompt);
     console.log('Oylan raw:', responseText.substring(0, 300));
