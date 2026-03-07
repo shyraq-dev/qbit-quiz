@@ -321,11 +321,23 @@
           <div id="hostQuestionPanel" style="display:none">
             <div class="card">
               <div class="card-title">🎯 хост басқармасы</div>
+              <!-- Сұрақ мәтіні + прогресс -->
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div class="tag tag-purple" id="hostQCounter">1/1</div>
+                <div id="pauseBadge" style="display:none;padding:4px 12px;border-radius:20px;background:rgba(245,158,11,0.2);border:1px solid var(--warn);font-family:Space Mono,monospace;font-size:10px;color:var(--warn);letter-spacing:1px">⏸ PAUSE</div>
+              </div>
               <div id="hostQText" style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:16px;line-height:1.4"></div>
               <div id="hostAnswerStats" style="margin-bottom:16px"></div>
-              <div style="display:flex;gap:10px">
+              <!-- Негізгі батырмалар -->
+              <div style="display:flex;gap:8px;margin-bottom:10px">
                 <button class="btn btn-cyan" onclick="showAnswers()" id="btnShowAnswers" style="flex:1;justify-content:center">👁 Жауаптарды көрсет</button>
-                <button class="btn btn-primary" onclick="hostNextQuestion()" id="btnNext" style="flex:1;justify-content:center;display:none">➡ Келесі сұрақ</button>
+                <button class="btn btn-primary" onclick="hostNextQuestion()" id="btnNext" style="flex:1;justify-content:center;display:none">➡ Келесі</button>
+              </div>
+              <!-- Хост extra controls -->
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-ghost btn-sm" onclick="togglePause()" id="btnPause" style="flex:1;justify-content:center">⏸ Пауза</button>
+                <button class="btn btn-ghost btn-sm" onclick="skipQuestion()" id="btnSkip" style="flex:1;justify-content:center">⏭ Скип</button>
+                <button class="btn btn-danger btn-sm" onclick="cancelGame()" style="justify-content:center">✕</button>
               </div>
             </div>
             <div class="live-monitor">
@@ -482,7 +494,7 @@ let editingQuizId=null; // ── ӨҢДЕУ КҮЙІ ──
 let gameState={
   code:null,session:null,isHost:false,myScore:0,
   currentQ:0,answerStartTime:null,realtimeSub:null,gameTimer:null,
-  liveStatsInterval:null,
+  liveStatsInterval:null,isPaused:false,
 };
 
 function setRealtimeStatus(status){
@@ -620,15 +632,26 @@ async function refreshLiveStats(){
 function renderLiveMonitor(players,session){
   const c=document.getElementById('livePlayerList');if(!c)return;
   if(!players||!players.length){c.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-family:Space Mono,monospace;font-size:11px">Ойыншы жоқ</div>';return;}
+  const isPaused=session?.is_paused;
+  // Sync pause UI
+  const btn=document.getElementById('btnPause');
+  const badge=document.getElementById('pauseBadge');
+  if(btn&&isPaused!==gameState.isPaused){
+    gameState.isPaused=isPaused;
+    if(btn){btn.textContent=isPaused?'▶ Жалғастыру':'⏸ Пауза';btn.className=isPaused?'btn btn-success btn-sm':'btn btn-ghost btn-sm';btn.style.flex='1';btn.style.justifyContent='center';}
+    if(badge)badge.style.display=isPaused?'block':'none';
+  }
   c.innerHTML=players.map((p,i)=>{
     const rank=i+1;
     const rankIcon=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'#'+rank;
     const rankClass=rank===1?'first':rank===2?'second':rank===3?'third':'';
-    return `<div class="live-player-row ${rankClass}">
+    const isKicked=p.is_kicked;
+    return `<div class="live-player-row ${rankClass}" style="${isKicked?'opacity:0.35;filter:grayscale(1)':''}">
       <div class="live-rank">${rankIcon}</div>
       <div class="live-avatar">${(p.first_name||'?')[0].toUpperCase()}</div>
       <div style="flex:1;min-width:0">
-        <div class="live-name">${esc(p.first_name||'Ойыншы')}</div>
+        <div class="live-name">${esc(p.first_name||'Ойыншы')}${isKicked?` <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--danger)">KICKED</span>`:''}
+        </div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
           <div style="height:8px;background:var(--accent3);border-radius:3px;width:${p.correct*8}px;max-width:60px;min-width:4px;transition:width 0.5s"></div>
           <div style="height:8px;background:var(--danger);border-radius:3px;width:${p.wrong*8}px;max-width:60px;min-width:${p.wrong?'4px':'0'};transition:width 0.5s"></div>
@@ -636,7 +659,10 @@ function renderLiveMonitor(players,session){
         </div>
         <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-top:2px">✓${p.correct} ✗${p.wrong}</div>
       </div>
-      <div class="live-score">${p.score}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+        <div class="live-score">${p.score}</div>
+        ${!isKicked?`<button class="btn btn-sm btn-danger" style="padding:3px 8px;font-size:11px" onclick="kickPlayer('${p.user_id}','${esc(p.first_name||'Ойыншы')}')">👢</button>`:''}
+      </div>
     </div>`;
   }).join('');
 }
@@ -683,12 +709,58 @@ async function hostNextQuestion(){
   if(d.finished){clearInterval(gameState.liveStatsInterval);showGameScoreboard();}
 }
 
+// ══ PAUSE ══
+async function togglePause(){
+  const btn=document.getElementById('btnPause');
+  const badge=document.getElementById('pauseBadge');
+  btn.disabled=true;
+  try{
+    const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'pause',payload:{code:gameState.code}})});
+    const d=await r.json();
+    if(d.ok){
+      gameState.isPaused=d.is_paused;
+      btn.textContent=d.is_paused?'▶ Жалғастыру':'⏸ Пауза';
+      btn.className=d.is_paused?'btn btn-success btn-sm':'btn btn-ghost btn-sm';
+      btn.style.flex='1';btn.style.justifyContent='center';
+      if(badge)badge.style.display=d.is_paused?'block':'none';
+      showToast(d.is_paused?'⏸ Ойын тоқтатылды':'▶ Ойын жалғасты');
+    }
+  }finally{btn.disabled=false;}
+}
+
+// ══ SKIP ══
+async function skipQuestion(){
+  if(!confirm('Ағымдағы сұрақты өткізіп жіберейік пе?'))return;
+  const btn=document.getElementById('btnSkip');
+  btn.disabled=true;
+  try{
+    const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'skip',payload:{code:gameState.code}})});
+    const d=await r.json();
+    if(!d.ok)showToast('⚠️ '+d.error);
+    else if(d.finished){clearInterval(gameState.liveStatsInterval);showGameScoreboard();}
+    else showToast('⏭ Сұрақ өткізілді');
+  }finally{btn.disabled=false;}
+}
+
+// ══ KICK ══
+async function kickPlayer(targetUserId, targetName){
+  if(!confirm(`"${targetName}" ойыншыны шығару?`))return;
+  try{
+    const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'kick',payload:{code:gameState.code,targetUserId}})});
+    const d=await r.json();
+    if(d.ok){showToast(`👢 "${targetName}" шығарылды`);refreshLiveStats();}
+    else showToast('⚠️ '+d.error);
+  }catch{showToast('⚠️ Қате');}
+}
+
+
 function cancelGame(){
   if(gameState.realtimeSub)gameState.realtimeSub.unsubscribe();
   clearInterval(gameState.liveStatsInterval);
+  const overlay=document.getElementById('pauseOverlay');if(overlay)overlay.remove();
   document.getElementById('activeGamePanel').style.display='none';
   document.getElementById('hostQuestionPanel').style.display='none';
-  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,realtimeSub:null,gameTimer:null,liveStatsInterval:null};
+  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,realtimeSub:null,gameTimer:null,liveStatsInterval:null,isPaused:false};
   document.getElementById('realtimeStatus').style.display='none';
 }
 
@@ -712,7 +784,8 @@ async function joinGame(){
 function backToGameJoin(){
   if(gameState.realtimeSub)gameState.realtimeSub.unsubscribe();
   clearInterval(gameState.gameTimer);clearInterval(gameState.liveStatsInterval);
-  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,realtimeSub:null,gameTimer:null,liveStatsInterval:null};
+  const overlay=document.getElementById('pauseOverlay');if(overlay)overlay.remove();
+  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,realtimeSub:null,gameTimer:null,liveStatsInterval:null,isPaused:false};
   document.getElementById('realtimeStatus').style.display='none';
   showGameScreen('join');
 }
@@ -772,8 +845,49 @@ function handleSessionUpdate(session,isHost){
   const prevQ=gameState.currentQ;
   const prevStatus=gameState.session?.status;
   const prevShowAnswers=gameState.session?.show_answers;
+  const prevPaused=gameState.session?.is_paused;
   gameState.session=session;
+
   if(session.status==='finished'){clearInterval(gameState.gameTimer);showGameScoreboard();return;}
+
+  // ── Пауза өзгерді (ойыншы үшін) ──
+  if(!isHost&&session.is_paused!==prevPaused){
+    if(session.is_paused){
+      clearInterval(gameState.gameTimer);
+      // Overlay қосу
+      let overlay=document.getElementById('pauseOverlay');
+      if(!overlay){
+        overlay=document.createElement('div');
+        overlay.id='pauseOverlay';
+        overlay.style.cssText='position:fixed;inset:0;background:rgba(3,7,18,0.85);z-index:8000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;backdrop-filter:blur(4px);animation:fadeIn 0.3s ease';
+        overlay.innerHTML=`<div style="font-size:52px">⏸</div><div style="font-family:Orbitron,monospace;font-size:18px;color:var(--warn);letter-spacing:3px">ПАУЗА</div><div style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted)">Хост жалғастыруын күтіңіз</div>`;
+        document.body.appendChild(overlay);
+      }
+    } else {
+      const overlay=document.getElementById('pauseOverlay');
+      if(overlay)overlay.remove();
+    }
+  }
+
+  // ── Kicked болса ──
+  if(!isHost){
+    const myId=String(getTgUser()?.id);
+    const kicked=session.kicked_players||[];
+    if(kicked.includes(myId)){
+      clearInterval(gameState.gameTimer);
+      document.getElementById('gameAnswers').innerHTML='';
+      document.getElementById('panel-game').innerHTML=`
+        <div style="text-align:center;padding:60px 20px">
+          <div style="font-size:52px;margin-bottom:16px">👢</div>
+          <div style="font-family:Orbitron,monospace;font-size:18px;color:var(--danger);margin-bottom:8px">ШЫҒАРЫЛДЫҢЫЗ</div>
+          <div style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted);margin-bottom:24px">Хост сізді ойыннан шығарды</div>
+          <button class="btn btn-cyan" onclick="location.reload()">↩️ Қайту</button>
+        </div>`;
+      return;
+    }
+  }
+
+  // ── Жауаптар ашылды ──
   if(session.status==='playing'&&session.show_answers&&!prevShowAnswers){
     const q=session.quiz_data.questions[session.current_question];
     revealAnswers(q.correct);
@@ -787,10 +901,15 @@ function handleSessionUpdate(session,isHost){
     }
     return;
   }
+
+  // ── Жаңа сұрақ ──
   if(session.status==='playing'&&!session.show_answers){
     const isNewGame=prevStatus!=='playing';
     const isNewQuestion=session.current_question!==prevQ;
     if(isNewGame||isNewQuestion){
+      // Пауза overlay жою (жаңа сұрақта автоматты жалғасу)
+      const overlay=document.getElementById('pauseOverlay');
+      if(overlay)overlay.remove();
       gameState.currentQ=session.current_question;
       const q=session.quiz_data.questions[session.current_question];
       showGameQuestion(q,session.current_question,session.quiz_data.questions.length,session.quiz_data.timer);
@@ -799,12 +918,21 @@ function handleSessionUpdate(session,isHost){
         if(panel)panel.style.display='block';
         const hostQText=document.getElementById('hostQText');
         if(hostQText)hostQText.textContent=q.text;
+        // Прогресс санауышы
+        const counter=document.getElementById('hostQCounter');
+        if(counter)counter.textContent=`${session.current_question+1}/${session.quiz_data.questions.length}`;
         const btnShow=document.getElementById('btnShowAnswers');
         const btnNext=document.getElementById('btnNext');
         const stats=document.getElementById('hostAnswerStats');
         if(btnShow){btnShow.style.display='';btnShow.disabled=false;}
         if(btnNext)btnNext.style.display='none';
         if(stats)stats.innerHTML='';
+        // Пауза батырмасын қалпына келтіру
+        const btnPause=document.getElementById('btnPause');
+        if(btnPause){btnPause.textContent='⏸ Пауза';btnPause.className='btn btn-ghost btn-sm';btnPause.style.flex='1';btnPause.style.justifyContent='center';}
+        const badge=document.getElementById('pauseBadge');
+        if(badge)badge.style.display='none';
+        gameState.isPaused=false;
         if(isNewGame){gameState.liveStatsInterval=setInterval(refreshLiveStats,5000);}
         refreshLiveStats();
       }
