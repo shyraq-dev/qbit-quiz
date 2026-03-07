@@ -44,16 +44,14 @@ function httpsRequest(method, path, body, apiKey) {
   });
 }
 
-async function createAssistant(apiKey, systemPrompt) {
+async function createAssistant(apiKey) {
   const name = `QBit-${Date.now()}`;
   const res = await httpsRequest('POST', '/api/v1/assistant/', {
     name,
-    description: 'Викторина сұрақтарын жасайтын ассистент',
     temperature: 0.5,
     max_tokens: 3000,
     model: 'Oylan',
-    system_instructions: systemPrompt,
-    is_latin: false,
+    system_instructions: 'Respond only in JSON format.',
   }, apiKey);
 
   console.log('Create assistant status:', res.status);
@@ -66,13 +64,13 @@ async function deleteAssistant(apiKey, assistantId) {
     await httpsRequest('DELETE', `/api/v1/assistant/${assistantId}/`, null, apiKey);
     console.log('Assistant жойылды:', assistantId);
   } catch(e) {
-    console.log('Assistant жою қатесі (елемейміз):', e.message);
+    console.log('Assistant жою қатесі:', e.message);
   }
 }
 
-async function sendInteraction(apiKey, assistantId, userMessage) {
+async function sendInteraction(apiKey, assistantId, content) {
   const res = await httpsRequest('POST', `/api/v1/assistant/${assistantId}/interactions/`, {
-    content: userMessage,
+    content,
   }, apiKey);
 
   console.log('Interaction status:', res.status);
@@ -112,7 +110,7 @@ function safeParseJSON(text) {
           const explMatch = block.match(/"explanation"\s*:\s*"([^"]+)"/);
           if (!textMatch) continue;
 
-          let opts = ['А нұсқа', 'Б нұсқа', 'В нұсқа', 'Г нұсқа'];
+          let opts = ['А', 'Б', 'В', 'Г'];
           if (optionsMatch) {
             const rawOpts = optionsMatch[1].match(/"([^"]+)"/g);
             if (rawOpts && rawOpts.length >= 2) {
@@ -135,20 +133,14 @@ function safeParseJSON(text) {
   }
 }
 
-async function generateQuestions(apiKey, userPrompt) {
-  const systemPrompt = `Сен викторина жасаушысың. Пайдаланушы сұраған тақырып немесе мәтін бойынша сұрақтар жасайсың.
-МАҢЫЗДЫ: Әрқашан тек таза JSON форматында жауап бер. Ешқандай түсіндірме немесе қосымша мәтін жазба.
-JSON форматы: {"questions":[{"text":"сұрақ","options":["A","B","C","D"],"correct":0,"explanation":"түсіндірме"}]}
-correct — дұрыс жауаптың индексі (0, 1, 2 немесе 3).
-Барлық мазмұн қазақ тілінде болуы керек.`;
-
+async function generateQuestions(apiKey, prompt) {
   let assistantId = null;
   try {
-    const assistant = await createAssistant(apiKey, systemPrompt);
+    const assistant = await createAssistant(apiKey);
     assistantId = assistant.id;
     console.log('Assistant ID:', assistantId);
 
-    const responseText = await sendInteraction(apiKey, assistantId, userPrompt);
+    const responseText = await sendInteraction(apiKey, assistantId, prompt);
     console.log('Oylan raw:', responseText.substring(0, 300));
 
     const parsed = safeParseJSON(responseText);
@@ -182,17 +174,9 @@ module.exports = async (req, res) => {
   try {
     if (action === 'generate_from_topic') {
       const { topic, count = 5, difficulty = 'medium' } = payload;
-      const diffMap = {
-        easy: 'оңай, мектеп деңгейінде',
-        medium: 'орта, университет деңгейінде',
-        hard: 'қиын, эксперт деңгейінде',
-      };
-      const prompt = `Тақырып: "${topic}"
-Сұрақ саны: ${count}
-Қиындық: ${diffMap[difficulty] || diffMap.medium}
+      const diffMap = { easy: 'easy', medium: 'medium', hard: 'hard' };
 
-Дәл ${count} сұрақ жаса. Тек JSON:
-{"questions":[{"text":"сұрақ","options":["A","B","C","D"],"correct":0,"explanation":"түсіндірме"}]}`;
+      const prompt = `Create exactly ${count} Kazakh language quiz questions about "${topic}". Difficulty: ${diffMap[difficulty] || 'medium'}. Return only this JSON: {"questions":[{"text":"question in Kazakh","options":["A","B","C","D"],"correct":0,"explanation":"short explanation in Kazakh"}]}`;
 
       const questions = await generateQuestions(apiKey, prompt);
       return res.json({ ok: true, questions });
@@ -200,13 +184,9 @@ module.exports = async (req, res) => {
 
     if (action === 'generate_from_text') {
       const { text, count = 5, difficulty = 'medium' } = payload;
-      const diffMap = { easy: 'оңай', medium: 'орта', hard: 'қиын' };
-      const prompt = `Мәтін негізінде ${count} қазақша сұрақ жаса. Қиындық: ${diffMap[difficulty] || 'орта'}.
+      const diffMap = { easy: 'easy', medium: 'medium', hard: 'hard' };
 
-МӘТІН: ${text.substring(0, 2000)}
-
-Дәл ${count} сұрақ жаса. Тек JSON:
-{"questions":[{"text":"сұрақ","options":["A","B","C","D"],"correct":0,"explanation":"түсіндірме"}]}`;
+      const prompt = `Create exactly ${count} Kazakh language quiz questions based on this text. Difficulty: ${diffMap[difficulty] || 'medium'}. Text: ${text.substring(0, 1000)}. Return only this JSON: {"questions":[{"text":"question in Kazakh","options":["A","B","C","D"],"correct":0,"explanation":"short explanation in Kazakh"}]}`;
 
       const questions = await generateQuestions(apiKey, prompt);
       return res.json({ ok: true, questions });
