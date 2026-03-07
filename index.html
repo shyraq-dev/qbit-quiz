@@ -48,7 +48,6 @@
   input[type="text"],textarea,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;margin-bottom:12px;}
   input[type="text"]:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,245,255,0.1);}
   select option{background:var(--surface2);}
-  textarea{resize:vertical;line-height:1.5;}
   .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;letter-spacing:0.5px;cursor:pointer;border:none;transition:all 0.2s;}
   .btn-primary{background:linear-gradient(135deg,var(--accent2),#5b21b6);color:#fff;box-shadow:0 4px 15px rgba(124,58,237,0.3);}
   .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,0.4);}
@@ -58,11 +57,8 @@
   .btn-success{background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(16,185,129,0.1));color:var(--accent3);border:1px solid rgba(16,185,129,0.3);}
   .btn-ghost{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border);}
   .btn-ghost.active,.adm-nav.active{color:var(--accent);border-color:rgba(0,245,255,0.3);background:rgba(0,245,255,0.08);}
-  .btn-ai{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;box-shadow:0 4px 15px rgba(124,58,237,0.4);}
-  .btn-ai:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,0.5);}
   .btn-sm{padding:5px 12px;font-size:13px;}
   .btn-lg{padding:14px 28px;font-size:17px;}
-  .btn:disabled{opacity:0.6;cursor:not-allowed;transform:none!important;}
   .question-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
   .q-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
   .q-num{font-family:'Orbitron',monospace;font-size:10px;color:var(--accent2);letter-spacing:2px;display:flex;align-items:center;gap:6px;}
@@ -115,7 +111,8 @@
   .explanation{background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.15);border-radius:10px;padding:12px 14px;margin-top:12px;font-size:13px;color:var(--muted);line-height:1.6;text-align:left;display:none;}
   .explanation.show{display:block;animation:fadeIn 0.3s ease;}
   .explanation strong{color:var(--accent);}
-  .lb-row{display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 14px;margin-bottom:7px;}
+  .lb-filters{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
+  .lb-row{display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 14px;margin-bottom:7px;transition:all 0.2s;}
   .lb-rank{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;width:28px;text-align:center;flex-shrink:0;}
   .lb-rank.gold{color:#fbbf24;}
   .lb-rank.silver{color:#9ca3af;}
@@ -176,6 +173,8 @@
   .realtime-status.connected{background:rgba(16,185,129,0.2);border:1px solid var(--accent3);color:var(--accent3);}
   .realtime-status.connecting{background:rgba(245,158,11,0.2);border:1px solid var(--warn);color:var(--warn);}
   .realtime-status.disconnected{background:rgba(239,68,68,0.2);border:1px solid var(--danger);color:var(--danger);}
+
+  /* ══ LIVE MONITOR ══ */
   .live-monitor{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:14px;}
   .live-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
   .live-title{font-family:'Orbitron',monospace;font-size:12px;color:var(--accent);letter-spacing:2px;}
@@ -188,12 +187,21 @@
   .live-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
   .live-name{flex:1;font-size:15px;font-weight:600;color:var(--text);}
   .live-score{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--accent);}
-  .ai-card{border-color:rgba(124,58,237,0.4)!important;background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(0,245,255,0.03))!important;}
-  .ai-mode-btn{flex:1;justify-content:center;padding:8px 12px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--border);transition:all 0.2s;background:rgba(255,255,255,0.05);color:var(--muted);}
-  .ai-mode-btn.active{background:rgba(124,58,237,0.3);color:#a78bfa;border-color:rgba(124,58,237,0.4);}
-  .ai-preview-item{background:var(--surface2);border:1px solid rgba(124,58,237,0.3);border-radius:10px;padding:12px;margin-bottom:8px;}
+  .live-bars{display:flex;gap:4px;align-items:center;}
+  .live-bar-correct{height:20px;background:var(--accent3);border-radius:3px;min-width:6px;transition:width 0.5s;}
+  .live-bar-wrong{height:20px;background:var(--danger);border-radius:3px;min-width:6px;transition:width 0.5s;}
+  .live-accuracy{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap;}
+  .bar-chart{display:flex;gap:6px;align-items:flex-end;height:60px;margin-top:12px;}
+  .bar-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+  .bar-fill{width:100%;border-radius:4px 4px 0 0;transition:height 0.5s;min-height:4px;}
+  .bar-label{font-family:'Orbitron',monospace;font-size:9px;color:var(--muted);}
+  .bar-count{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;}
+
   .export-box{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.8;white-space:pre-wrap;word-break:break-all;margin-top:10px;max-height:280px;overflow-y:auto;}
   .adm-nav{transition:all 0.2s;}
+  .flex{display:flex;}.flex-center{display:flex;align-items:center;}
+  .gap-8{gap:8px;}.gap-12{gap:12px;}.mb-8{margin-bottom:8px;}
+  .muted{color:var(--muted);font-size:12px;font-family:'Space Mono',monospace;}
   .streak-display{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:100px;font-family:'Orbitron',monospace;font-size:11px;color:#fb923c;letter-spacing:1px;}
   .empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
   .empty-icon{font-size:44px;margin-bottom:14px;opacity:0.5;}
@@ -208,7 +216,6 @@
     .result-stats{gap:14px;}
     .result-score{font-size:52px;}
     #app{padding:14px;padding-bottom:90px;}
-    .game-answers{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -225,7 +232,7 @@
     </div>
     <div class="header-right">
       <div id="adminBadge"></div>
-      <div style="display:flex;gap:16px">
+      <div style="display:flex;gap:16px;">
         <div class="stat-chip"><div class="stat-val" id="totalQuizzes">0</div><div class="stat-label">тест</div></div>
         <div class="stat-chip"><div class="stat-val" id="totalPlays">0</div><div class="stat-label">ойын</div></div>
       </div>
@@ -249,59 +256,8 @@
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('recent',event)">📜 Ойындар</button>
       </div>
 
-      <!-- ТЕСТ ЖАСАУ + ЖИ -->
+      <!-- Тест жасау -->
       <div id="adm-section-create">
-        <!-- ЖИ КӨМЕКШІ -->
-        <div class="card ai-card">
-          <div class="card-title" style="color:#a78bfa">🤖 жи көмекші</div>
-          <div style="display:flex;gap:8px;margin-bottom:16px">
-            <button class="ai-mode-btn active" id="aiMode-topic" onclick="setAiMode('topic')">💡 Тақырып бойынша</button>
-            <button class="ai-mode-btn" id="aiMode-text" onclick="setAiMode('text')">📝 Мәтіннен</button>
-          </div>
-          <!-- Тақырып -->
-          <div id="aiTopicPanel">
-            <label>Тақырып</label>
-            <input type="text" id="aiTopic" placeholder="Мысалы: Қазақстан тарихы, Python негіздері..."/>
-            <div style="display:flex;gap:8px">
-              <div style="flex:1">
-                <label>Сұрақ саны</label>
-                <select id="aiCount"><option value="3">3</option><option value="5" selected>5</option><option value="10">10</option><option value="15">15</option></select>
-              </div>
-              <div style="flex:1">
-                <label>Қиындық</label>
-                <select id="aiDifficulty"><option value="easy">🟢 Оңай</option><option value="medium" selected>🟡 Орта</option><option value="hard">🔴 Қиын</option></select>
-              </div>
-            </div>
-          </div>
-          <!-- Мәтін -->
-          <div id="aiTextPanel" style="display:none">
-            <label>Мәтін енгізіңіз</label>
-            <textarea id="aiText" rows="5" placeholder="Кез келген мәтінді қойыңыз — ЖИ сол мәтін негізінде сұрақ жасайды..."></textarea>
-            <div style="display:flex;gap:8px">
-              <div style="flex:1">
-                <label>Сұрақ саны</label>
-                <select id="aiCountText"><option value="3">3</option><option value="5" selected>5</option><option value="10">10</option></select>
-              </div>
-              <div style="flex:1">
-                <label>Қиындық</label>
-                <select id="aiDifficultyText"><option value="easy">🟢 Оңай</option><option value="medium" selected>🟡 Орта</option><option value="hard">🔴 Қиын</option></select>
-              </div>
-            </div>
-          </div>
-          <button class="btn btn-ai" id="aiGenerateBtn" onclick="generateAiQuestions()" style="width:100%;justify-content:center">✨ ЖИ сұрақ жасасын</button>
-          <div id="aiResult" style="display:none;margin-top:14px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-              <span style="font-family:Space Mono,monospace;font-size:11px;color:var(--accent3)">✅ Сұрақтар дайын!</span>
-              <div style="display:flex;gap:6px">
-                <button class="btn btn-sm btn-success" onclick="addAiQuestionsToForm()">➕ Тестке қосу</button>
-                <button class="btn btn-sm btn-ghost" onclick="document.getElementById('aiResult').style.display='none'">✕</button>
-              </div>
-            </div>
-            <div id="aiPreview"></div>
-          </div>
-        </div>
-
-        <!-- ТЕСТ ПАРАМЕТРЛЕРІ -->
         <div class="card">
           <div class="card-title">⚡ тест параметрлері</div>
           <label>Тест атауы</label>
@@ -338,7 +294,7 @@
         </div>
       </div>
 
-      <!-- ОЙЫН ЖАСАУ -->
+      <!-- Ойын жасау + Live Monitor -->
       <div id="adm-section-games" style="display:none">
         <div class="card">
           <div class="card-title">🎮 жарыс ойыны жасау</div>
@@ -346,13 +302,16 @@
           <select id="gameQuizSelect"><option value="">— Тест таңдаңыз —</option></select>
           <button class="btn btn-primary btn-lg" onclick="createGame()" style="width:100%;justify-content:center">🚀 Ойын жасау</button>
         </div>
+
         <div id="activeGamePanel" style="display:none">
           <div class="game-code-display">
             <div class="game-code-label">ОЙЫН КОДЫ</div>
             <div class="game-code" id="activeGameCode">——</div>
             <div class="game-code-label">Қатысушыларға осы кодты беріңіз</div>
           </div>
-          <div class="card">
+
+          <!-- Lobby -->
+          <div class="card" id="lobbyCard">
             <div class="card-title">👥 қатысушылар · <span id="playerCount">0</span></div>
             <div id="lobbyPlayers" class="player-grid"></div>
             <div style="display:flex;gap:10px;margin-top:12px">
@@ -360,6 +319,8 @@
               <button class="btn btn-danger btn-sm" onclick="cancelGame()">✕ Бітіру</button>
             </div>
           </div>
+
+          <!-- Хост басқармасы -->
           <div id="hostQuestionPanel" style="display:none">
             <div class="card">
               <div class="card-title">🎯 хост басқармасы</div>
@@ -370,10 +331,15 @@
                 <button class="btn btn-primary" onclick="hostNextQuestion()" id="btnNext" style="flex:1;justify-content:center;display:none">➡ Келесі сұрақ</button>
               </div>
             </div>
+
+            <!-- LIVE MONITOR — Kahoot стилі -->
             <div class="live-monitor">
               <div class="live-header">
-                <div style="display:flex;align-items:center"><div class="live-dot"></div><span class="live-title">LIVE РЕЙТИНГ</span></div>
-                <button class="btn btn-ghost btn-sm" onclick="refreshLiveStats()">🔄</button>
+                <div style="display:flex;align-items:center">
+                  <div class="live-dot"></div>
+                  <span class="live-title">LIVE РЕЙТИНГ</span>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="refreshLiveStats()">🔄 Жаңарту</button>
               </div>
               <div id="livePlayerList"></div>
             </div>
@@ -460,7 +426,7 @@
   <div class="panel" id="panel-leaderboard">
     <div class="card">
       <div class="card-title">🏆 рейтинг</div>
-      <div style="display:flex;gap:7px;margin-bottom:14px">
+      <div class="lb-filters">
         <button class="btn btn-sm btn-ghost active" id="lbf-all" onclick="loadLeaderboard('all')">🌍 Жалпы</button>
         <button class="btn btn-sm btn-ghost" id="lbf-weekly" onclick="loadLeaderboard('weekly')">📅 Апталық</button>
       </div>
@@ -481,7 +447,9 @@
       <select id="exportSelect"><option value="">— Тест таңдаңыз —</option></select>
       <button class="btn btn-cyan" onclick="generateExport()" style="margin-bottom:10px">⚡ Генерациялау</button>
       <div id="exportOutput" style="display:none">
-        <button class="btn btn-sm btn-success" onclick="copyExport()" style="margin-bottom:8px">📋 Көшіру</button>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <button class="btn btn-sm btn-success" onclick="copyExport()">📋 Көшіру</button>
+        </div>
         <div class="export-box" id="exportBox"></div>
       </div>
     </div>
@@ -515,16 +483,18 @@ let state={
   currentPlay:null,playState:null,timer:null,questionCounter:0,
 };
 let questions=[];
-let gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,answerStartTime:null,realtimeSub:null,gameTimer:null,liveStatsInterval:null};
-let aiGeneratedQuestions=[];
-let currentAiMode='topic';
+let gameState={
+  code:null,session:null,isHost:false,myScore:0,
+  currentQ:0,answerStartTime:null,realtimeSub:null,gameTimer:null,
+  liveStatsInterval:null,
+};
 
-function setRealtimeStatus(s){
+function setRealtimeStatus(status){
   const el=document.getElementById('realtimeStatus');if(!el)return;
-  const m={'SUBSCRIBED':{c:'connected',t:'🟢 REALTIME'},'CHANNEL_ERROR':{c:'disconnected',t:'🔴 ҚАТЕ'},'TIMED_OUT':{c:'disconnected',t:'🔴 TIMEOUT'}};
-  const d=m[s]||{c:'connecting',t:'🟡 ҚОСЫЛУДА'};
-  el.className='realtime-status '+d.c;el.textContent=d.t;el.style.display='block';
-  if(s==='SUBSCRIBED')setTimeout(()=>{el.style.display='none';},3000);
+  const map={'SUBSCRIBED':{cls:'connected',text:'🟢 REALTIME'},'CHANNEL_ERROR':{cls:'disconnected',text:'🔴 ҚАТЕ'},'TIMED_OUT':{cls:'disconnected',text:'🔴 TIMEOUT'},'CLOSED':{cls:'disconnected',text:'⚫ ЖАБЫҚ'}};
+  const s=map[status]||{cls:'connecting',text:'🟡 ҚОСЫЛУДА'};
+  el.className='realtime-status '+s.cls;el.textContent=s.text;el.style.display='block';
+  if(status==='SUBSCRIBED')setTimeout(()=>{el.style.display='none';},3000);
 }
 
 async function init(){
@@ -598,14 +568,14 @@ function updateGameQuizSelect(){
 
 function renderAdminQuizzes(){
   const c=document.getElementById('adm-quizzes-list');
-  if(!state.quizzes.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div></div>';return;}
+  if(!state.quizzes.length){c.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div></div>`;return;}
   c.innerHTML=state.quizzes.map(quiz=>`
     <div class="lb-row" style="margin-bottom:8px">
       <div style="flex:1;min-width:0">
         <div class="lb-name">${esc(quiz.title)}</div>
         <div class="lb-sub">${quiz.category} · ${quiz.questions.length} сұрақ · ${quiz.created}</div>
       </div>
-      <div style="display:flex;gap:5px;flex-shrink:0">
+      <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
         <button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}')">▶</button>
         <button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">🗑</button>
       </div>
@@ -617,7 +587,7 @@ async function loadAdminUsers(){
   try{
     const r=await fetch(`${API_BASE}/admin`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'users'})});
     const d=await r.json();
-    if(!d.ok||!d.data.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Жоқ</div></div>';return;}
+    if(!d.ok||!d.data.length){c.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Жоқ</div></div>`;return;}
     c.innerHTML=d.data.map((u,i)=>{
       const pct=u.total_questions>0?Math.round(u.total_correct/u.total_questions*100):0;
       return `<div class="lb-row"><div class="lb-rank other">${i+1}</div><div class="lb-avatar">${(u.first_name||'?')[0].toUpperCase()}</div><div class="lb-info"><div class="lb-name">${esc(u.first_name||'Қолданушы')}</div><div class="lb-sub">${u.username?'@'+u.username:''}</div></div><div><div class="lb-score">${pct}%</div><div class="lb-score-sub">${u.total_games} ойын</div></div></div>`;
@@ -634,80 +604,9 @@ async function loadAdminRecent(){
     c.innerHTML=d.data.map(r=>`
       <div class="recent-item">
         <div><div style="font-size:13px;color:var(--text)">${esc(r.users?.first_name||'Қолданушы')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${esc(r.quiz_title||'')} · ${new Date(r.played_at).toLocaleString('kk-KZ')}</div></div>
-        <div><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div>
+        <div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div>
       </div>`).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
-}
-
-// ══ AI ══
-function setAiMode(mode){
-  currentAiMode=mode;
-  document.getElementById('aiTopicPanel').style.display=mode==='topic'?'block':'none';
-  document.getElementById('aiTextPanel').style.display=mode==='text'?'block':'none';
-  document.getElementById('aiMode-topic').className='ai-mode-btn'+(mode==='topic'?' active':'');
-  document.getElementById('aiMode-text').className='ai-mode-btn'+(mode==='text'?' active':'');
-}
-
-async function generateAiQuestions(){
-  const btn=document.getElementById('aiGenerateBtn');
-  btn.disabled=true;btn.innerHTML='⏳ Жасалуда...';
-  document.getElementById('aiResult').style.display='none';
-  try{
-    let action,payload;
-    if(currentAiMode==='topic'){
-      const topic=document.getElementById('aiTopic').value.trim();
-      if(!topic){showToast('⚠️ Тақырып енгізіңіз!');return;}
-      action='generate_from_topic';
-      payload={topic,count:parseInt(document.getElementById('aiCount').value),difficulty:document.getElementById('aiDifficulty').value};
-    }else{
-      const text=document.getElementById('aiText').value.trim();
-      if(!text||text.length<50){showToast('⚠️ Мәтін тым қысқа!');return;}
-      action='generate_from_text';
-      payload={text,count:parseInt(document.getElementById('aiCountText').value),difficulty:document.getElementById('aiDifficultyText').value};
-    }
-    const r=await fetch(`${API_BASE}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action,payload})});
-    const d=await r.json();
-    if(!d.ok)throw new Error(d.error||'Қате');
-    aiGeneratedQuestions=d.questions;
-    renderAiPreview(d.questions);
-    document.getElementById('aiResult').style.display='block';
-    showToast(`✅ ${d.questions.length} сұрақ жасалды!`);
-  }catch(e){
-    console.error(e);showToast('⚠️ ЖИ қате: '+e.message);
-  }finally{
-    btn.disabled=false;btn.innerHTML='✨ ЖИ сұрақ жасасын';
-  }
-}
-
-function renderAiPreview(qs){
-  document.getElementById('aiPreview').innerHTML=qs.map((q,i)=>`
-    <div class="ai-preview-item">
-      <div style="font-family:Orbitron,monospace;font-size:9px;color:#a78bfa;letter-spacing:2px;margin-bottom:6px">СҰРАҚ ${i+1}</div>
-      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px">${esc(q.text)}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
-        ${q.options.map((opt,oi)=>`
-          <div style="padding:5px 9px;border-radius:7px;font-size:12px;border:1px solid ${oi===q.correct?'var(--accent3)':'var(--border)'};background:${oi===q.correct?'rgba(16,185,129,0.15)':'var(--surface)'};color:${oi===q.correct?'var(--accent3)':'var(--muted)'}">
-            ${'ABCD'[oi]}. ${esc(opt)}${oi===q.correct?' ✓':''}
-          </div>`).join('')}
-      </div>
-      ${q.explanation?`<div style="margin-top:8px;font-size:11px;color:var(--muted);font-family:Space Mono,monospace">💡 ${esc(q.explanation)}</div>`:''}
-    </div>`).join('');
-}
-
-function addAiQuestionsToForm(){
-  if(!aiGeneratedQuestions.length)return;
-  aiGeneratedQuestions.forEach(q=>{
-    const id='q_ai_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
-    questions.push({id,text:q.text,options:q.options,correct:q.correct,explanation:q.explanation||''});
-  });
-  renderQuestions();
-  document.getElementById('aiResult').style.display='none';
-  aiGeneratedQuestions=[];
-  showToast('✅ Сұрақтар тестке қосылды!');
-  if(currentAiMode==='topic'){
-    const topic=document.getElementById('aiTopic').value.trim();
-    if(topic&&!document.getElementById('quizTitle').value)document.getElementById('quizTitle').value=topic;
-  }
 }
 
 // ══ LIVE STATS ══
@@ -715,28 +614,32 @@ async function refreshLiveStats(){
   if(!gameState.code)return;
   try{
     const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'live_stats',payload:{code:gameState.code}})});
-    const d=await r.json();if(!d.ok)return;
-    renderLiveMonitor(d.playerStats);
+    const d=await r.json();
+    if(!d.ok)return;
+    renderLiveMonitor(d.playerStats,d.session);
   }catch(e){console.error(e);}
 }
 
-function renderLiveMonitor(players){
+function renderLiveMonitor(players,session){
   const c=document.getElementById('livePlayerList');if(!c)return;
   if(!players||!players.length){c.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-family:Space Mono,monospace;font-size:11px">Ойыншы жоқ</div>';return;}
+  const maxScore=players[0]?.score||1;
   c.innerHTML=players.map((p,i)=>{
     const rank=i+1;
-    const icon=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'#'+rank;
-    const cls=rank===1?'first':rank===2?'second':rank===3?'third':'';
-    return `<div class="live-player-row ${cls}">
-      <div class="live-rank">${icon}</div>
+    const rankIcon=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'#'+rank;
+    const rankClass=rank===1?'first':rank===2?'second':rank===3?'third':'';
+    const barW=Math.max(4,Math.round(p.score/maxScore*80));
+    return `<div class="live-player-row ${rankClass}">
+      <div class="live-rank">${rankIcon}</div>
       <div class="live-avatar">${(p.first_name||'?')[0].toUpperCase()}</div>
       <div style="flex:1;min-width:0">
         <div class="live-name">${esc(p.first_name||'Ойыншы')}</div>
-        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">
-          <div style="height:8px;background:var(--accent3);border-radius:3px;width:${Math.min(p.correct*10,80)}px;min-width:4px"></div>
-          <div style="height:8px;background:var(--danger);border-radius:3px;width:${Math.min(p.wrong*10,80)}px;min-width:${p.wrong?'4px':'0'}"></div>
-          <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">✓${p.correct} ✗${p.wrong}</span>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+          <div style="height:8px;background:var(--accent3);border-radius:3px;width:${p.correct*8}px;max-width:60px;min-width:4px;transition:width 0.5s"></div>
+          <div style="height:8px;background:var(--danger);border-radius:3px;width:${p.wrong*8}px;max-width:60px;min-width:${p.wrong?'4px':'0'};transition:width 0.5s"></div>
+          <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${p.accuracy}%</span>
         </div>
+        <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-top:2px">✓${p.correct} ✗${p.wrong}</div>
       </div>
       <div class="live-score">${p.score}</div>
     </div>`;
@@ -750,7 +653,8 @@ async function createGame(){
   const quiz=state.quizzes.find(q=>q.id===quizId);if(!quiz)return;
   try{
     const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'create',payload:{quizData:quiz}})});
-    const d=await r.json();if(!d.ok)return showToast('⚠️ '+d.error);
+    const d=await r.json();
+    if(!d.ok)return showToast('⚠️ '+d.error);
     gameState.code=d.code;gameState.isHost=true;gameState.session=d.session;gameState.currentQ=0;
     document.getElementById('activeGameCode').textContent=d.code;
     document.getElementById('activeGamePanel').style.display='block';
@@ -764,7 +668,11 @@ async function startGame(){
   const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'start',payload:{code:gameState.code}})});
   const d=await r.json();
   if(!d.ok)showToast('⚠️ '+d.error);
-  else{showToast('▶ Ойын басталды!');gameState.liveStatsInterval=setInterval(refreshLiveStats,5000);}
+  else{
+    showToast('▶ Ойын басталды!');
+    // Live stats polling басталады
+    gameState.liveStatsInterval=setInterval(refreshLiveStats,5000);
+  }
 }
 
 async function showAnswers(){
@@ -799,12 +707,14 @@ async function joinGame(){
   if(code.length<4)return showToast('⚠️ Кодты толық енгізіңіз!');
   try{
     const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'join',payload:{code}})});
-    const d=await r.json();if(!d.ok)return showToast('⚠️ '+d.error);
+    const d=await r.json();
+    if(!d.ok)return showToast('⚠️ '+d.error);
     gameState.code=code;gameState.session=d.session;gameState.isHost=false;
     gameState.myScore=0;gameState.currentQ=d.session.current_question||0;
     document.getElementById('lobbyCode').textContent=code;
     document.getElementById('lobbyQuizName').textContent=d.session.quiz_data?.title||'';
-    showGameScreen('lobby');subscribeToGame(code,false);
+    showGameScreen('lobby');
+    subscribeToGame(code,false);
   }catch(e){console.error(e);showToast('⚠️ Қате');}
 }
 
@@ -816,7 +726,7 @@ function backToGameJoin(){
   showGameScreen('join');
 }
 
-// ══ REALTIME ══
+// ══ REALTIME (FILTER ЖОҚ — FREE PLAN) ══
 function subscribeToGame(code,isHost){
   if(!supabaseClient){showToast('⚠️ Realtime қосылмады');return;}
   if(gameState.realtimeSub){gameState.realtimeSub.unsubscribe();gameState.realtimeSub=null;}
@@ -836,10 +746,15 @@ function subscribeToGame(code,isHost){
       refreshLobbyPlayers(code);
       if(isHost)refreshLiveStats();
     })
-    .subscribe((status)=>{
+    .subscribe((status,err)=>{
       setRealtimeStatus(status);
-      if(status==='SUBSCRIBED'){refreshLobbyPlayers(code);checkCurrentSession(code,isHost);}
-      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')setTimeout(()=>subscribeToGame(code,isHost),3000);
+      if(status==='SUBSCRIBED'){
+        refreshLobbyPlayers(code);
+        checkCurrentSession(code,isHost);
+      }
+      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+        setTimeout(()=>subscribeToGame(code,isHost),3000);
+      }
     });
   gameState.realtimeSub=channel;
 }
@@ -855,7 +770,8 @@ async function checkCurrentSession(code,isHost){
 async function refreshLobbyPlayers(code){
   if(!supabaseClient)return;
   const{data}=await supabaseClient.from('game_players').select('*').eq('session_id',code).order('score',{ascending:false});
-  const players=data||[];const myId=getTgUser()?.id;
+  const players=data||[];
+  const myId=getTgUser()?.id;
   const lobbyEl=document.getElementById('lobbyPlayers');
   const countEl=document.getElementById('playerCount');
   if(lobbyEl)lobbyEl.innerHTML=players.map(p=>`<div class="player-chip ${p.user_id==myId?'me':''}"><div class="player-chip-name">${esc(p.first_name||'?')}</div><div class="player-chip-score">${p.score} ⭐</div></div>`).join('');
@@ -887,18 +803,23 @@ function handleSessionUpdate(session,isHost){
   }
   if(session.status==='playing'&&!session.show_answers){
     const isNewGame=prevStatus!=='playing';
-    const isNewQ=session.current_question!==prevQ;
-    if(isNewGame||isNewQ){
+    const isNewQuestion=session.current_question!==prevQ;
+    if(isNewGame||isNewQuestion){
       gameState.currentQ=session.current_question;
       const q=session.quiz_data.questions[session.current_question];
       showGameQuestion(q,session.current_question,session.quiz_data.questions.length,session.quiz_data.timer);
       if(isHost){
-        const panel=document.getElementById('hostQuestionPanel');if(panel)panel.style.display='block';
-        const hostQText=document.getElementById('hostQText');if(hostQText)hostQText.textContent=q.text;
-        const btnShow=document.getElementById('btnShowAnswers');if(btnShow){btnShow.style.display='';btnShow.disabled=false;}
-        const btnNext=document.getElementById('btnNext');if(btnNext)btnNext.style.display='none';
-        const stats=document.getElementById('hostAnswerStats');if(stats)stats.innerHTML='';
-        if(isNewGame)gameState.liveStatsInterval=setInterval(refreshLiveStats,5000);
+        const panel=document.getElementById('hostQuestionPanel');
+        if(panel)panel.style.display='block';
+        const hostQText=document.getElementById('hostQText');
+        if(hostQText)hostQText.textContent=q.text;
+        const btnShow=document.getElementById('btnShowAnswers');
+        const btnNext=document.getElementById('btnNext');
+        const stats=document.getElementById('hostAnswerStats');
+        if(btnShow){btnShow.style.display='';btnShow.disabled=false;}
+        if(btnNext)btnNext.style.display='none';
+        if(stats)stats.innerHTML='';
+        if(isNewGame){gameState.liveStatsInterval=setInterval(refreshLiveStats,5000);}
         refreshLiveStats();
       }
     }
@@ -909,22 +830,24 @@ async function loadAnswerStats(sessionId,qIdx,q){
   if(!supabaseClient)return;
   const{data}=await supabaseClient.from('game_answers').select('answer_idx,is_correct').eq('session_id',sessionId).eq('question_idx',qIdx);
   if(!data)return;
-  const total=data.length;const correct=data.filter(a=>a.is_correct).length;
-  const counts=[0,0,0,0];data.forEach(a=>{if(a.answer_idx>=0&&a.answer_idx<=3)counts[a.answer_idx]++;});
+  const total=data.length;
+  const correct=data.filter(a=>a.is_correct).length;
+  const counts=[0,0,0,0];
+  data.forEach(a=>{if(a.answer_idx>=0&&a.answer_idx<=3)counts[a.answer_idx]++;});
   const statsEl=document.getElementById('hostAnswerStats');if(!statsEl)return;
   const colors=['#e74c3c','#3498db','#f39c12','#27ae60'];
   const maxCount=Math.max(...counts,1);
   statsEl.innerHTML=`
-    <div>
+    <div style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
         <span style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted)">Жауап берді: ${total}</span>
         <span style="color:var(--accent3);font-family:Space Mono,monospace;font-size:11px">${correct} дұрыс ✓</span>
       </div>
-      <div style="display:flex;align-items:flex-end;gap:8px;height:80px">
+      <div style="display:flex;align-items:flex-end;gap:8px;height:80px;padding:0 4px">
         ${counts.map((c,i)=>`
-          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
             <span style="font-family:Orbitron,monospace;font-size:12px;font-weight:700;color:${i===q.correct?'var(--accent3)':'var(--text)'}">${c}</span>
-            <div style="width:100%;height:${Math.round(c/maxCount*50)+4}px;background:${colors[i]};border-radius:4px 4px 0 0;border:${i===q.correct?'2px solid var(--accent3)':'none'};opacity:${i===q.correct?1:0.7}"></div>
+            <div style="width:100%;height:${Math.round(c/maxCount*50)+4}px;background:${colors[i]};border-radius:4px 4px 0 0;border:${i===q.correct?'2px solid var(--accent3)':'none'};transition:height 0.5s;opacity:${i===q.correct?1:0.7}"></div>
             <span style="font-family:Orbitron,monospace;font-size:10px;color:${i===q.correct?'var(--accent3)':'var(--muted)'}">${'ABCD'[i]}</span>
           </div>`).join('')}
       </div>
@@ -1066,7 +989,7 @@ async function loadProfile(){
         <div class="card-title">🏅 жетістіктер</div>
         ${achievements.map(a=>`<div class="achievement ${a.unlocked?'':'locked'}"><div class="ach-icon">${a.icon}</div><div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>${a.unlocked?'<div style="margin-left:auto;color:var(--accent3);font-size:18px">✓</div>':''}</div>`).join('')}
       </div>
-      ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div style="font-size:13px;color:var(--text)">${esc(r.quiz_title||'Тест')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${new Date(r.played_at).toLocaleDateString('kk-KZ')} · ${r.time_sec}с</div></div><div><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div></div>`).join('')}</div>`:''}`;
+      ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div style="font-size:13px;color:var(--text)">${esc(r.quiz_title||'Тест')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${new Date(r.played_at).toLocaleDateString('kk-KZ')} · ${r.time_sec}с</div></div><div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div></div>`).join('')}</div>`:''}`;
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Бейін жоқ</div><p style="color:var(--muted);font-size:12px">Алдымен тест ойнаңыз!</p></div>';}
 }
 
