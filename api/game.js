@@ -59,6 +59,8 @@ module.exports = async (req, res) => {
           status: 'waiting',
           current_question: 0,
           show_answers: false,
+          is_paused: false,
+          kicked_players: [],
         })
         .select().single();
       if (error) throw error;
@@ -86,6 +88,12 @@ module.exports = async (req, res) => {
       if (session.status === 'finished') return res.json({ ok: false, error: 'Ойын аяқталған' });
       if (session.status === 'playing') return res.json({ ok: false, error: 'Ойын басталып кетті! Келесі ойынды күтіңіз 🙏' });
 
+      // Кикталған ойыншыны тексеру
+      const kicked = session.kicked_players || [];
+      if (kicked.includes(String(user.id))) {
+        return res.json({ ok: false, error: 'Сізді ойыннан шығарды 👢' });
+      }
+
       await supabase.from('game_players').upsert({
         session_id: session.id,
         user_id: user.id,
@@ -106,7 +114,7 @@ module.exports = async (req, res) => {
       if (session.host_id !== user.id) return res.json({ ok: false, error: 'Тек хост бастай алады' });
 
       await supabase.from('game_sessions')
-        .update({ status: 'playing', current_question: 0, show_answers: false })
+        .update({ status: 'playing', current_question: 0, show_answers: false, is_paused: false })
         .eq('id', code);
 
       return res.json({ ok: true });
@@ -147,10 +155,87 @@ module.exports = async (req, res) => {
       }
 
       await supabase.from('game_sessions')
-        .update({ current_question: nextIdx, show_answers: false })
+        .update({ current_question: nextIdx, show_answers: false, is_paused: false })
         .eq('id', code);
 
       return res.json({ ok: true, finished: false, questionIdx: nextIdx });
+    }
+
+    // ── ПАУЗА / ЖАЛҒАСТЫРУ ────────────────────
+    if (action === 'pause') {
+      const { code } = payload;
+      const { data: session } = await supabase
+        .from('game_sessions').select('*').eq('id', code).single();
+
+      if (!session) return res.json({ ok: false, error: 'Ойын табылмады' });
+      if (session.host_id !== user.id) return res.json({ ok: false, error: 'Тек хост тоқтата алады' });
+      if (session.status !== 'playing') return res.json({ ok: false, error: 'Ойын басталмаған' });
+
+      const newPaused = !session.is_paused;
+      await supabase.from('game_sessions')
+        .update({ is_paused: newPaused })
+        .eq('id', code);
+
+      return res.json({ ok: true, is_paused: newPaused });
+    }
+
+    // ── СКИП ──────────────────────────────────
+    if (action === 'skip') {
+      const { code } = payload;
+      const { data: session } = await supabase
+        .from('game_sessions').select('*').eq('id', code).single();
+
+      if (!session) return res.json({ ok: false, error: 'Ойын табылмады' });
+      if (session.host_id !== user.id) return res.json({ ok: false, error: 'Тек хост скип жасай алады' });
+
+      const nextIdx = session.current_question + 1;
+
+      // Жауапты алдымен ашамыз, содан кейін өтеміз
+      await supabase.from('game_sessions')
+        .update({ show_answers: true })
+        .eq('id', code);
+
+      if (nextIdx >= session.quiz_data.questions.length) {
+        // Соңғы сұрақ — 1.5с кейін ойынды аяқтау
+        setTimeout(async () => {
+          await supabase.from('game_sessions')
+            .update({ status: 'finished', show_answers: false })
+            .eq('id', code);
+        }, 1500);
+        return res.json({ ok: true, finished: true });
+      }
+
+      // 1.5с кейін келесі сұраққа өту
+      setTimeout(async () => {
+        await supabase.from('game_sessions')
+          .update({ current_question: nextIdx, show_answers: false, is_paused: false })
+          .eq('id', code);
+      }, 1500);
+
+      return res.json({ ok: true, finished: false });
+    }
+
+    // ── КИК ───────────────────────────────────
+    if (action === 'kick') {
+      const { code, targetUserId } = payload;
+      const { data: session } = await supabase
+        .from('game_sessions').select('*').eq('id', code).single();
+
+      if (!session) return res.json({ ok: false, error: 'Ойын табылмады' });
+      if (session.host_id !== user.id) return res.json({ ok: false, error: 'Тек хост кик жасай алады' });
+      if (String(targetUserId) === String(user.id)) return res.json({ ok: false, error: 'Өзіңізді кика алмайсыз' });
+
+      const kicked = [...(session.kicked_players || []), String(targetUserId)];
+      await supabase.from('game_sessions')
+        .update({ kicked_players: kicked })
+        .eq('id', code);
+
+      await supabase.from('game_players')
+        .update({ is_kicked: true })
+        .eq('session_id', code)
+        .eq('user_id', String(targetUserId));
+
+      return res.json({ ok: true });
     }
 
     // ── ЖАУАП БЕРУ ────────────────────────────
@@ -160,6 +245,13 @@ module.exports = async (req, res) => {
         .from('game_sessions').select('*').eq('id', code).single();
 
       if (!session) return res.json({ ok: false, error: 'Ойын табылмады' });
+
+      // Пауза кезінде жауап қабылданбайды
+      if (session.is_paused) return res.json({ ok: false, error: 'Ойын тоқтатылған' });
+
+      // Кикталған болса жауап қабылданбайды
+      const kicked = session.kicked_players || [];
+      if (kicked.includes(String(user.id))) return res.json({ ok: false, error: 'Шығарылдыңыз' });
 
       const q = session.quiz_data.questions[questionIdx];
       const isCorrect = answerIdx === q.correct;
@@ -208,7 +300,6 @@ module.exports = async (req, res) => {
         .from('game_answers').select('*')
         .eq('session_id', code);
 
-      const totalQuestions = session.current_question + 1;
       const playerStats = (players || []).map(p => {
         const pAnswers = (answers || []).filter(a => a.user_id === p.user_id);
         const correct = pAnswers.filter(a => a.is_correct).length;
