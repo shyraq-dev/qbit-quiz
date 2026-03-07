@@ -33,7 +33,6 @@ function httpsRequest(method, path, body, apiKey) {
         ...(bodyStr ? { 'Content-Length': Buffer.byteLength(bodyStr) } : {}),
       },
     };
-
     const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
@@ -46,8 +45,9 @@ function httpsRequest(method, path, body, apiKey) {
 }
 
 async function createAssistant(apiKey, systemPrompt) {
+  const name = `QBit-${Date.now()}`;
   const res = await httpsRequest('POST', '/api/v1/assistant/', {
-    name: 'QBit Quiz Generator',
+    name,
     description: 'Викторина сұрақтарын жасайтын ассистент',
     temperature: 0.5,
     max_tokens: 3000,
@@ -64,19 +64,20 @@ async function createAssistant(apiKey, systemPrompt) {
 async function deleteAssistant(apiKey, assistantId) {
   try {
     await httpsRequest('DELETE', `/api/v1/assistant/${assistantId}/`, null, apiKey);
+    console.log('Assistant жойылды:', assistantId);
   } catch(e) {
     console.log('Assistant жою қатесі (елемейміз):', e.message);
   }
 }
 
 async function sendInteraction(apiKey, assistantId, userMessage) {
-  const res = await httpsRequest('POST', `/api/v1/assistant/${assistantId}/interaction/`, {
+  const res = await httpsRequest('POST', `/api/v1/assistant/${assistantId}/interactions/`, {
     content: userMessage,
   }, apiKey);
 
   console.log('Interaction status:', res.status);
   if (res.status === 402) throw new Error('Oylan токендері бітті');
-  if (res.status !== 201) throw new Error(`Interaction қатесі: ${res.body.substring(0, 200)}`);
+  if (res.status !== 201) throw new Error(`Interaction қатесі: ${res.body.substring(0, 300)}`);
 
   const data = JSON.parse(res.body);
   return data.response?.content || '';
@@ -100,7 +101,6 @@ function safeParseJSON(text) {
         .replace(/,\s*}/g, '}');
       return JSON.parse(cleaned);
     } catch(e2) {
-      // Regex fallback
       const questions = [];
       const blocks = text.split(/"text"\s*:/);
       for (let i = 1; i < blocks.length; i++) {
