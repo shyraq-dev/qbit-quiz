@@ -215,6 +215,18 @@
   ::-webkit-scrollbar{width:3px;}
   ::-webkit-scrollbar-track{background:var(--surface);}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  /* Санат фильтр батырмалары */
+  .cat-filter-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;transition:all 0.2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
+  .cat-filter-btn:hover{border-color:rgba(0,245,255,0.3);color:var(--text);}
+  .cat-filter-btn.active{background:rgba(0,245,255,0.1);border-color:rgba(0,245,255,0.4);color:var(--accent);}
+  .cat-filter-btn .cat-count{background:rgba(0,245,255,0.15);border-radius:10px;padding:1px 6px;font-size:9px;}
+  /* Санат стат карточкасы */
+  .cat-stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:all 0.2s;text-align:center;}
+  .cat-stat-card:hover{border-color:rgba(0,245,255,0.25);transform:translateY(-2px);}
+  .cat-stat-card.active{border-color:rgba(0,245,255,0.4);background:rgba(0,245,255,0.06);}
+  .cat-stat-emoji{font-size:24px;margin-bottom:4px;}
+  .cat-stat-name{font-size:11px;font-weight:600;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cat-stat-meta{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);}
   @media(max-width:480px){
     .options-grid{grid-template-columns:1fr;}
     .answers-grid{grid-template-columns:1fr;}
@@ -259,6 +271,7 @@
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('quizzes',event)">📋 Тесттер</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('users',event)">👥 Қолданушылар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('recent',event)">📜 Ойындар</button>
+        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('categories',event)">📂 Санаттар</button>
       </div>
 
       <!-- Тест жасау / өңдеу -->
@@ -277,11 +290,17 @@
           <label>Тест атауы</label>
           <input type="text" id="quizTitle" placeholder="Мысалы: Тарих — Алтын Орда"/>
           <label>Санат</label>
-          <select id="quizCategory">
-            <option>🧠 Жалпы білім</option><option>📖 Тарих</option><option>🔬 Ғылым</option>
-            <option>💻 Технология</option><option>🌍 География</option><option>🎭 Мәдениет</option>
-            <option>🔢 Математика</option><option>📚 Әдебиет</option><option>⚽ Спорт</option><option>🎯 Өзге</option>
-          </select>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+            <select id="quizCategory" style="margin-bottom:0;flex:1" onchange="onCategoryChange()">
+              <option>🧠 Жалпы білім</option><option>📖 Тарих</option><option>🔬 Ғылым</option>
+              <option>💻 Технология</option><option>🌍 География</option><option>🎭 Мәдениет</option>
+              <option>🔢 Математика</option><option>📚 Әдебиет</option><option>⚽ Спорт</option><option>🎯 Өзге</option>
+              <option value="__custom__">✏️ Өзге атау...</option>
+            </select>
+          </div>
+          <div id="customCategoryWrap" style="display:none;margin-bottom:12px">
+            <input type="text" id="customCategory" placeholder="Санат атауын жазыңыз..." style="margin-bottom:0"/>
+          </div>
           <div style="display:flex;gap:12px">
             <div style="flex:1"><label>Уақыт (сек/сұрақ)</label>
               <select id="quizTimer">
@@ -376,12 +395,30 @@
       <div id="adm-section-recent" style="display:none">
         <div class="card"><div class="card-title">📜 соңғы ойындар</div><div id="adm-recent-list"><div class="loading">Жүктелуде</div></div></div>
       </div>
+      <div id="adm-section-categories" style="display:none">
+        <div class="card">
+          <div class="card-title">📂 санаттар</div>
+          <div id="adm-categories-list"><div class="loading">Жүктелуде</div></div>
+          <button class="btn btn-cyan btn-sm" onclick="filterCategory('all');switchTab('library')" style="margin-top:12px;width:100%;justify-content:center">📦 Кітапханаға өту</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- 📦 ТЕСТТЕР -->
   <div class="panel active" id="panel-library">
-    <div class="card"><div class="card-title">📦 тесттер</div><div id="quizLibrary"></div></div>
+    <div class="card">
+      <div class="card-title">📦 тесттер</div>
+      <!-- Іздеу -->
+      <div style="position:relative;margin-bottom:10px">
+        <input type="text" id="libSearch" placeholder="🔍 Тест атауы бойынша іздеу..." oninput="renderLibrary()" style="margin-bottom:0;padding-left:14px"/>
+      </div>
+      <!-- Санат фильтрлері -->
+      <div id="categoryFilters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+      <!-- Санат статистикасы -->
+      <div id="categoryStats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:14px"></div>
+      <div id="quizLibrary"></div>
+    </div>
   </div>
 
   <!-- 📝 ТЕСТ -->
@@ -621,7 +658,7 @@ function switchTab(tab){
 }
 
 function admSection(name,e){
-  ['create','games','quizzes','users','recent'].forEach(s=>{
+  ['create','games','quizzes','users','recent','categories'].forEach(s=>{
     const el=document.getElementById('adm-section-'+s);if(el)el.style.display='none';
   });
   document.getElementById('adm-section-'+name).style.display='block';
@@ -631,6 +668,7 @@ function admSection(name,e){
   if(name==='users')loadAdminUsers();
   if(name==='recent')loadAdminRecent();
   if(name==='games')updateGameQuizSelect();
+  if(name==='categories'){const el=document.getElementById('adm-categories-list');if(el)el.innerHTML=renderAdminCategoryManager();}
 }
 
 async function loadAdminDashboard(){
@@ -1297,10 +1335,77 @@ async function showResults(){
 }
 
 // ══ LIBRARY ══
+// Белсенді санат фильтрі
+let activeCategory='all';
+
+function getCategoryEmoji(cat){
+  const map={'Жалпы білім':'🧠','Тарих':'📖','Ғылым':'🔬','Технология':'💻','География':'🌍','Мәдениет':'🎭','Математика':'🔢','Әдебиет':'📚','Спорт':'⚽','Өзге':'🎯'};
+  for(const [k,v] of Object.entries(map)){if(cat.includes(k))return v;}
+  return '📂';
+}
+
+function renderCategoryFilters(){
+  const filtersEl=document.getElementById('categoryFilters');
+  const statsEl=document.getElementById('categoryStats');
+  if(!filtersEl||!statsEl)return;
+
+  // Санаттарды жинақтау
+  const catMap={};
+  state.quizzes.forEach(q=>{
+    if(!catMap[q.category])catMap[q.category]={count:0,plays:0,best:0};
+    catMap[q.category].count++;
+    catMap[q.category].plays+=(q.playCount||0);
+    catMap[q.category].best=Math.max(catMap[q.category].best,q.bestScore||0);
+  });
+  const cats=Object.keys(catMap);
+
+  // Фильтр батырмалары
+  filtersEl.innerHTML=`
+    <button class="cat-filter-btn ${activeCategory==='all'?'active':''}" onclick="filterCategory('all')">
+      🌐 Барлығы <span class="cat-count">${state.quizzes.length}</span>
+    </button>
+    ${cats.map(cat=>`
+      <button class="cat-filter-btn ${activeCategory===cat?'active':''}" onclick="filterCategory('${esc(cat).replace(/'/g,'\'')}')" >
+        ${getCategoryEmoji(cat)} ${esc(cat.replace(/^[^\s]+\s/,''))} <span class="cat-count">${catMap[cat].count}</span>
+      </button>`).join('')}`;
+
+  // Санат стат карточкалары (тек "барлығы" режимінде)
+  if(activeCategory==='all'&&cats.length>1){
+    statsEl.innerHTML=cats.map(cat=>`
+      <div class="cat-stat-card" onclick="filterCategory('${esc(cat).replace(/'/g,'\'')}')" >
+        <div class="cat-stat-emoji">${getCategoryEmoji(cat)}</div>
+        <div class="cat-stat-name">${esc(cat.replace(/^[^\s]+\s/,''))}</div>
+        <div class="cat-stat-meta">${catMap[cat].count} тест · ${catMap[cat].plays} ойын</div>
+        ${catMap[cat].best>0?`<div style="font-family:Orbitron,monospace;font-size:10px;color:var(--accent3);margin-top:3px">⭐ ${catMap[cat].best}%</div>`:''}
+      </div>`).join('');
+  } else {
+    statsEl.innerHTML='';
+  }
+}
+
+function filterCategory(cat){
+  activeCategory=cat;
+  renderCategoryFilters();
+  renderLibrary();
+}
+
 function renderLibrary(){
+  renderCategoryFilters();
   const c=document.getElementById('quizLibrary');
   if(!state.quizzes.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div></div>';return;}
-  c.innerHTML=state.quizzes.map(quiz=>`
+
+  // Іздеу + санат фильтрі
+  const search=(document.getElementById('libSearch')?.value||'').toLowerCase().trim();
+  let filtered=state.quizzes;
+  if(activeCategory!=='all') filtered=filtered.filter(q=>q.category===activeCategory);
+  if(search) filtered=filtered.filter(q=>q.title.toLowerCase().includes(search)||q.category.toLowerCase().includes(search));
+
+  if(!filtered.length){
+    c.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Табылмады</div><p style="color:var(--muted);font-size:12px">"${esc(search||activeCategory)}" бойынша нәтиже жоқ</p></div>`;
+    return;
+  }
+
+  c.innerHTML=filtered.map(quiz=>`
     <div class="quiz-list-item" onclick="startPlay('${quiz.id}')">
       <div>
         <div class="qli-name">${esc(quiz.title)}</div>
@@ -1327,6 +1432,64 @@ function deleteQuiz(id){
   updateHeader();renderLibrary();updateExportSelect();
 }
 
+// ══ САНАТ БАСҚАРУ ══
+function onCategoryChange(){
+  const sel=document.getElementById('quizCategory');
+  const wrap=document.getElementById('customCategoryWrap');
+  if(!sel||!wrap)return;
+  wrap.style.display=sel.value==='__custom__'?'block':'none';
+  if(sel.value==='__custom__'){
+    document.getElementById('customCategory')?.focus();
+  }
+}
+
+function getSelectedCategory(){
+  const sel=document.getElementById('quizCategory');
+  if(!sel)return '🎯 Өзге';
+  if(sel.value==='__custom__'){
+    const custom=document.getElementById('customCategory')?.value.trim();
+    return custom||'🎯 Өзге';
+  }
+  return sel.value;
+}
+
+function syncCategorySelect(cat){
+  const sel=document.getElementById('quizCategory');
+  if(!sel)return;
+  // Бар опциялардан іздеу
+  let found=false;
+  for(const opt of sel.options){
+    if(opt.value===cat||opt.text===cat){sel.value=opt.value||opt.text;found=true;break;}
+  }
+  if(!found){
+    // Санаттар тізімінде жоқ — custom қосу
+    const customOpt=document.createElement('option');
+    customOpt.value=cat;customOpt.text=cat;
+    sel.insertBefore(customOpt,sel.querySelector('[value="__custom__"]'));
+    sel.value=cat;
+  }
+  onCategoryChange();
+}
+
+function renderAdminCategoryManager(){
+  // Санат статистикасын әкімші панелінде көрсету
+  const catMap={};
+  state.quizzes.forEach(q=>{
+    if(!catMap[q.category])catMap[q.category]={count:0,plays:0};
+    catMap[q.category].count++;
+    catMap[q.category].plays+=(q.playCount||0);
+  });
+  return Object.entries(catMap).map(([cat,d])=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:20px">${getCategoryEmoji(cat)}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(cat)}</div>
+        <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${d.count} тест · ${d.plays} ойын</div>
+      </div>
+      <button class="btn btn-sm btn-ghost" onclick="filterCategory('${esc(cat).replace(/'/g,"\'")}');switchTab('library')" style="font-size:11px">👁</button>
+    </div>`).join('')||'<div class="empty-state" style="padding:20px"><div class="empty-icon" style="font-size:28px">📂</div><div>Санат жоқ</div></div>';
+}
+
 // ══ ТЕСТ ӨҢДЕУ ══
 function editQuiz(id){
   if(!isAdmin())return;
@@ -1335,7 +1498,7 @@ function editQuiz(id){
 
   // Форманы толтыру
   document.getElementById('quizTitle').value=quiz.title;
-  document.getElementById('quizCategory').value=quiz.category;
+  syncCategorySelect(quiz.category);
   document.getElementById('quizTimer').value=String(quiz.timer);
   document.getElementById('quizDifficulty').value=quiz.difficulty;
 
@@ -1370,7 +1533,7 @@ function cancelEdit(){
     <button class="btn btn-primary" onclick="saveQuiz()">💾 Сақтау</button>`;
   questions=[];addQuestion();
   document.getElementById('quizTitle').value='';
-  document.getElementById('quizCategory').value='🧠 Жалпы білім';
+  document.getElementById('quizCategory').value='🧠 Жалпы білім';document.getElementById('customCategoryWrap').style.display='none';
   document.getElementById('quizTimer').value='20';
   document.getElementById('quizDifficulty').value='medium';
   showToast('↩️ Өңдеу тоқтатылды');
@@ -1467,7 +1630,7 @@ function saveQuiz(){
 
   const quizData={
     title,
-    category:document.getElementById('quizCategory').value,
+    category:getSelectedCategory(),
     timer:parseInt(document.getElementById('quizTimer').value),
     difficulty:document.getElementById('quizDifficulty').value,
     questions:validQs.map(q=>({...q,options:q.options.filter(o=>o.trim())})),
