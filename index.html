@@ -855,7 +855,7 @@ function renderLiveMonitor(players,session){
         <div class="live-name">${esc(p.first_name||'Ойыншы')}${isKicked?` <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--danger)">KICKED</span>`:''}
         </div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
-          <div style="height:8px;background:var(--accent3);border-radius:3px;width:${p.correct*8}px;max-width:60px;min-width:4px;transition:width 0.5s"></div>
+          <div style="height:8px;background:var(--accent3);border-radius:3px;width:${p.correct*8}px;max-width:60px;min-width:${p.correct?'4px':'0'};transition:width 0.5s"></div>
           <div style="height:8px;background:var(--danger);border-radius:3px;width:${p.wrong*8}px;max-width:60px;min-width:${p.wrong?'4px':'0'};transition:width 0.5s"></div>
           <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${p.accuracy}%</span>
         </div>
@@ -1269,7 +1269,7 @@ async function showGameScoreboard(){
     document.getElementById('gameScoreboard').innerHTML=d.players.map((p,i)=>{
       const n=i+1;const icon=n===1?'🥇':n===2?'🥈':n===3?'🥉':'#'+n;const isMe=p.user_id==myId;
       const sbAv=getPlayerAvatar(p.user_id);
-      return `<div class="scoreboard-row ${isMe?'highlight':''}"><div style="font-family:Orbitron,monospace;font-size:16px;width:32px">${icon}</div><div class="lb-avatar">${sbAv}</div><div style="flex:1"><div class="lb-name">${esc(p.first_name||'Ойыншы')}${isMe?' 👈':''}</div></div><div style="font-family:Orbitron,monospace;font-size:16px;color:var(--accent)">${p.score} ⭐</div></div>`;
+      return `<div class="scoreboard-row ${isMe?'highlight':''}"><div style="font-family:Orbitron,monospace;font-size:16px;width:32px">${icon}</div><div class="lb-avatar">${sbAv}</div><div style="flex:1"><div class="lb-name">${esc(p.first_name||'Ойыншы')}${isMe?' 👈':''}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">✓${p.correct??'-'} ✗${p.wrong??'-'} · ${p.accuracy??0}%</div></div><div style="font-family:Orbitron,monospace;font-size:16px;color:var(--accent)">${p.score} ⭐</div></div>`;
     }).join('');
     showGameScreen('score');
   }catch(e){console.error(e);}
@@ -1412,18 +1412,29 @@ function nextQuestion(){
   if(state.playState.idx>=state.currentPlay.questions.length)showResults();else renderQuestion();
 }
 
-function endPlay(){clearTimeout(state.timer);showResults();}
+function endPlay(){
+  clearTimeout(state.timer);
+  // Жауапталмаған сұрақтарды қате деп есептеу
+  const ps=state.playState;
+  const answered=ps.correct+ps.wrong;
+  const total=state.currentPlay.questions.length;
+  if(answered<total){ps.wrong+=(total-answered);}
+  showResults();
+}
 
 async function showResults(){
   const quiz=state.currentPlay,ps=state.playState;
-  const total=quiz.questions.length;const score=Math.round((ps.correct/total)*100);
+  const total=quiz.questions.length;
+  const answered=ps.correct+ps.wrong;
+  // Score: дұрыс/барлық сұрақ (жауапталмаса 0 деп есептеледі)
+  const score=total>0?Math.round((ps.correct/total)*100):0;
   const time=Math.round((Date.now()-ps.startTime)/1000);
   quiz.playCount=(quiz.playCount||0)+1;quiz.bestScore=Math.max(quiz.bestScore||0,score);
   state.plays=parseInt(state.plays)+1;
   localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
   localStorage.setItem('qbit_plays',state.plays);updateHeader();
   const initData=getTgInitData();
-  if(initData){try{await fetch(`${API_BASE}/save-result`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,result:{quizId:quiz.id,quizTitle:quiz.title,score,correct:ps.correct,wrong:ps.wrong,timeSec:time,maxStreak:ps.maxStreak}})});}catch{}}
+  if(initData){try{await fetch(`${API_BASE}/save-result`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,result:{quizId:quiz.id,quizTitle:quiz.title,score,correct:ps.correct,wrong:ps.wrong,totalQuestions:answered,timeSec:time,maxStreak:ps.maxStreak}})});}catch{}}
   const rank=score>=90?'MASTER':score>=70?'EXPERT':score>=50?'STUDENT':'ROOKIE';
   const re=score>=90?'🏆':score>=70?'⭐':score>=50?'📚':'🌱';
   // Жаңа title тексеру (ойыннан кейін)
