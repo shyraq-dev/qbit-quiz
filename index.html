@@ -295,9 +295,7 @@
           <label>Санат</label>
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
             <select id="quizCategory" style="margin-bottom:0;flex:1" onchange="onCategoryChange()">
-              <option>🧠 Жалпы білім</option><option>📖 Тарих</option><option>🔬 Ғылым</option>
-              <option>💻 Технология</option><option>🌍 География</option><option>🎭 Мәдениет</option>
-              <option>🔢 Математика</option><option>📚 Әдебиет</option><option>⚽ Спорт</option><option>🎯 Өзге</option>
+              <option>🧠 Жалпы білім</option>
               <option value="__custom__">✏️ Өзге атау...</option>
             </select>
           </div>
@@ -609,7 +607,7 @@ let questions=[];
 let editingQuizId=null; // ── ӨҢДЕУ КҮЙІ ──
 let gameState={
   code:null,session:null,isHost:false,myScore:0,
-  currentQ:0,answerStartTime:null,realtimeSub:null,gameTimer:null,
+  currentQ:-1,answerStartTime:null,realtimeSub:null,gameTimer:null,
   liveStatsInterval:null,isPaused:false,
   // Reconnect
   reconnectAttempts:0,reconnectTimer:null,isReconnecting:false,
@@ -707,7 +705,7 @@ async function init(){
     document.getElementById('tab-export').style.display='';
     document.getElementById('adminBadge').innerHTML=`<div class="admin-badge"><div class="admin-dot"></div>ADMIN</div>`;
   }
-  updateHeader();renderLibrary();updateExportSelect();
+  refreshCategorySelect();updateHeader();renderLibrary();updateExportSelect();
   if(!questions.length)addQuestion();
   renderStats();
 }
@@ -863,7 +861,7 @@ async function createGame(){
     const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'create',payload:{quizData:quiz,avatar:getMyAvatar()}})});
     const d=await r.json();
     if(!d.ok)return showToast('⚠️ '+d.error);
-    gameState.code=d.code;gameState.isHost=true;gameState.session=d.session;gameState.currentQ=0;
+    gameState.code=d.code;gameState.isHost=true;gameState.session=d.session;gameState.currentQ=-1;
     document.getElementById('activeGameCode').textContent=d.code;
     document.getElementById('activeGamePanel').style.display='block';
     document.getElementById('hostQuestionPanel').style.display='none';
@@ -948,7 +946,7 @@ function cancelGame(){
   const overlay=document.getElementById('pauseOverlay');if(overlay)overlay.remove();
   document.getElementById('activeGamePanel').style.display='none';
   document.getElementById('hostQuestionPanel').style.display='none';
-  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,realtimeSub:null,gameTimer:null,liveStatsInterval:null,isPaused:false,reconnectAttempts:0,reconnectTimer:null,isReconnecting:false};
+  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:-1,realtimeSub:null,gameTimer:null,liveStatsInterval:null,isPaused:false,reconnectAttempts:0,reconnectTimer:null,isReconnecting:false};
   document.getElementById('realtimeStatus').style.display='none';
 }
 
@@ -961,7 +959,7 @@ async function joinGame(){
     const d=await r.json();
     if(!d.ok)return showToast('⚠️ '+d.error);
     gameState.code=code;gameState.session=d.session;gameState.isHost=false;
-    gameState.myScore=0;gameState.currentQ=d.session.current_question||0;
+    gameState.myScore=0;gameState.currentQ=-1;
     document.getElementById('lobbyCode').textContent=code;
     document.getElementById('lobbyQuizName').textContent=d.session.quiz_data?.title||'';
     showGameScreen('lobby');
@@ -974,7 +972,7 @@ function backToGameJoin(){
   clearInterval(gameState.gameTimer);clearInterval(gameState.liveStatsInterval);
   clearTimeout(gameState.reconnectTimer);
   const overlay=document.getElementById('pauseOverlay');if(overlay)overlay.remove();
-  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,realtimeSub:null,gameTimer:null,liveStatsInterval:null,isPaused:false,reconnectAttempts:0,reconnectTimer:null,isReconnecting:false};
+  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:-1,realtimeSub:null,gameTimer:null,liveStatsInterval:null,isPaused:false,reconnectAttempts:0,reconnectTimer:null,isReconnecting:false};
   document.getElementById('realtimeStatus').style.display='none';
   showGameScreen('join');
 }
@@ -1106,8 +1104,9 @@ function handleSessionUpdate(session,isHost){
 
   // ── Жаңа сұрақ ──
   if(session.status==='playing'&&!session.show_answers){
-    const isNewGame=prevStatus!=='playing';
-    const isNewQuestion=session.current_question!==prevQ;
+    const isNewGame=(prevStatus==='waiting'||prevStatus==null||prevStatus===undefined);
+    // prevQ -1 болса (бастапқы) немесе индекс өзгерсе — жаңа сұрақ
+    const isNewQuestion=(prevQ===-1||prevQ==null||session.current_question!==prevQ);
     if(isNewGame||isNewQuestion){
       // Пауза overlay жою (жаңа сұрақта автоматты жалғасу)
       const overlay=document.getElementById('pauseOverlay');
@@ -1559,23 +1558,87 @@ function syncCategorySelect(cat){
   onCategoryChange();
 }
 
+// ══ САНАТ ЖҮЙЕСІ ══
+const BUILTIN_CATEGORIES=[
+  '🧠 Жалпы білім','📖 Тарих','🔬 Ғылым','💻 Технология',
+  '🌍 География','🎭 Мәдениет','🟢⃣ Математика','📚 Әдебиет','⚽ Спорт','🎯 Өзге'
+];
+function getCustomCategories(){return JSON.parse(localStorage.getItem('qbit_custom_cats')||'[]');}
+function saveCustomCategories(cats){localStorage.setItem('qbit_custom_cats',JSON.stringify(cats));}
+function getAllCategories(){return [...BUILTIN_CATEGORIES,...getCustomCategories()];}
+
+function addCustomCategory(){
+  const inp=document.getElementById('newCatInput');if(!inp)return;
+  const val=inp.value.trim();
+  if(!val){showToast('⚠️ Атауды жазыңыз');return;}
+  const cats=getCustomCategories();
+  const all=getAllCategories();
+  if(all.some(c=>c.toLowerCase()===val.toLowerCase())||all.some(c=>c.replace(/^[^\s]+\s/,'').toLowerCase()===val.toLowerCase())){showToast('⚠️ Бұл санат бар');return;}
+  const hasEmoji=/\p{Emoji_Presentation}/u.test(val[0]);
+  const withEmoji=hasEmoji?val:'📂 '+val;
+  cats.push(withEmoji);
+  saveCustomCategories(cats);
+  inp.value='';
+  refreshCategorySelect();
+  const el=document.getElementById('adm-categories-list');
+  if(el)el.innerHTML=renderAdminCategoryManager();
+  showToast('✅ "'+withEmoji+'" санаты қосылды');
+}
+
+function deleteCustomCategory(cat){
+  if(!confirm('"'+cat+'" санатын жою?'))return;
+  const cats=getCustomCategories().filter(c=>c!==cat);
+  saveCustomCategories(cats);
+  refreshCategorySelect();
+  const el=document.getElementById('adm-categories-list');
+  if(el)el.innerHTML=renderAdminCategoryManager();
+  showToast('🗑 "'+cat+'" жойылды');
+}
+
+function refreshCategorySelect(){
+  const sel=document.getElementById('quizCategory');if(!sel)return;
+  const cur=sel.value;
+  const all=getAllCategories();
+  sel.innerHTML=all.map(c=>'<option>'+c+'</option>').join('')+'<option value="__custom__">✏️ Өзге атау...</option>';
+  if(all.includes(cur))sel.value=cur;
+}
+
 function renderAdminCategoryManager(){
-  // Санат статистикасын әкімші панелінде көрсету
   const catMap={};
   state.quizzes.forEach(q=>{
-    if(!catMap[q.category])catMap[q.category]={count:0,plays:0};
+    if(!catMap[q.category])catMap[q.category]={count:0,plays:0,best:0};
     catMap[q.category].count++;
     catMap[q.category].plays+=(q.playCount||0);
+    catMap[q.category].best=Math.max(catMap[q.category].best,q.bestScore||0);
   });
-  return Object.entries(catMap).map(([cat,d])=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <div style="font-size:20px">${getCategoryEmoji(cat)}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(cat)}</div>
-        <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${d.count} тест · ${d.plays} ойын</div>
-      </div>
-      <button class="btn btn-sm btn-ghost" onclick="filterCategory('${esc(cat).replace(/'/g,"\'")}');switchTab('library')" style="font-size:11px">👁</button>
-    </div>`).join('')||'<div class="empty-state" style="padding:20px"><div class="empty-icon" style="font-size:28px">📂</div><div>Санат жоқ</div></div>';
+  const customCats=getCustomCategories();
+  const allCats=getAllCategories();
+  const rows=allCats.map(cat=>{
+    const d=catMap[cat]||{count:0,plays:0,best:0};
+    const isCustom=customCats.includes(cat);
+    const catSafe=cat.replace(/'/g,"\\x27");
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'
+      +'<div style="font-size:22px">'+getCategoryEmoji(cat)+'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(cat)+'</div>'
+        +'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">'+d.count+' тест · '+d.plays+' ойын'+(d.best>0?' · ⭐'+d.best+'%':'')+'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:5px;flex-shrink:0">'
+        +(d.count>0?'<button class="btn btn-sm btn-ghost" onclick="filterCategory(\'' +catSafe+ '\');switchTab(\'library\')" style="font-size:11px">👁</button>':'<div style="width:37px"></div>')
+        +(isCustom?'<button class="btn btn-sm btn-danger" onclick="deleteCustomCategory(\'' +catSafe+ '\')" style="font-size:11px">🗑</button>':'<div style="width:37px"></div>')
+      +'</div>'
+    +'</div>';
+  }).join('');
+  return '<div style="margin-bottom:14px">'
+    +'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:8px">➕ ЖАҢА САНАТ ҚОСУ</div>'
+    +'<div style="display:flex;gap:8px">'
+      +'<input type="text" id="newCatInput" placeholder="🧪 Химия немесе Химия" style="margin-bottom:0;flex:1" onkeydown="if(event.key===\'Enter\')addCustomCategory()"/>'
+      +'<button class="btn btn-cyan" onclick="addCustomCategory()" style="flex-shrink:0">➕ Қосу</button>'
+    +'</div>'
+    +'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-top:5px">Emoji болмаса 📂 автоматты қосылады</div>'
+  +'</div>'
+  +'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">📋 БАРЛЫҚ САНАТТАР ('+allCats.length+')</div>'
+  +(rows||'<div class="empty-state" style="padding:20px 0"><div style="font-size:28px">📂</div><div>Санат жоқ</div></div>');
 }
 
 // ══ ТЕСТ ӨҢДЕУ ══
@@ -1621,7 +1684,7 @@ function cancelEdit(){
     <button class="btn btn-primary" onclick="saveQuiz()">💾 Сақтау</button>`;
   questions=[];addQuestion();
   document.getElementById('quizTitle').value='';
-  document.getElementById('quizCategory').value='🧠 Жалпы білім';document.getElementById('customCategoryWrap').style.display='none';
+  refreshCategorySelect();document.getElementById('quizCategory').value=getAllCategories()[0]||'🧠 Жалпы білім';document.getElementById('customCategoryWrap').style.display='none';
   document.getElementById('quizTimer').value='20';
   document.getElementById('quizDifficulty').value='medium';
   showToast('↩️ Өңдеу тоқтатылды');
