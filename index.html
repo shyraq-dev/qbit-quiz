@@ -563,6 +563,15 @@ function getTitle(totalGames=0, avgPct=0){
 }
 
 function getMyAvatar(){return localStorage.getItem('qbit_avatar')||'🐱';}
+function getPlayerAvatar(userId){
+  const myId=String(getTgUser()?.id||'');
+  const uid=String(userId);
+  if(uid===myId)return getMyAvatar();
+  // gameState кэшінен іздеу, жоқ болса localStorage-тан
+  if(gameState.avatarCache[uid])return gameState.avatarCache[uid];
+  try{const s=JSON.parse(localStorage.getItem('qbit_av_store')||'{}');if(s[uid])return s[uid];}catch(e){}
+  return '🐱';
+}
 function setMyAvatar(a){localStorage.setItem('qbit_avatar',a);}
 
 function openAvatarModal(){
@@ -609,6 +618,7 @@ let gameState={
   code:null,session:null,isHost:false,myScore:0,
   currentQ:-1,answerStartTime:null,realtimeSub:null,gameTimer:null,
   liveStatsInterval:null,isPaused:false,
+  avatarCache:{}, // userId -> avatar emoji
   // Reconnect
   reconnectAttempts:0,reconnectTimer:null,isReconnecting:false,
 };
@@ -784,7 +794,7 @@ async function loadAdminUsers(){
     if(!d.ok||!d.data.length){c.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Жоқ</div></div>`;return;}
     c.innerHTML=d.data.map((u,i)=>{
       const pct=u.total_questions>0?Math.round(u.total_correct/u.total_questions*100):0;
-      return `<div class="lb-row"><div class="lb-rank other">${i+1}</div><div class="lb-avatar">${u.avatar||'🐱'}</div><div class="lb-info"><div class="lb-name">${esc(u.first_name||'Қолданушы')}</div><div class="lb-sub">${u.username?'@'+u.username:''}</div></div><div><div class="lb-score">${pct}%</div><div class="lb-score-sub">${u.total_games} ойын</div></div></div>`;
+      return `<div class="lb-row"><div class="lb-rank other">${i+1}</div><div class="lb-avatar">${getPlayerAvatar(u.id||u.user_id)}</div><div class="lb-info"><div class="lb-name">${esc(u.first_name||'Қолданушы')}</div><div class="lb-sub">${u.username?'@'+u.username:''}</div></div><div><div class="lb-score">${pct}%</div><div class="lb-score-sub">${u.total_games} ойын</div></div></div>`;
     }).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
@@ -810,6 +820,13 @@ async function refreshLiveStats(){
     const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'live_stats',payload:{code:gameState.code}})});
     const d=await r.json();
     if(!d.ok)return;
+    // Аватар кэшін жаңарту
+    (d.playerStats||[]).forEach(p=>{
+      if(p.avatar){
+        gameState.avatarCache[String(p.user_id)]=p.avatar;
+        try{const s=JSON.parse(localStorage.getItem('qbit_av_store')||'{}');s[String(p.user_id)]=p.avatar;localStorage.setItem('qbit_av_store',JSON.stringify(s));}catch(e){}
+      }
+    });
     renderLiveMonitor(d.playerStats,d.session);
   }catch(e){console.error(e);}
 }
@@ -833,7 +850,7 @@ function renderLiveMonitor(players,session){
     const isKicked=p.is_kicked;
     return `<div class="live-player-row ${rankClass}" style="${isKicked?'opacity:0.35;filter:grayscale(1)':''}">
       <div class="live-rank">${rankIcon}</div>
-      <div class="live-avatar">${p.avatar||'🐱'}</div>
+      <div class="live-avatar">${getPlayerAvatar(p.user_id)}</div>
       <div style="flex:1;min-width:0">
         <div class="live-name">${esc(p.first_name||'Ойыншы')}${isKicked?` <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--danger)">KICKED</span>`:''}
         </div>
@@ -1031,6 +1048,13 @@ async function refreshLobbyPlayers(code){
   const{data}=await supabaseClient.from('game_players').select('*').eq('session_id',code).order('score',{ascending:false});
   const players=data||[];
   const myId=getTgUser()?.id;
+  // Аватар кэшін жаңарту (gameState + localStorage)
+  players.forEach(p=>{
+    if(p.avatar){
+      gameState.avatarCache[String(p.user_id)]=p.avatar;
+      try{const store=JSON.parse(localStorage.getItem('qbit_av_store')||'{}');store[String(p.user_id)]=p.avatar;localStorage.setItem('qbit_av_store',JSON.stringify(store));}catch(e){}
+    }
+  });
   const lobbyEl=document.getElementById('lobbyPlayers');
   const countEl=document.getElementById('playerCount');
   if(lobbyEl)lobbyEl.innerHTML=players.map(p=>{const av=p.user_id==myId?getMyAvatar():(p.avatar||'🐱');return `<div class="player-chip ${p.user_id==myId?'me':''}"><div class="player-chip-avatar">${av}</div><div class="player-chip-name">${esc(p.first_name||'?')}</div><div class="player-chip-score">${p.score} ⭐</div></div>`}).join('');
@@ -1240,9 +1264,11 @@ async function showGameScoreboard(){
     const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'scoreboard',payload:{code:gameState.code}})});
     const d=await r.json();if(!d.ok)return;
     const myId=getTgUser()?.id;
+    // Аватар кэшін жаңарту
+    (d.players||[]).forEach(p=>{if(p.avatar)gameState.avatarCache[String(p.user_id)]=p.avatar;});
     document.getElementById('gameScoreboard').innerHTML=d.players.map((p,i)=>{
       const n=i+1;const icon=n===1?'🥇':n===2?'🥈':n===3?'🥉':'#'+n;const isMe=p.user_id==myId;
-      const sbAv=isMe?getMyAvatar():(p.avatar||'🐱');
+      const sbAv=getPlayerAvatar(p.user_id);
       return `<div class="scoreboard-row ${isMe?'highlight':''}"><div style="font-family:Orbitron,monospace;font-size:16px;width:32px">${icon}</div><div class="lb-avatar">${sbAv}</div><div style="flex:1"><div class="lb-name">${esc(p.first_name||'Ойыншы')}${isMe?' 👈':''}</div></div><div style="font-family:Orbitron,monospace;font-size:16px;color:var(--accent)">${p.score} ⭐</div></div>`;
     }).join('');
     showGameScreen('score');
@@ -1265,7 +1291,7 @@ async function loadLeaderboard(type){
       let sv,ss;
       if(type==='all'){const p=u.total_questions>0?Math.round(u.total_correct/u.total_questions*100):0;sv=p+'%';ss=u.total_games+' ойын';}
       else{sv=(u.avg_score||0)+'%';ss=u.games+' ойын';}
-      const uAvatar=isMe?getMyAvatar():(u.avatar||'🐱');
+      const uAvatar=getPlayerAvatar(u.id||u.user_id);
       return `<div class="lb-row ${isMe?'lb-me-row':''}"><div class="lb-rank ${rc}">${ri}</div><div class="lb-avatar ${isMe?'me':''}">${uAvatar}</div><div class="lb-info"><div class="lb-name">${esc(name)}${isMe?' 👈':''}</div><div class="lb-sub">${u.username?'@'+u.username:''}</div></div><div><div class="lb-score">${sv}</div><div class="lb-score-sub">${ss}</div></div></div>`;
     }).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
