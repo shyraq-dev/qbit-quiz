@@ -237,7 +237,10 @@
 </style>
 </head>
 <body>
-<div id="realtimeStatus" class="realtime-status" style="display:none"></div>
+<div id="realtimeStatus" class="realtime-status" style="display:none">
+  <span id="realtimeStatusText"></span>
+  <button id="realtimeReconnectBtn" onclick="manualReconnect()" style="display:none;margin-left:8px;padding:2px 8px;border-radius:10px;border:1px solid currentColor;background:transparent;color:inherit;font-size:10px;cursor:pointer;font-family:Space Mono,monospace">↺ Қайта</button>
+</div>
 <div id="app">
   <header>
     <div class="logo">
@@ -608,15 +611,85 @@ let gameState={
   code:null,session:null,isHost:false,myScore:0,
   currentQ:0,answerStartTime:null,realtimeSub:null,gameTimer:null,
   liveStatsInterval:null,isPaused:false,
+  // Reconnect
+  reconnectAttempts:0,reconnectTimer:null,isReconnecting:false,
 };
 
-function setRealtimeStatus(status){
+function setRealtimeStatus(status, extra=''){
   const el=document.getElementById('realtimeStatus');if(!el)return;
-  const map={'SUBSCRIBED':{cls:'connected',text:'🟢 REALTIME'},'CHANNEL_ERROR':{cls:'disconnected',text:'🔴 ҚАТЕ'},'TIMED_OUT':{cls:'disconnected',text:'🔴 TIMEOUT'},'CLOSED':{cls:'disconnected',text:'⚫ ЖАБЫҚ'}};
-  const s=map[status]||{cls:'connecting',text:'🟡 ҚОСЫЛУДА'};
-  el.className='realtime-status '+s.cls;el.textContent=s.text;el.style.display='block';
-  if(status==='SUBSCRIBED')setTimeout(()=>{el.style.display='none';},3000);
+  const textEl=document.getElementById('realtimeStatusText');
+  const btnEl=document.getElementById('realtimeReconnectBtn');
+  const map={
+    'SUBSCRIBED':    {cls:'connected',   text:'🟢 REALTIME',      showBtn:false},
+    'CHANNEL_ERROR': {cls:'disconnected',text:'🔴 ҚАТЕ',           showBtn:true},
+    'TIMED_OUT':     {cls:'disconnected',text:'🔴 TIMEOUT',        showBtn:true},
+    'CLOSED':        {cls:'disconnected',text:'⚫ ЖАБЫҚ',          showBtn:true},
+    'reconnecting':  {cls:'connecting',  text:'🟡 ҚАЙТА ҚОСЫЛУДА'+extra, showBtn:false},
+    'offline':       {cls:'disconnected',text:'📵 ИНТЕРНЕТ ЖОҚ',  showBtn:false},
+  };
+  const s=map[status]||{cls:'connecting',text:'🟡 ҚОСЫЛУДА',showBtn:false};
+  el.className='realtime-status '+s.cls;
+  el.style.display='block';
+  if(textEl)textEl.textContent=s.text;
+  if(btnEl)btnEl.style.display=s.showBtn?'inline-block':'none';
+  if(status==='SUBSCRIBED')setTimeout(()=>{
+    if(textEl&&textEl.textContent.includes('REALTIME'))el.style.display='none';
+  },3000);
 }
+
+function manualReconnect(){
+  if(!gameState.code)return;
+  resetReconnect();
+  showToast('🔄 Қайта қосылуда...');
+  subscribeToGame(gameState.code,gameState.isHost);
+}
+
+// ══ RECONNECT ЖҮЙЕСІ ══
+const RECONNECT_DELAYS=[2000,4000,8000,15000,30000]; // exponential backoff
+
+function scheduleReconnect(code,isHost){
+  if(!gameState.code)return; // ойыннан шыққан
+  clearTimeout(gameState.reconnectTimer);
+  const attempt=gameState.reconnectAttempts;
+  const delay=RECONNECT_DELAYS[Math.min(attempt,RECONNECT_DELAYS.length-1)];
+  const attemptNum=attempt+1;
+  gameState.isReconnecting=true;
+  setRealtimeStatus('reconnecting',` (${attemptNum})`);
+  gameState.reconnectTimer=setTimeout(()=>{
+    if(!gameState.code)return;
+    gameState.reconnectAttempts++;
+    subscribeToGame(code,isHost);
+  },delay);
+}
+
+function resetReconnect(){
+  gameState.reconnectAttempts=0;
+  gameState.isReconnecting=false;
+  clearTimeout(gameState.reconnectTimer);
+}
+
+// Браузер онлайн/офлайн оқиғаларын тыңдау
+window.addEventListener('online',()=>{
+  if(gameState.code){
+    showToast('🌐 Интернет қалпына келді, қайта қосылуда...');
+    resetReconnect();
+    subscribeToGame(gameState.code,gameState.isHost);
+  }
+});
+window.addEventListener('offline',()=>{
+  if(gameState.code){
+    setRealtimeStatus('offline');
+    showToast('📵 Интернет байланысы үзілді');
+  }
+});
+
+// Visibility change — қосымша фокустан шыққанда/кіргенде
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&gameState.code&&!gameState.isReconnecting){
+    // Экранға оралғанда сессияны тексеру
+    checkCurrentSession(gameState.code,gameState.isHost);
+  }
+});
 
 async function init(){
   try{
@@ -869,12 +942,13 @@ async function kickPlayer(targetUserId, targetName){
 
 
 function cancelGame(){
-  if(gameState.realtimeSub)gameState.realtimeSub.unsubscribe();
+  if(gameState.realtimeSub){try{gameState.realtimeSub.unsubscribe();}catch(e){}}
   clearInterval(gameState.liveStatsInterval);
+  clearTimeout(gameState.reconnectTimer);
   const overlay=document.getElementById('pauseOverlay');if(overlay)overlay.remove();
   document.getElementById('activeGamePanel').style.display='none';
   document.getElementById('hostQuestionPanel').style.display='none';
-  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,realtimeSub:null,gameTimer:null,liveStatsInterval:null,isPaused:false};
+  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,realtimeSub:null,gameTimer:null,liveStatsInterval:null,isPaused:false,reconnectAttempts:0,reconnectTimer:null,isReconnecting:false};
   document.getElementById('realtimeStatus').style.display='none';
 }
 
@@ -896,10 +970,11 @@ async function joinGame(){
 }
 
 function backToGameJoin(){
-  if(gameState.realtimeSub)gameState.realtimeSub.unsubscribe();
+  if(gameState.realtimeSub){try{gameState.realtimeSub.unsubscribe();}catch(e){}}
   clearInterval(gameState.gameTimer);clearInterval(gameState.liveStatsInterval);
+  clearTimeout(gameState.reconnectTimer);
   const overlay=document.getElementById('pauseOverlay');if(overlay)overlay.remove();
-  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,realtimeSub:null,gameTimer:null,liveStatsInterval:null,isPaused:false};
+  gameState={code:null,session:null,isHost:false,myScore:0,currentQ:0,realtimeSub:null,gameTimer:null,liveStatsInterval:null,isPaused:false,reconnectAttempts:0,reconnectTimer:null,isReconnecting:false};
   document.getElementById('realtimeStatus').style.display='none';
   showGameScreen('join');
 }
@@ -907,9 +982,12 @@ function backToGameJoin(){
 // ══ REALTIME ══
 function subscribeToGame(code,isHost){
   if(!supabaseClient){showToast('⚠️ Realtime қосылмады');return;}
-  if(gameState.realtimeSub){gameState.realtimeSub.unsubscribe();gameState.realtimeSub=null;}
+  if(gameState.realtimeSub){
+    try{gameState.realtimeSub.unsubscribe();}catch(e){}
+    gameState.realtimeSub=null;
+  }
   setRealtimeStatus('connecting');
-  const channel=supabaseClient.channel('game_'+code);
+  const channel=supabaseClient.channel('game_'+code+'_'+Date.now()); // unique channel name
   channel
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'game_sessions'},(payload)=>{
       if(payload.new.id!==code)return;
@@ -926,8 +1004,18 @@ function subscribeToGame(code,isHost){
     })
     .subscribe((status,err)=>{
       setRealtimeStatus(status);
-      if(status==='SUBSCRIBED'){refreshLobbyPlayers(code);checkCurrentSession(code,isHost);}
-      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){setTimeout(()=>subscribeToGame(code,isHost),3000);}
+      if(status==='SUBSCRIBED'){
+        resetReconnect();
+        refreshLobbyPlayers(code);
+        checkCurrentSession(code,isHost);
+        if(gameState.isReconnecting){
+          showToast('✅ Ойынға қайта қосылдыңыз!');
+          gameState.isReconnecting=false;
+        }
+      }
+      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+        scheduleReconnect(code,isHost);
+      }
     });
   gameState.realtimeSub=channel;
 }
