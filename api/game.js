@@ -70,6 +70,7 @@ module.exports = async (req, res) => {
         user_id: user.id,
         username: user.username || null,
         first_name: user.first_name || 'Хост',
+        avatar: payload.avatar || '🐱',
       });
 
       return res.json({ ok: true, code, session: data });
@@ -99,6 +100,7 @@ module.exports = async (req, res) => {
         user_id: user.id,
         username: user.username || null,
         first_name: user.first_name || 'Ойыншы',
+        avatar: payload.avatar || '🐱',
       }, { onConflict: 'session_id,user_id' });
 
       return res.json({ ok: true, session });
