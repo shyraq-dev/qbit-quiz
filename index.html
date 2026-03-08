@@ -1561,7 +1561,7 @@ function syncCategorySelect(cat){
 // ══ САНАТ ЖҮЙЕСІ ══
 const BUILTIN_CATEGORIES=[
   '🧠 Жалпы білім','📖 Тарих','🔬 Ғылым','💻 Технология',
-  '🌍 География','🎭 Мәдениет','🟢⃣ Математика','📚 Әдебиет','⚽ Спорт','🎯 Өзге'
+  '🌍 География','🎭 Мәдениет','🔢 Математика','📚 Әдебиет','⚽ Спорт','🎯 Өзге'
 ];
 function getCustomCategories(){return JSON.parse(localStorage.getItem('qbit_custom_cats')||'[]');}
 function saveCustomCategories(cats){localStorage.setItem('qbit_custom_cats',JSON.stringify(cats));}
