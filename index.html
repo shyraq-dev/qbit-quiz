@@ -1264,11 +1264,15 @@ async function showGameScoreboard(){
     const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'scoreboard',payload:{code:gameState.code}})});
     const d=await r.json();if(!d.ok)return;
     const myId=getTgUser()?.id;
-    // Аватар кэшін жаңарту
-    (d.players||[]).forEach(p=>{if(p.avatar)gameState.avatarCache[String(p.user_id)]=p.avatar;});
+    (d.players||[]).forEach(p=>{
+      if(p.avatar){
+        gameState.avatarCache[String(p.user_id)]=p.avatar;
+        try{const s=JSON.parse(localStorage.getItem('qbit_av_store')||'{}');s[String(p.user_id)]=p.avatar;localStorage.setItem('qbit_av_store',JSON.stringify(s));}catch(e){}
+      }
+    });
     document.getElementById('gameScoreboard').innerHTML=d.players.map((p,i)=>{
       const n=i+1;const icon=n===1?'🥇':n===2?'🥈':n===3?'🥉':'#'+n;const isMe=p.user_id==myId;
-      const sbAv=getPlayerAvatar(p.user_id);
+      const sbAv=isMe?getMyAvatar():(p.avatar||getPlayerAvatar(p.user_id));
       return `<div class="scoreboard-row ${isMe?'highlight':''}"><div style="font-family:Orbitron,monospace;font-size:16px;width:32px">${icon}</div><div class="lb-avatar">${sbAv}</div><div style="flex:1"><div class="lb-name">${esc(p.first_name||'Ойыншы')}${isMe?' 👈':''}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">✓${p.correct??'-'} ✗${p.wrong??'-'} · ${p.accuracy??0}%</div></div><div style="font-family:Orbitron,monospace;font-size:16px;color:var(--accent)">${p.score} ⭐</div></div>`;
     }).join('');
     showGameScreen('score');
@@ -1284,6 +1288,14 @@ async function loadLeaderboard(type){
     const d=await r.json();
     if(!d.ok||!d.data.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">Деректер жоқ</div></div>';return;}
     const myId=getTgUser()?.id;
+    // Аватар кэшін leaderboard деректерінен толтыру
+    d.data.forEach(u=>{
+      const uid=String(u.id||u.user_id);
+      if(u.avatar&&uid){
+        gameState.avatarCache[uid]=u.avatar;
+        try{const s=JSON.parse(localStorage.getItem('qbit_av_store')||'{}');s[uid]=u.avatar;localStorage.setItem('qbit_av_store',JSON.stringify(s));}catch(e){}
+      }
+    });
     c.innerHTML=d.data.map((u,i)=>{
       const n=i+1;const rc=n===1?'gold':n===2?'silver':n===3?'bronze':'other';
       const ri=n===1?'🥇':n===2?'🥈':n===3?'🥉':n;
@@ -1291,7 +1303,8 @@ async function loadLeaderboard(type){
       let sv,ss;
       if(type==='all'){const p=u.total_questions>0?Math.round(u.total_correct/u.total_questions*100):0;sv=p+'%';ss=u.total_games+' ойын';}
       else{sv=(u.avg_score||0)+'%';ss=u.games+' ойын';}
-      const uAvatar=getPlayerAvatar(u.id||u.user_id);
+      // avatar: API-дан тікелей алу (кэш жаңартылды, getPlayerAvatar да дұрыс қайтарады)
+      const uAvatar=isMe?getMyAvatar():(u.avatar||getPlayerAvatar(u.id||u.user_id));
       return `<div class="lb-row ${isMe?'lb-me-row':''}"><div class="lb-rank ${rc}">${ri}</div><div class="lb-avatar ${isMe?'me':''}">${uAvatar}</div><div class="lb-info"><div class="lb-name">${esc(name)}${isMe?' 👈':''}</div><div class="lb-sub">${u.username?'@'+u.username:''}</div></div><div><div class="lb-score">${sv}</div><div class="lb-score-sub">${ss}</div></div></div>`;
     }).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
@@ -1434,7 +1447,7 @@ async function showResults(){
   localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
   localStorage.setItem('qbit_plays',state.plays);updateHeader();
   const initData=getTgInitData();
-  if(initData){try{await fetch(`${API_BASE}/save-result`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,result:{quizId:quiz.id,quizTitle:quiz.title,score,correct:ps.correct,wrong:ps.wrong,totalQuestions:answered,timeSec:time,maxStreak:ps.maxStreak}})});}catch{}}
+  if(initData){try{await fetch(`${API_BASE}/save-result`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,result:{quizId:quiz.id,quizTitle:quiz.title,score,correct:ps.correct,wrong:ps.wrong,totalQuestions:answered,timeSec:time,maxStreak:ps.maxStreak,avatar:getMyAvatar()}})});}catch{}}
   const rank=score>=90?'MASTER':score>=70?'EXPERT':score>=50?'STUDENT':'ROOKIE';
   const re=score>=90?'🏆':score>=70?'⭐':score>=50?'📚':'🌱';
   // Жаңа title тексеру (ойыннан кейін)
