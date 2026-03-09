@@ -65,13 +65,22 @@ module.exports = async (req, res) => {
         .select().single();
       if (error) throw error;
 
+      const hostAvatar = payload.avatar || '🐱';
       await supabase.from('game_players').insert({
         session_id: code,
         user_id: user.id,
         username: user.username || null,
         first_name: user.first_name || 'Хост',
-        avatar: payload.avatar || '🐱',
+        avatar: hostAvatar,
       });
+
+      // users кестесіне аватарды сақта (leaderboard/profile үшін)
+      await supabase.from('users').upsert({
+        id: user.id,
+        username: user.username || null,
+        first_name: user.first_name || 'Хост',
+        avatar: hostAvatar,
+      }, { onConflict: 'id', ignoreDuplicates: false });
 
       return res.json({ ok: true, code, session: data });
     }
@@ -95,13 +104,22 @@ module.exports = async (req, res) => {
         return res.json({ ok: false, error: 'Сізді ойыннан шығарды 👢' });
       }
 
+      const joinAvatar = payload.avatar || '🐱';
       await supabase.from('game_players').upsert({
         session_id: session.id,
         user_id: user.id,
         username: user.username || null,
         first_name: user.first_name || 'Ойыншы',
-        avatar: payload.avatar || '🐱',
+        avatar: joinAvatar,
       }, { onConflict: 'session_id,user_id' });
+
+      // users кестесіне аватарды сақта (leaderboard/profile үшін)
+      await supabase.from('users').upsert({
+        id: user.id,
+        username: user.username || null,
+        first_name: user.first_name || 'Ойыншы',
+        avatar: joinAvatar,
+      }, { onConflict: 'id', ignoreDuplicates: false });
 
       return res.json({ ok: true, session });
     }
@@ -324,7 +342,19 @@ module.exports = async (req, res) => {
       const { data: session } = await supabase
         .from('game_sessions').select('*').eq('id', code).single();
 
-      return res.json({ ok: true, players: players || [], session });
+      const { data: answers } = await supabase
+        .from('game_answers').select('*').eq('session_id', code);
+
+      const totalQ = session?.quiz_data?.questions?.length || 0;
+      const enriched = (players || []).map(p => {
+        const pAnswers = (answers || []).filter(a => a.user_id === p.user_id);
+        const correct = pAnswers.filter(a => a.is_correct).length;
+        const wrong = pAnswers.filter(a => !a.is_correct).length;
+        const accuracy = totalQ > 0 ? Math.round(correct / totalQ * 100) : 0;
+        return { ...p, correct, wrong, accuracy, totalAnswered: pAnswers.length };
+      });
+
+      return res.json({ ok: true, players: enriched, session });
     }
 
     // ── СЕССИЯ ────────────────────────────────
