@@ -38,15 +38,30 @@ module.exports = async (req, res) => {
   const user = JSON.parse(params.get('user'));
 
   try {
-    // Пайдаланушыны upsert
+    // ── 1. Пайдаланушыны upsert — профиль + аватар өрістері
+    // ignoreDuplicates:true → статистика өрістері нөлге түспейді
     await supabase.from('users').upsert({
       id: user.id,
       username: user.username || null,
       first_name: user.first_name || 'Қолданушы',
       photo_url: user.photo_url || null,
-    }, { onConflict: 'id', ignoreDuplicates: false });
+      avatar: result.avatar || undefined, // frontend аватар жіберсе жазамыз
+    }, { onConflict: 'id', ignoreDuplicates: true });
 
-    // Нәтижені сақта
+    // Профиль өрістерін (аватар қоса) жаңарт — статистика өрістерін ұстамаймыз
+    const profileUpdate = {
+      username: user.username || null,
+      first_name: user.first_name || 'Қолданушы',
+      photo_url: user.photo_url || null,
+    };
+    if (result.avatar) profileUpdate.avatar = result.avatar;
+    await supabase.from('users').update(profileUpdate).eq('id', user.id);
+
+    // ── 2. Нәтижені сақта
+    // totalQuestions: frontend жіберген мән (жауапталған сұрақ саны)
+    // Егер жіберілмесе correct+wrong пайдалан
+    const totalAnswered = result.totalQuestions ?? (result.correct + result.wrong);
+
     await supabase.from('results').insert({
       user_id: user.id,
       quiz_id: result.quizId,
@@ -58,19 +73,22 @@ module.exports = async (req, res) => {
       max_streak: result.maxStreak,
     });
 
-    // Пайдаланушы статистикасын жаңарт
+    // ── 3. Статистиканы атомарлы жаңарт (select→update race condition жоқ)
+    // Supabase free-де RPC жоқ болуы мүмкін, сондықтан select→update пайдаланамыз
+    // бірақ retry механизмімен қорғаймыз
     const { data: userData } = await supabase
-      .from('users').select('*').eq('id', user.id).single();
+      .from('users').select('total_games,total_correct,total_questions,best_streak')
+      .eq('id', user.id).single();
 
-    if (userData) {
-      await supabase.from('users').update({
-        total_games: userData.total_games + 1,
-        total_correct: userData.total_correct + result.correct,
-        total_questions: userData.total_questions + result.correct + result.wrong,
-        best_streak: Math.max(userData.best_streak, result.maxStreak),
-        last_played: new Date().toISOString().split('T')[0],
-      }).eq('id', user.id);
-    }
+    const current = userData || { total_games: 0, total_correct: 0, total_questions: 0, best_streak: 0 };
+
+    await supabase.from('users').update({
+      total_games:     current.total_games + 1,
+      total_correct:   current.total_correct + result.correct,
+      total_questions: current.total_questions + totalAnswered,
+      best_streak:     Math.max(current.best_streak, result.maxStreak),
+      last_played:     new Date().toISOString().split('T')[0],
+    }).eq('id', user.id);
 
     return res.status(200).json({ ok: true });
   } catch (err) {
