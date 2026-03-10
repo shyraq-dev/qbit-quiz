@@ -260,12 +260,13 @@
     <div class="login-sub">// ИНТЕЛЛЕКТ ПЛАТФОРМАСЫ</div>
   </div>
   <div class="login-card">
-    <div class="login-card-title">🔐 КІРУ</div>
-    <div class="login-card-desc">Ойын ойнау және статистика үшін<br>Telegram аккаунтыңызбен кіріңіз</div>
-    <div class="login-widget-wrap" id="loginWidgetWrap">
-      <div class="login-loading">Жүктелуде...</div>
-    </div>
-    <div class="login-note">🔒 Деректеріңіз тек Telegram арқылы расталады</div>
+    <div class="login-card-title">🔐 КІРУ КЕРЕК</div>
+    <div class="login-card-desc">Ойын ойнау және статистика үшін<br>Telegram арқылы кіріңіз</div>
+    <a href="https://t.me/QBitQuizBot/quiz" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 20px;background:linear-gradient(135deg,#2AABEE,#229ED9);color:#fff;border-radius:10px;text-decoration:none;font-family:Rajdhani,sans-serif;font-size:16px;font-weight:700;letter-spacing:0.5px;box-shadow:0 4px 15px rgba(42,171,238,0.4)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.61c-.15.67-.54.835-1.084.52l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.37 14.53l-2.948-.924c-.64-.203-.654-.64.136-.948l11.532-4.448c.533-.194 1.001.13.472.038z"/></svg>
+      Telegram арқылы кіру
+    </a>
+    <div style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted);margin-top:14px;text-align:center">📱 Telegram қосымшасы ашылады</div>
   </div>
 </div>
 <div id="realtimeStatus" class="realtime-status" style="display:none">
@@ -619,45 +620,9 @@ window.addEventListener('message', function(event){
   }catch(e){}
 });
 
-function showLoginScreen(botUsername){
+function showLoginScreen(){
   const screen=document.getElementById('loginScreen');
-  screen.style.display='flex';
-  const wrap=document.getElementById('loginWidgetWrap');
-  wrap.innerHTML='<div class="login-loading">Жүктелуде...</div>';
-
-  // data-onauth callback eval арқылы шақырылады — кейбір браузерде жұмыс істемейді.
-  // Сондықтан data-auth-url (redirect) режимін негізгі, callback-ті fallback ретінде қолданамыз.
-  const authUrl = window.location.origin + '/api/auth-callback';
-
-  const script=document.createElement('script');
-  script.src='https://telegram.org/js/telegram-widget.js?22';
-  script.setAttribute('data-telegram-login', botUsername);
-  script.setAttribute('data-size','large');
-  script.setAttribute('data-radius','8');
-  // data-auth-url: Telegram нөмір растағаннан кейін осы URL-ге redirect жасайды
-  script.setAttribute('data-auth-url', authUrl);
-  script.setAttribute('data-request-access','write');
-  // data-onauth да қосамыз (popup режимде жұмыс істейтін браузерлер үшін)
-  script.setAttribute('data-onauth','onTelegramAuth(user)');
-  script.async=true;
-
-  script.onerror=function(){
-    wrap.innerHTML='<div style="color:var(--danger);font-family:Space Mono,monospace;font-size:12px;text-align:center">⚠️ Widget жүктелмеді.<br><small style="opacity:0.7">BotFather-да /setdomain жасалды ма?</small></div>';
-  };
-
-  wrap.innerHTML='';
-  wrap.appendChild(script);
-}
-
-function openTelegramAuthPopup(botUsername){
-  // Баламалы: Telegram OAuth redirect арқылы кіру
-  const redirectUrl=encodeURIComponent(window.location.origin+'/api/auth-callback');
-  const url=`https://oauth.telegram.org/auth?bot_id=\${botUsername}&origin=\${encodeURIComponent(window.location.origin)}&return_to=\${redirectUrl}`;
-  const popup=window.open(url,'tgAuth','width=550,height=470');
-  if(!popup){
-    // Popup блокталды — redirect
-    window.location.href=url;
-  }
+  if(screen) screen.style.display='flex';
 }
 
 function hideLoginScreen(){
@@ -858,7 +823,7 @@ async function init(){
   }
   // Браузерде, session жоқ → Login экранын көрсет
   if(botUsername){
-    showLoginScreen(botUsername);
+    document.getElementById("loginScreen").style.display="flex";
   } else {
     // botUsername жоқ болса (config қатесі) — guest режим (тек library)
     initApp();
