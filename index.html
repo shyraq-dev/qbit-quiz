@@ -234,9 +234,40 @@
     .result-score{font-size:52px;}
     #app{padding:14px;padding-bottom:90px;}
   }
+
+  /* ── TELEGRAM LOGIN ЭКРАНЫ ── */
+  #loginScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px;}
+  #loginScreen::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+  .login-logo{display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .login-logo-icon{width:80px;height:80px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:20px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-weight:900;font-size:28px;color:#fff;box-shadow:var(--glow);letter-spacing:-1px;}
+  .login-title{font-family:'Orbitron',monospace;font-weight:700;font-size:24px;color:var(--accent);text-shadow:var(--glow);letter-spacing:3px;}
+  .login-sub{font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:1px;text-align:center;}
+  .login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:360px;text-align:center;}
+  .login-card-title{font-family:'Orbitron',monospace;font-size:12px;color:var(--accent);letter-spacing:2px;margin-bottom:8px;}
+  .login-card-desc{font-size:13px;color:var(--muted);font-family:'Space Mono',monospace;line-height:1.6;margin-bottom:20px;}
+  .login-widget-wrap{display:flex;justify-content:center;min-height:44px;align-items:center;}
+  .login-note{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:16px;opacity:0.7;}
+  .login-loading{display:flex;align-items:center;gap:10px;color:var(--accent);font-family:'Space Mono',monospace;font-size:12px;}
+  .login-loading::before{content:'';width:16px;height:16px;border:2px solid rgba(0,245,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+<div id="loginScreen" style="display:none">
+  <div class="login-logo">
+    <div class="login-logo-icon">QB</div>
+    <div class="login-title">QBIT QUIZ</div>
+    <div class="login-sub">// ИНТЕЛЛЕКТ ПЛАТФОРМАСЫ</div>
+  </div>
+  <div class="login-card">
+    <div class="login-card-title">🔐 КІРУ</div>
+    <div class="login-card-desc">Ойын ойнау және статистика үшін<br>Telegram аккаунтыңызбен кіріңіз</div>
+    <div class="login-widget-wrap" id="loginWidgetWrap">
+      <div class="login-loading">Жүктелуде...</div>
+    </div>
+    <div class="login-note">🔒 Деректеріңіз тек Telegram арқылы расталады</div>
+  </div>
+</div>
 <div id="realtimeStatus" class="realtime-status" style="display:none">
   <span id="realtimeStatusText"></span>
   <button id="realtimeReconnectBtn" onclick="manualReconnect()" style="display:none;margin-left:8px;padding:2px 8px;border-radius:10px;border:1px solid currentColor;background:transparent;color:inherit;font-size:10px;cursor:pointer;font-family:Space Mono,monospace">↺ Қайта</button>
@@ -530,9 +561,68 @@
 const API_BASE='/api';
 const tg=window.Telegram?.WebApp;
 if(tg){tg.ready();tg.expand();}
-function getTgUser(){return tg?.initDataUnsafe?.user||null;}
-function getTgInitData(){return tg?.initData||'';}
+
+// ── Браузер login session (Telegram Widget арқылы кірген соң сақталады) ──
+let _browserSession=null;
+try{const s=sessionStorage.getItem('qbit_tg_user');if(s)_browserSession=JSON.parse(s);}catch(e){}
+
+function getTgUser(){
+  // 1. Telegram WebApp (Telegram ішінде)
+  if(tg?.initDataUnsafe?.user) return tg.initDataUnsafe.user;
+  // 2. Browser session (Widget арқылы кірген)
+  if(_browserSession) return _browserSession;
+  return null;
+}
+function getTgInitData(){
+  if(tg?.initData) return tg.initData;
+  // Browser session үшін синтетикалық initData (сервер тарапта верификация жасалған)
+  if(_browserSession?._initData) return _browserSession._initData;
+  return '';
+}
 function isAdmin(){const u=getTgUser();return u&&String(u.id)===String(window.__ADMIN_ID__);}
+function isBrowser(){return !tg?.initData;}
+
+// ── Telegram Login Widget callback ──
+window.onTelegramAuth=function(userData){
+  // Widget қайтарған деректерді API-да верификациялаймыз
+  fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegramData:userData})})
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.ok){
+        _browserSession={...userData,_initData:d.initData};
+        try{sessionStorage.setItem('qbit_tg_user',JSON.stringify(_browserSession));}catch(e){}
+        hideLoginScreen();
+        initApp();
+      }else{
+        document.getElementById('loginWidgetWrap').innerHTML='<div style="color:var(--danger);font-family:Space Mono,monospace;font-size:12px">⚠️ Кіру қатесі. Қайталаңыз.</div>';
+      }
+    })
+    .catch(()=>{
+      document.getElementById('loginWidgetWrap').innerHTML='<div style="color:var(--danger);font-family:Space Mono,monospace;font-size:12px">⚠️ Желі қатесі</div>';
+    });
+};
+
+function showLoginScreen(botUsername){
+  const screen=document.getElementById('loginScreen');
+  screen.style.display='flex';
+  const wrap=document.getElementById('loginWidgetWrap');
+  // Telegram Login Widget скриптін динамикалық жүктеу
+  const script=document.createElement('script');
+  script.src='https://telegram.org/js/telegram-widget.js?22';
+  script.setAttribute('data-telegram-login', botUsername);
+  script.setAttribute('data-size','large');
+  script.setAttribute('data-radius','8');
+  script.setAttribute('data-onauth','onTelegramAuth(user)');
+  script.setAttribute('data-request-access','write');
+  script.async=true;
+  wrap.innerHTML='';
+  wrap.appendChild(script);
+}
+
+function hideLoginScreen(){
+  const screen=document.getElementById('loginScreen');
+  if(screen) screen.style.display='none';
+}
 
 let supabaseClient=null;
 
@@ -700,16 +790,42 @@ document.addEventListener('visibilitychange',()=>{
 });
 
 async function init(){
+  // ── Config жүктеу ──
+  let botUsername='';
   try{
     const r=await fetch(`${API_BASE}/config`);
     if(r.ok){
       const d=await r.json();
       window.__ADMIN_ID__=d.adminId;
+      botUsername=d.botUsername||'';
       if(d.supabaseUrl&&d.supabaseKey){
         supabaseClient=supabase.createClient(d.supabaseUrl,d.supabaseKey,{realtime:{params:{eventsPerSecond:10}}});
       }
     }
   }catch(e){console.error(e);}
+
+  // ── Аутентификация тексеру ──
+  // Telegram WebApp-та ашылған → initData бар → тікелей жүктейміз
+  if(tg?.initData){
+    initApp();
+    return;
+  }
+  // Браузерде sessionStorage-тан кірген session бар → тікелей жүктейміз
+  if(_browserSession){
+    initApp();
+    return;
+  }
+  // Браузерде, session жоқ → Login экранын көрсет
+  if(botUsername){
+    showLoginScreen(botUsername);
+  } else {
+    // botUsername жоқ болса (config қатесі) — guest режим (тек library)
+    initApp();
+  }
+}
+
+function initApp(){
+  hideLoginScreen();
   if(isAdmin()){
     document.getElementById('tab-create').style.display='';
     document.getElementById('tab-export').style.display='';
