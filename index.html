@@ -583,14 +583,8 @@ function isAdmin(){const u=getTgUser();return u&&String(u.id)===String(window.__
 function isBrowser(){return !tg?.initData;}
 
 // ── Telegram Login Widget callback ──
-// Global scope-та болуы міндетті (Widget eval арқылы шақырады)
 window.onTelegramAuth=function(userData){
-  _processTelegramAuth(userData);
-};
-
-function _processTelegramAuth(userData){
-  const wrap=document.getElementById('loginWidgetWrap');
-  if(wrap) wrap.innerHTML='<div class="login-loading">Расталуда...</div>';
+  // Widget қайтарған деректерді API-да верификациялаймыз
   fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegramData:userData})})
     .then(r=>r.json())
     .then(d=>{
@@ -600,64 +594,29 @@ function _processTelegramAuth(userData){
         hideLoginScreen();
         initApp();
       }else{
-        if(wrap) wrap.innerHTML='<div style="color:var(--danger);font-family:Space Mono,monospace;font-size:12px;text-align:center">⚠️ Кіру қатесі.<br><button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="location.reload()">Қайталау</button></div>';
+        document.getElementById('loginWidgetWrap').innerHTML='<div style="color:var(--danger);font-family:Space Mono,monospace;font-size:12px">⚠️ Кіру қатесі. Қайталаңыз.</div>';
       }
     })
     .catch(()=>{
-      if(wrap) wrap.innerHTML='<div style="color:var(--danger);font-family:Space Mono,monospace;font-size:12px;text-align:center">⚠️ Желі қатесі.<br><button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="location.reload()">Қайталау</button></div>';
+      document.getElementById('loginWidgetWrap').innerHTML='<div style="color:var(--danger);font-family:Space Mono,monospace;font-size:12px">⚠️ Желі қатесі</div>';
     });
-}
-
-// ── postMessage арқылы Widget-тен деректер қабылдау (CSP fallback) ──
-window.addEventListener('message', function(event){
-  if(event.origin !== 'https://oauth.telegram.org') return;
-  try{
-    const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-    if(data && data.event === 'auth_result' && data.result){
-      _processTelegramAuth(data.result);
-    }
-  }catch(e){}
-});
+};
 
 function showLoginScreen(botUsername){
   const screen=document.getElementById('loginScreen');
   screen.style.display='flex';
   const wrap=document.getElementById('loginWidgetWrap');
-  wrap.innerHTML='<div class="login-loading">Жүктелуде...</div>';
-
-  // data-onauth callback eval арқылы шақырылады — кейбір браузерде жұмыс істемейді.
-  // Сондықтан data-auth-url (redirect) режимін негізгі, callback-ті fallback ретінде қолданамыз.
-  const authUrl = window.location.origin + '/api/auth-callback';
-
+  // Telegram Login Widget скриптін динамикалық жүктеу
   const script=document.createElement('script');
   script.src='https://telegram.org/js/telegram-widget.js?22';
   script.setAttribute('data-telegram-login', botUsername);
   script.setAttribute('data-size','large');
   script.setAttribute('data-radius','8');
-  // data-auth-url: Telegram нөмір растағаннан кейін осы URL-ге redirect жасайды
-  script.setAttribute('data-auth-url', authUrl);
-  script.setAttribute('data-request-access','write');
-  // data-onauth да қосамыз (popup режимде жұмыс істейтін браузерлер үшін)
   script.setAttribute('data-onauth','onTelegramAuth(user)');
+  script.setAttribute('data-request-access','write');
   script.async=true;
-
-  script.onerror=function(){
-    wrap.innerHTML='<div style="color:var(--danger);font-family:Space Mono,monospace;font-size:12px;text-align:center">⚠️ Widget жүктелмеді.<br><small style="opacity:0.7">BotFather-да /setdomain жасалды ма?</small></div>';
-  };
-
   wrap.innerHTML='';
   wrap.appendChild(script);
-}
-
-function openTelegramAuthPopup(botUsername){
-  // Баламалы: Telegram OAuth redirect арқылы кіру
-  const redirectUrl=encodeURIComponent(window.location.origin+'/api/auth-callback');
-  const url=\`https://oauth.telegram.org/auth?bot_id=\${botUsername}&origin=\${encodeURIComponent(window.location.origin)}&return_to=\${redirectUrl}\`;
-  const popup=window.open(url,'tgAuth','width=550,height=470');
-  if(!popup){
-    // Popup блокталды — redirect
-    window.location.href=url;
-  }
 }
 
 function hideLoginScreen(){
