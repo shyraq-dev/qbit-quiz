@@ -560,6 +560,7 @@
 
 <script>
 const API_BASE='/api';
+let VAPID_PUBLIC_KEY=''; // config-тан жүктеледі
 const tg=window.Telegram?.WebApp;
 if(tg){tg.ready();tg.expand();}
 
@@ -804,6 +805,7 @@ async function init(){
       const d=await r.json();
       window.__ADMIN_ID__=d.adminId;
       botUsername=d.botUsername||'';
+      VAPID_PUBLIC_KEY=d.vapidPublicKey||'';
       if(d.supabaseUrl&&d.supabaseKey){
         supabaseClient=supabase.createClient(d.supabaseUrl,d.supabaseKey,{realtime:{params:{eventsPerSecond:10}}});
       }
@@ -828,6 +830,106 @@ async function init(){
     // botUsername жоқ болса (config қатесі) — guest режим (тек library)
     initApp();
   }
+}
+
+// ══ WEB PUSH ФУНКЦИЯЛАРЫ ══════════════════════════════════
+
+function urlBase64ToUint8Array(base64String){
+  const padding='='.repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const rawData=window.atob(base64);
+  return Uint8Array.from([...rawData].map(c=>c.charCodeAt(0)));
+}
+
+async function getPushPermission(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!VAPID_PUBLIC_KEY) return 'unsupported';
+  return Notification.permission;
+}
+
+async function subscribePush(){
+  if(!('serviceWorker' in navigator)||!VAPID_PUBLIC_KEY) return false;
+  try{
+    const reg=await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted') return false;
+    const sub=await reg.pushManager.subscribe({
+      userVisibleOnly:true,
+      applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+    await fetch(`${API_BASE}/push-subscribe`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({initData:getTgInitData(),subscription:sub.toJSON()})
+    });
+    return true;
+  }catch(e){console.error('Push subscribe error:',e);return false;}
+}
+
+async function unsubscribePush(){
+  if(!('serviceWorker' in navigator)) return;
+  try{
+    const reg=await navigator.serviceWorker.getRegistration('/sw.js');
+    if(!reg) return;
+    const sub=await reg.pushManager.getSubscription();
+    if(!sub) return;
+    await fetch(`${API_BASE}/push-subscribe`,{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({initData:getTgInitData(),subscription:sub.toJSON()})
+    });
+    await sub.unsubscribe();
+  }catch(e){console.error('Push unsubscribe error:',e);}
+}
+
+async function getPushStatus(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!VAPID_PUBLIC_KEY) return 'unsupported';
+  if(Notification.permission==='denied') return 'denied';
+  try{
+    const reg=await navigator.serviceWorker.getRegistration('/sw.js');
+    if(!reg) return 'off';
+    const sub=await reg.pushManager.getSubscription();
+    return sub?'on':'off';
+  }catch{return 'off';}
+}
+
+async function renderPushToggle(){
+  const el=document.getElementById('pushToggleWrap');
+  if(!el) return;
+  const status=await getPushStatus();
+  if(status==='unsupported'){
+    el.innerHTML='<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);text-align:center">🔕 Браузер push-ты қолдамайды</div>';
+    return;
+  }
+  if(status==='denied'){
+    el.innerHTML='<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--danger);text-align:center">⚠️ Хабарландыруларға рұқсат берілмеген<br><small>Браузер баптауларынан қосыңыз</small></div>';
+    return;
+  }
+  const isOn=status==='on';
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:13px;color:var(--text)">🔔 Web хабарландырулар</div>
+        <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-top:2px">${isOn?'ҚОСЫЛҒАН':'ӨШІРІЛГЕН'}</div>
+      </div>
+      <button onclick="togglePush()" style="padding:7px 16px;border-radius:20px;border:none;cursor:pointer;font-family:Space Mono,monospace;font-size:10px;font-weight:700;letter-spacing:0.5px;transition:all 0.2s;background:${isOn?'rgba(239,68,68,0.15)':'rgba(0,245,255,0.15)'};color:${isOn?'var(--danger)':'var(--accent)'};border:1px solid ${isOn?'rgba(239,68,68,0.3)':'rgba(0,245,255,0.3)'}">
+        ${isOn?'ӨШІРУ':'ҚОСУ'}
+      </button>
+    </div>`;
+}
+
+async function togglePush(){
+  const status=await getPushStatus();
+  const el=document.getElementById('pushToggleWrap');
+  if(el) el.innerHTML='<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);text-align:center">...</div>';
+  if(status==='on'){
+    await unsubscribePush();
+    showToast('🔕 Web хабарландырулар өшірілді');
+  }else{
+    const ok=await subscribePush();
+    showToast(ok?'🔔 Web хабарландырулар қосылды!':'⚠️ Хабарландыруларға рұқсат берілмеді');
+  }
+  renderPushToggle();
 }
 
 function initApp(){
@@ -1469,7 +1571,13 @@ async function loadProfile(){
         <div class="card-title">🏅 жетістіктер</div>
         ${achievements.map(a=>`<div class="achievement ${a.unlocked?'':'locked'}"><div class="ach-icon">${a.icon}</div><div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>${a.unlocked?'<div style="margin-left:auto;color:var(--accent3);font-size:18px">✓</div>':''}</div>`).join('')}
       </div>
-      ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div style="font-size:13px;color:var(--text)">${esc(r.quiz_title||'Тест')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${new Date(r.played_at).toLocaleDateString('kk-KZ')} · ${r.time_sec}с</div></div><div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div></div>`).join('')}</div>`:''}`;
+      ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div style="font-size:13px;color:var(--text)">${esc(r.quiz_title||'Тест')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${new Date(r.played_at).toLocaleDateString('kk-KZ')} · ${r.time_sec}с</div></div><div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div></div>`).join('')}</div>`:''}
+      <div class="card">
+        <div class="card-title">🔔 хабарландырулар</div>
+        <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:12px">Telegram ботқа /start жазсаңыз — Telegram хабарламалары да келеді</div>
+        <div id="pushToggleWrap"><div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);text-align:center">Тексерілуде...</div></div>
+      </div>`;
+    renderPushToggle();
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Бейін жоқ</div><p style="color:var(--muted);font-size:12px">Алдымен тест ойнаңыз!</p></div>';}
 }
 
