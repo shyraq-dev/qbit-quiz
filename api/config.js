@@ -13,6 +13,8 @@ module.exports = (req, res) => {
     supabaseKey: process.env.SUPABASE_ANON_KEY || '',
     // Telegram Login Widget үшін бот username (@ белгісінсіз)
     // Мысалы: BOT_USERNAME=QBitQuizBot
-    botUsername: process.env.BOT_USERNAME || '',
+    botUsername:   process.env.BOT_USERNAME || '',
+    vapidPublicKey: process.env.VAPID_PUBLIC_KEY || '',
   });
 };
+
