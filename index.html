@@ -955,13 +955,14 @@ function shareInvite() {
   const code = document.getElementById('lobbyCode')?.textContent || '';
   if (!code || code === '——') { showToast('⚠️ Алдымен ойын жаса'); return; }
   const link = getInviteLink();
-  const text = `🎮 QBit Quiz-ге шақырамын!\n\nОйын коды: *${code}*\n\nҚосылу: ${link}`;
-  // Telegram WebApp shareURL
-  if (window.Telegram?.WebApp?.openTelegramLink) {
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(`🎮 QBit Quiz-ге шақырамын!\nОйын коды: ${code}`)}`;
-    window.Telegram.WebApp.openTelegramLink(shareUrl);
+  const text = `🎮 QBit Quiz-ге шақырамын!\nОйын коды: ${code}\nҚосылу: ${link}`;
+  const tgApp = window.Telegram?.WebApp;
+  if (tgApp) {
+    // Telegram WebApp арнайы share API
+    tgApp.switchInlineQuery
+      ? tgApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`)
+      : window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`, '_blank');
   } else {
-    // Браузерде — сілтемені көшір
     copyInviteLink();
   }
 }
