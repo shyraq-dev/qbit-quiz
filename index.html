@@ -866,16 +866,24 @@ async function init(){
 }
 
 // ══ УАҚЫТ УТИЛИТАСЫ ══════════════════════════════════════
-const KZ_TZ = 'Asia/Almaty';
-function fmtDate(iso) {
-  const d = new Date(iso);
-  const opts = { timeZone: KZ_TZ, day: '2-digit', month: '2-digit', year: 'numeric' };
-  return d.toLocaleDateString('ru-RU', opts);
+const KZ_OFFSET = 5; // UTC+5
+
+function toKZDate(iso) {
+  // UTC уақытына +5 сағат қосу
+  const utc = new Date(iso);
+  return new Date(utc.getTime() + KZ_OFFSET * 60 * 60 * 1000);
 }
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function fmtDate(iso) {
+  const d = toKZDate(iso);
+  return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth()+1)}.${d.getUTCFullYear()}`;
+}
+
 function fmtDateTime(iso) {
-  const d = new Date(iso);
-  const opts = { timeZone: KZ_TZ, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-  return d.toLocaleString('ru-RU', opts);
+  const d = toKZDate(iso);
+  return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth()+1)}.${d.getUTCFullYear()}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
 }
 
 // ══ ХАБАРЛАНДЫРУЛАР ══════════════════════════════════════
@@ -931,7 +939,7 @@ function formatNotifTime(iso) {
   if (diff < 60) return 'Жаңа ғана';
   if (diff < 3600) return `${Math.floor(diff/60)} мин бұрын`;
   if (diff < 86400) return `${Math.floor(diff/3600)} сағ бұрын`;
-  return d.toLocaleDateString('ru-RU', { timeZone: KZ_TZ, day: '2-digit', month: '2-digit', year: 'numeric' });
+  const kz = toKZDate(iso); return `${pad(kz.getUTCDate())}.${pad(kz.getUTCMonth()+1)}.${kz.getUTCFullYear()}`;
 }
 
 async function openNotifPanel() {
