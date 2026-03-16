@@ -49,13 +49,25 @@ module.exports = async (req, res) => {
       .order('played_at', { ascending: false })
       .limit(10);
 
-    // Жалпы рейтингтегі орны
-    const { count } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true })
-      .gt('total_correct', userData?.total_correct || 0);
+    // Рейтингтегі орны — accuracy бойынша (leaderboard-пен сәйкес)
+    // Пайдаланушының accuracy есептеу
+    const myAccuracy = userData && userData.total_questions > 0
+      ? userData.total_correct / userData.total_questions
+      : 0;
 
-    const rank = (count || 0) + 1;
+    // Осы пайдаланушыдан жоғары accuracy-сі барларды сана
+    // Supabase-де computed column жоқ, сондықтан JS-де есептейміз
+    const { data: allUsers } = await supabase
+      .from('users')
+      .select('id, total_correct, total_questions')
+      .gt('total_games', 0)
+      .gt('total_questions', 0);
+
+    const rank = (allUsers || []).filter(u => {
+      if (u.id === user.id) return false;
+      const acc = u.total_correct / u.total_questions;
+      return acc > myAccuracy;
+    }).length + 1;
 
     return res.status(200).json({
       ok: true,
