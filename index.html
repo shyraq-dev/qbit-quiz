@@ -865,6 +865,19 @@ async function init(){
   }
 }
 
+// ══ УАҚЫТ УТИЛИТАСЫ ══════════════════════════════════════
+const KZ_TZ = 'Asia/Almaty';
+function fmtDate(iso) {
+  const d = new Date(iso);
+  const opts = { timeZone: KZ_TZ, day: '2-digit', month: '2-digit', year: 'numeric' };
+  return d.toLocaleDateString('ru-RU', opts);
+}
+function fmtDateTime(iso) {
+  const d = new Date(iso);
+  const opts = { timeZone: KZ_TZ, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+  return d.toLocaleString('ru-RU', opts);
+}
+
 // ══ ХАБАРЛАНДЫРУЛАР ══════════════════════════════════════
 
 let _notifOpen = false;
@@ -918,7 +931,7 @@ function formatNotifTime(iso) {
   if (diff < 60) return 'Жаңа ғана';
   if (diff < 3600) return `${Math.floor(diff/60)} мин бұрын`;
   if (diff < 86400) return `${Math.floor(diff/3600)} сағ бұрын`;
-  return d.toLocaleDateString('kk-KZ');
+  return d.toLocaleDateString('ru-RU', { timeZone: KZ_TZ, day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 async function openNotifPanel() {
@@ -1082,7 +1095,7 @@ async function loadAdminRecent(){
     if(!d.ok||!d.data.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">📜</div><div class="empty-title">Жоқ</div></div>';return;}
     c.innerHTML=d.data.map(r=>`
       <div class="recent-item">
-        <div><div style="font-size:13px;color:var(--text)">${esc(r.users?.first_name||'Қолданушы')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${esc(r.quiz_title||'')} · ${new Date(r.played_at).toLocaleString('kk-KZ')}</div></div>
+        <div><div style="font-size:13px;color:var(--text)">${esc(r.users?.first_name||'Қолданушы')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${esc(r.quiz_title||'')} · ${fmtDateTime(r.played_at)}</div></div>
         <div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div>
       </div>`).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
@@ -1622,7 +1635,7 @@ async function loadProfile(){
         <div class="card-title">🏅 жетістіктер</div>
         ${achievements.map(a=>`<div class="achievement ${a.unlocked?'':'locked'}"><div class="ach-icon">${a.icon}</div><div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>${a.unlocked?'<div style="margin-left:auto;color:var(--accent3);font-size:18px">✓</div>':''}</div>`).join('')}
       </div>
-      ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div style="font-size:13px;color:var(--text)">${esc(r.quiz_title||'Тест')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${new Date(r.played_at).toLocaleDateString('kk-KZ')} · ${r.time_sec}с</div></div><div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div></div>`).join('')}</div>`:''}`;
+      ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div style="font-size:13px;color:var(--text)">${esc(r.quiz_title||'Тест')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${fmtDate(r.played_at)} · ${r.time_sec}с</div></div><div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div></div>`).join('')}</div>`:''}`;
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Бейін жоқ</div><p style="color:var(--muted);font-size:12px">Алдымен тест ойнаңыз!</p></div>';}
 }
 
@@ -2130,7 +2143,7 @@ function saveQuiz(){
     state.quizzes.unshift({
       id:'quiz_'+Date.now(),
       ...quizData,
-      created:new Date().toLocaleDateString('kk-KZ'),
+      created:fmtDate(new Date()),
       playCount:0,bestScore:0,
     });
     showToast(`✅ "${title}" сақталды!`);
@@ -2155,7 +2168,7 @@ function showToast(msg){
 }
 
 function loadSample(){
-  const s={id:'quiz_sample',title:'Қазақстан тарихы — Негіздер',category:'📖 Тарих',timer:20,difficulty:'medium',created:new Date().toLocaleDateString('kk-KZ'),playCount:0,bestScore:0,questions:[
+  const s={id:'quiz_sample',title:'Қазақстан тарихы — Негіздер',category:'📖 Тарих',timer:20,difficulty:'medium',created:fmtDate(new Date()),playCount:0,bestScore:0,questions:[
     {id:'s1',text:'Қазақ хандығы қай жылы құрылды?',options:['1465','1500','1480','1520'],correct:0,explanation:'1465 жылы Керей мен Жәнібек хандар тарапынан құрылды.'},
     {id:'s2',text:'Қазақстанның астанасы қандай?',options:['Алматы','Шымкент','Астана','Орал'],correct:2,explanation:'2022 жылы Астана атауына қайтарылды.'},
     {id:'s3',text:'Тәуелсіздік жарияланған жыл?',options:['1990','1991','1992','1993'],correct:1,explanation:'1991 жылы 16 желтоқсанда жарияланды.'},
