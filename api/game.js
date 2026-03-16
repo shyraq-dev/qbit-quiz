@@ -126,11 +126,13 @@ module.exports = async (req, res) => {
       const playerIds = (players || []).map(p => p.user_id).filter(id => id !== user.id);
       if (playerIds.length) {
         const quizTitle = session.quiz_data?.title || 'Ойын';
-        notifyUsers(
-          playerIds,
-          `🚀 <b>Ойын басталды!</b>\n\n📚 ${quizTitle}\nТез кіріңіз!`,
-          { title: '🚀 Ойын басталды!', body: quizTitle, icon: '/icon.png', data: { url: 'https://t.me/QBitQuizBot/quiz' } }
-        ).catch(()=>{});
+        notifyUsers(playerIds, {
+          type: 'game_start',
+          title: '🚀 Ойын басталды!',
+          body: quizTitle,
+          data: { code },
+          telegram: `🚀 <b>Ойын басталды!</b>\n\n📚 ${quizTitle}\nТез кіріңіз! t.me/QBitQuizBot/quiz`,
+        }).catch(()=>{});
       }
 
       return res.json({ ok: true });
