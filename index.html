@@ -524,6 +524,20 @@
             <div style="font-family:Space Mono,monospace;font-size:12px;color:var(--muted);letter-spacing:1px">ХОСТ БАСТАУЫН КҮТІҢІЗ</div>
           </div>
         </div>
+        <div class="card" id="lobbyInviteCard">
+          <div class="card-title">📨 достарды шақыру</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-ghost" onclick="copyGameCode()" style="justify-content:center;gap:8px">
+              📋 Кодты көшіру — <span id="lobbyCodeInvite" style="font-family:Orbitron,monospace;color:var(--accent);font-weight:700"></span>
+            </button>
+            <button class="btn btn-ghost" onclick="copyInviteLink()" style="justify-content:center;gap:8px">
+              🔗 Сілтемені көшіру
+            </button>
+            <button class="btn btn-cyan" onclick="shareInvite()" style="justify-content:center;gap:8px">
+              📤 Telegram-да бөлісу
+            </button>
+          </div>
+        </div>
       </div>
       <div id="gamePlayScreen" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -849,6 +863,12 @@ async function init(){
   // Telegram WebApp-та ашылған → initData бар → тікелей жүктейміз
   if(tg?.initData){
     initApp();
+    // startapp параметрін тексер — шақыру сілтемесі арқылы келген болса
+    const startParam = tg?.initDataUnsafe?.start_param;
+    if(startParam && startParam.length === 6) {
+      // Код болса лоббиге автоматты қосылу
+      setTimeout(() => joinGameByCode(startParam), 1000);
+    }
     return;
   }
   // Браузерде sessionStorage-тан кірген session бар → тікелей жүктейміз
@@ -889,6 +909,62 @@ function fmtDateTime(iso) {
 // ══ ХАБАРЛАНДЫРУЛАР ══════════════════════════════════════
 
 let _notifOpen = false;
+
+// ══ ШАҚЫРУ ФУНКЦИЯЛАРЫ ══════════════════════════════════
+
+function getInviteLink() {
+  const code = document.getElementById('lobbyCode')?.textContent || '';
+  if (!code || code === '——') return '';
+  return `https://t.me/${botUsername}/quiz?startapp=${code}`;
+}
+
+function copyGameCode() {
+  const code = document.getElementById('lobbyCode')?.textContent || '';
+  if (!code || code === '——') return;
+  navigator.clipboard?.writeText(code).then(() => {
+    showToast('📋 Код көшірілді: ' + code);
+  }).catch(() => {
+    // Fallback
+    const el = document.createElement('input');
+    el.value = code;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('📋 Код көшірілді: ' + code);
+  });
+}
+
+function copyInviteLink() {
+  const link = getInviteLink();
+  if (!link) { showToast('⚠️ Алдымен ойын жаса'); return; }
+  navigator.clipboard?.writeText(link).then(() => {
+    showToast('🔗 Сілтеме көшірілді!');
+  }).catch(() => {
+    const el = document.createElement('input');
+    el.value = link;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('🔗 Сілтеме көшірілді!');
+  });
+}
+
+function shareInvite() {
+  const code = document.getElementById('lobbyCode')?.textContent || '';
+  if (!code || code === '——') { showToast('⚠️ Алдымен ойын жаса'); return; }
+  const link = getInviteLink();
+  const text = `🎮 QBit Quiz-ге шақырамын!\n\nОйын коды: *${code}*\n\nҚосылу: ${link}`;
+  // Telegram WebApp shareURL
+  if (window.Telegram?.WebApp?.openTelegramLink) {
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(`🎮 QBit Quiz-ге шақырамын!\nОйын коды: ${code}`)}`;
+    window.Telegram.WebApp.openTelegramLink(shareUrl);
+  } else {
+    // Браузерде — сілтемені көшір
+    copyInviteLink();
+  }
+}
 
 async function loadNotifications() {
   const user = getTgUser();
@@ -1264,6 +1340,15 @@ function cancelGame(){
 }
 
 // ══ GAME PLAYER ══
+async function joinGameByCode(code){
+  // Шақыру сілтемесі арқылы автоматты қосылу
+  try{
+    switchTab('game');
+    document.getElementById('gameCodeInput').value=code;
+    await joinGame();
+  }catch(e){ console.error('Auto-join error:', e); }
+}
+
 async function joinGame(){
   const code=document.getElementById('gameCodeInput').value.trim().toUpperCase();
   if(code.length<4)return showToast('⚠️ Кодты толық енгізіңіз!');
@@ -1275,6 +1360,8 @@ async function joinGame(){
     gameState.myScore=0;gameState.currentQ=-1;
     document.getElementById('lobbyCode').textContent=code;
     document.getElementById('lobbyQuizName').textContent=d.session.quiz_data?.title||'';
+    const inviteEl=document.getElementById('lobbyCodeInvite');
+    if(inviteEl) inviteEl.textContent=code;
     showGameScreen('lobby');
     subscribeToGame(code,false);
   }catch(e){console.error(e);showToast('⚠️ Қате');}
