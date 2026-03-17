@@ -304,10 +304,11 @@
   <!-- Чаттар тізімі -->
   <div id="messengerHome" style="display:flex;flex-direction:column;height:100%">
     <div class="chat-header">
+      <button class="chat-header-back" onclick="closeMessenger()">←</button>
       <div class="chat-header-info">
         <div class="chat-header-name">💬 ХАБАРЛАР</div>
       </div>
-      <button onclick="openUserSearch()" style="background:none;border:none;color:var(--accent);font-size:20px;cursor:pointer">✏️</button>
+      <button onclick="document.getElementById('messengerSearch').focus()" style="background:none;border:none;color:var(--accent);font-size:20px;cursor:pointer">✏️</button>
     </div>
     <div style="padding:10px 12px;border-bottom:1px solid var(--border)">
       <input id="messengerSearch" placeholder="@username іздеу..." 
