@@ -274,6 +274,9 @@
 .chat-user-item:hover{background:rgba(0,245,255,0.05);border-color:rgba(0,245,255,0.1)}
 .chat-user-avatar{font-size:28px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border-radius:50%;flex-shrink:0}
 .chat-unread-badge{background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:9px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.messenger-btn{position:fixed;bottom:80px;right:16px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,245,255,0.3);z-index:100;transition:transform 0.2s}
+.messenger-btn:active{transform:scale(0.9)}
+.messenger-btn-badge{position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:8px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px}
 
 /* ══ NOTIFICATION STYLES ══ */
 .notif-bell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.2);cursor:pointer;transition:all 0.2s}
@@ -296,21 +299,42 @@
 </style>
 </head>
 <body>
-<!-- CHAT SCREEN -->
-<div class="chat-screen" id="chatScreen">
-  <div class="chat-header">
-    <button class="chat-header-back" onclick="closeChat()">←</button>
-    <div class="chat-header-info">
-      <div class="chat-header-name" id="chatHeaderName">Әкімші</div>
-      <div class="chat-header-status" id="chatHeaderStatus">● ОНЛАЙН</div>
+<!-- MESSENGER SCREEN -->
+<div class="chat-screen" id="messengerScreen">
+  <!-- Чаттар тізімі -->
+  <div id="messengerHome" style="display:flex;flex-direction:column;height:100%">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-header-name">💬 ХАБАРЛАР</div>
+      </div>
+      <button onclick="openUserSearch()" style="background:none;border:none;color:var(--accent);font-size:20px;cursor:pointer">✏️</button>
     </div>
+    <div style="padding:10px 12px;border-bottom:1px solid var(--border)">
+      <input id="messengerSearch" placeholder="@username іздеу..." 
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:Space Mono,monospace;font-size:12px;padding:8px 14px;outline:none"
+        oninput="searchUsers(this.value)">
+      <div id="searchResults" style="margin-top:8px"></div>
+    </div>
+    <div id="conversationList" style="flex:1;overflow-y:auto;padding:8px"></div>
   </div>
-  <div class="chat-messages" id="chatMessages"></div>
-  <div class="chat-input-wrap">
-    <textarea class="chat-input" id="chatInput" placeholder="Хабарлама..." rows="1"
-      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"
-      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
-    <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
+
+  <!-- Чат экраны -->
+  <div id="chatWindow" style="display:none;flex-direction:column;height:100%">
+    <div class="chat-header">
+      <button class="chat-header-back" onclick="backToConversations()">←</button>
+      <div style="font-size:24px;margin-right:8px" id="chatPartnerAvatar">🐱</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name" id="chatHeaderName"></div>
+        <div class="chat-header-status" id="chatHeaderUsername" style="color:var(--muted)"></div>
+      </div>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-wrap">
+      <textarea class="chat-input" id="chatInput" placeholder="Хабарлама..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+      <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
+    </div>
   </div>
 </div>
 
@@ -640,6 +664,11 @@
     </div>
     <div class="card"><div class="card-title">📊 статистика</div><div id="statsPanel" style="color:var(--muted);font-size:13px;text-align:center;padding:16px">Статистика үшін тест ойнаңыз</div></div>
   </div>
+
+  <!-- MESSENGER BTN -->
+  <button class="messenger-btn" id="messengerBtn" onclick="openMessenger()" style="display:none">
+    💬<span class="messenger-btn-badge" id="messengerBtnBadge"></span>
+  </button>
 
   <!-- TABS -->
   <div class="tabs">
@@ -1140,6 +1169,10 @@ function initApp(){
   if (_u) {
     loadNotifications();
     subscribeNotifRealtime(_u.id);
+    // Мессенджер батырмасын көрсет + badge жаңарт
+    const messengerBtn = document.getElementById('messengerBtn');
+    if (messengerBtn) messengerBtn.style.display = 'flex';
+    updateMessengerBadge();
   }
 }
 
@@ -1747,60 +1780,137 @@ async function loadLeaderboard(type){
 
 // ══ ЧАТ ФУНКЦИЯЛАРЫ ══════════════════════════════════════
 
-let _chatUserId = null;      // Қазіргі ашық чат (пайдаланушы ID)
-let _chatRealtime = null;    // Realtime subscription
+// ══ МЕССЕНДЖЕР ФУНКЦИЯЛАРЫ ═══════════════════════════════
 
-function openChat(userId, name) {
-  _chatUserId = userId || null;
-  const screen = document.getElementById('chatScreen');
-  const nameEl = document.getElementById('chatHeaderName');
-  if (nameEl) nameEl.textContent = name || 'Әкімші';
+let _chatPartnerId = null;
+let _chatRealtime = null;
+
+function openMessenger() {
+  const screen = document.getElementById('messengerScreen');
   if (screen) screen.classList.add('open');
-  loadChatMessages();
-  subscribeChatRealtime();
+  showConversations();
+  loadConversations();
 }
 
-function closeChat() {
-  const screen = document.getElementById('chatScreen');
+function closeMessenger() {
+  const screen = document.getElementById('messengerScreen');
   if (screen) screen.classList.remove('open');
   if (_chatRealtime) { _chatRealtime.unsubscribe(); _chatRealtime = null; }
-  _chatUserId = null;
+}
+
+function backToConversations() {
+  document.getElementById('chatWindow').style.display = 'none';
+  document.getElementById('messengerHome').style.display = 'flex';
+  if (_chatRealtime) { _chatRealtime.unsubscribe(); _chatRealtime = null; }
+  _chatPartnerId = null;
+  loadConversations();
+}
+
+function showConversations() {
+  document.getElementById('messengerHome').style.display = 'flex';
+  document.getElementById('chatWindow').style.display = 'none';
+}
+
+async function loadConversations() {
+  const el = document.getElementById('conversationList');
+  if (!el) return;
+  el.innerHTML = '<div class="loading">Жүктелуде</div>';
+  try {
+    const r = await fetch(`${API_BASE}/chat`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'conversations' })
+    });
+    const d = await r.json();
+    if (!d.ok || !d.conversations?.length) {
+      el.innerHTML = '<div style="text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;padding:30px 20px">Чат жоқ.<br><br>@username арқылы адам іздеп хабарласыңыз!</div>';
+      return;
+    }
+    el.innerHTML = d.conversations.map(c => `
+      <div class="chat-user-item" onclick="openChatWith(${c.partner_id},'${esc(c.first_name||'Пайдаланушы')}','${esc(c.app_username||'')}','${esc(c.avatar||'🐱')}')">
+        <div class="chat-user-avatar">${c.avatar||'🐱'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.first_name||'Белгісіз')}</div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${c.app_username?'@'+esc(c.app_username):''}</div>
+          <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;margin-top:2px">${esc(c.last_message||'')}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          <div style="font-family:Space Mono,monospace;font-size:8px;color:var(--muted)">${fmtDate(c.last_at)}</div>
+          ${c.unread?`<div class="chat-unread-badge">${c.unread}</div>`:''}
+        </div>
+      </div>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+let _searchTimer = null;
+async function searchUsers(q) {
+  const el = document.getElementById('searchResults');
+  if (!el) return;
+  if (!q || q.trim().length < 2) { el.innerHTML = ''; return; }
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(async () => {
+    try {
+      const r = await fetch(`${API_BASE}/chat`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ initData: getTgInitData(), action: 'search', query: q })
+      });
+      const d = await r.json();
+      if (!d.ok || !d.users?.length) {
+        el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);padding:8px">Табылмады</div>';
+        return;
+      }
+      el.innerHTML = d.users.map(u => `
+        <div class="chat-user-item" onclick="openChatWith(${u.id},'${esc(u.first_name||'')}','${esc(u.app_username||'')}','${esc(u.avatar||'🐱')}')">
+          <div class="chat-user-avatar" style="width:36px;height:36px;font-size:22px">${u.avatar||'🐱'}</div>
+          <div>
+            <div style="font-size:13px;color:var(--text)">${esc(u.first_name||'')}</div>
+            <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--accent)">@${esc(u.app_username)}</div>
+          </div>
+        </div>`).join('');
+    } catch(e) {}
+  }, 400);
+}
+
+function openChatWith(partnerId, name, username, avatar) {
+  _chatPartnerId = partnerId;
+  document.getElementById('messengerHome').style.display = 'none';
+  const win = document.getElementById('chatWindow');
+  win.style.display = 'flex';
+  document.getElementById('chatHeaderName').textContent = name;
+  document.getElementById('chatHeaderUsername').textContent = username ? '@'+username : '';
+  document.getElementById('chatPartnerAvatar').textContent = avatar || '🐱';
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('messengerSearch').value = '';
+  loadChatMessages();
+  subscribeChatRealtime(partnerId);
 }
 
 async function loadChatMessages() {
   const el = document.getElementById('chatMessages');
-  if (!el) return;
-  const user = getTgUser();
-  if (!user) return;
-  const adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
-  const isAdmin = adminId && user.id === adminId;
-  const targetId = isAdmin ? _chatUserId : user.id;
-  if (!targetId) return;
-
+  if (!el || !_chatPartnerId) return;
   try {
     const r = await fetch(`${API_BASE}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData: getTgInitData(), action: 'messages', userId: targetId })
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'messages', toUserId: _chatPartnerId })
     });
     const d = await r.json();
     if (!d.ok) return;
-    renderChatMessages(d.messages, isAdmin);
-  } catch (e) { console.error(e); }
+    renderChatMessages(d.messages);
+  } catch(e) { console.error(e); }
 }
 
-function renderChatMessages(messages, isAdmin) {
+function renderChatMessages(messages) {
   const el = document.getElementById('chatMessages');
   if (!el) return;
+  const myId = getTgUser()?.id;
   if (!messages.length) {
     el.innerHTML = '<div style="text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;margin-top:40px">Хабарлама жоқ.<br>Алғашқы хабарламаны жіберіңіз!</div>';
     return;
   }
   el.innerHTML = messages.map(m => {
-    const isMine = isAdmin ? m.sender === 'admin' : m.sender === 'user';
-    return `<div class="chat-bubble ${m.sender}">
+    const isMine = m.from_user_id === myId;
+    return `<div class="chat-bubble ${isMine?'user':'admin'}">
       ${esc(m.text)}
-      <div class="chat-bubble-time">${fmtDateTime(m.created_at)}${m.is_read && isMine ? ' ✓✓' : ''}</div>
+      <div class="chat-bubble-time">${fmtDateTime(m.created_at)}${m.is_read&&isMine?' ✓✓':''}</div>
     </div>`;
   }).join('');
   el.scrollTop = el.scrollHeight;
@@ -1809,63 +1919,79 @@ function renderChatMessages(messages, isAdmin) {
 async function sendChatMessage() {
   const input = document.getElementById('chatInput');
   const text = input?.value?.trim();
-  if (!text) return;
-  const user = getTgUser();
-  if (!user) return;
-  const adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
-  const isAdmin = adminId && user.id === adminId;
-  const targetId = isAdmin ? _chatUserId : user.id;
-  if (!targetId) return;
-
-  input.value = '';
-  input.style.height = 'auto';
-
-  // Оптимистик UI — хабарламаны бірден көрсет
+  if (!text || !_chatPartnerId) return;
+  input.value = ''; input.style.height = 'auto';
   const el = document.getElementById('chatMessages');
-  const tempDiv = document.createElement('div');
-  tempDiv.className = 'chat-bubble ' + (isAdmin ? 'admin' : 'user');
-  tempDiv.innerHTML = esc(text) + '<div class="chat-bubble-time">Жіберілуде...</div>';
-  el.appendChild(tempDiv);
-  el.scrollTop = el.scrollHeight;
-
+  const tmp = document.createElement('div');
+  tmp.className = 'chat-bubble user';
+  tmp.innerHTML = esc(text) + '<div class="chat-bubble-time">Жіберілуде...</div>';
+  el.appendChild(tmp); el.scrollTop = el.scrollHeight;
   try {
     await fetch(`${API_BASE}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData: getTgInitData(), action: 'send', text, userId: targetId })
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'send', text, toUserId: _chatPartnerId })
     });
-  } catch (e) { console.error(e); }
+  } catch(e) { console.error(e); }
 }
 
-function subscribeChatRealtime() {
-  if (!supabaseClient || !_chatUserId) return;
+function subscribeChatRealtime(partnerId) {
+  if (!supabaseClient) return;
+  const myId = getTgUser()?.id;
+  if (!myId) return;
   if (_chatRealtime) { _chatRealtime.unsubscribe(); }
-  const user = getTgUser();
-  const adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
-  const isAdmin = adminId && user?.id === adminId;
-
-  _chatRealtime = supabaseClient.channel('chat_' + _chatUserId)
+  _chatRealtime = supabaseClient.channel('chat_'+myId+'_'+partnerId)
     .on('postgres_changes', {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'chat_messages',
-      filter: `user_id=eq.${_chatUserId}`
+      event: 'INSERT', schema: 'public', table: 'chat_messages',
+      filter: `to_user_id=eq.${myId}`
     }, (payload) => {
       const m = payload.new;
+      if (m.from_user_id !== partnerId) { updateMessengerBadge(); return; }
       const el = document.getElementById('chatMessages');
       if (!el) return;
-      // Оптимистик UI-дағы "жіберілуде" хабарламасын өшір
-      const pending = el.querySelectorAll('.chat-bubble');
-      pending.forEach(b => { if (b.querySelector('.chat-bubble-time')?.textContent?.includes('Жіберілуде')) b.remove(); });
-      const isMine = isAdmin ? m.sender === 'admin' : m.sender === 'user';
+      el.querySelectorAll('.chat-bubble').forEach(b => {
+        if (b.querySelector('.chat-bubble-time')?.textContent?.includes('Жіберілуде')) b.remove();
+      });
       const div = document.createElement('div');
-      div.className = 'chat-bubble ' + m.sender;
+      div.className = 'chat-bubble admin';
       div.innerHTML = esc(m.text) + `<div class="chat-bubble-time">${fmtDateTime(m.created_at)}</div>`;
-      el.appendChild(div);
-      el.scrollTop = el.scrollHeight;
+      el.appendChild(div); el.scrollTop = el.scrollHeight;
     })
     .subscribe();
 }
+
+async function setAppUsername() {
+  const val = prompt('@username орнатыңыз (тек әріп, сан, _):');
+  if (!val) return;
+  const r = await fetch(`${API_BASE}/chat`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ initData: getTgInitData(), action: 'set_username', appUsername: val })
+  });
+  const d = await r.json();
+  if (d.ok) { showToast('\u2705 @'+val+' орнатылды!'); loadProfile(); }
+  else showToast('\u26A0\uFE0F '+(d.error||'Қате'));
+}
+
+async function changeAppUsername() { setAppUsername(); }
+
+async function updateMessengerBadge() {
+  const user = getTgUser();
+  if (!user) return;
+  try {
+    const r = await fetch(`${API_BASE}/chat`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'unread' })
+    });
+    const d = await r.json();
+    const badge = document.getElementById('messengerBtnBadge');
+    const btn = document.getElementById('messengerBtn');
+    if (btn) btn.style.display = 'flex';
+    if (badge) {
+      if (d.count > 0) { badge.textContent = d.count; badge.style.display = 'flex'; }
+      else badge.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
 
 async function loadMyFeedback(){
   const el=document.getElementById('myFeedbackList');
@@ -1971,6 +2097,13 @@ async function loadProfile(){
         <div class="profile-username">${u.username?'@'+u.username:'ID: '+u.id}</div>
         <div class="title-badge" style="color:${title.color};background:${title.bg};border:1px solid ${title.border}">${title.label}</div><br>
         <div class="profile-rank-pill">🏅 Рейтинг: #${d.rank}</div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+          ${u.app_username
+            ? `<div style="font-family:Space Mono,monospace;font-size:11px;color:var(--accent)">@${esc(u.app_username)}</div>
+               <button onclick="changeAppUsername()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:Space Mono,monospace">✏️</button>`
+            : `<button onclick="setAppUsername()" class="btn btn-ghost btn-sm" style="font-size:10px">+ @username орнату</button>`
+          }
+        </div>
       </div>
       <div class="profile-stats">
         <div class="ps-box"><div class="ps-val">${u.total_games}</div><div class="ps-lbl">ОЙЫН</div></div>
@@ -1986,7 +2119,7 @@ async function loadProfile(){
       <div class="card">
         <div class="card-title">💬 әкімшімен байланыс</div>
         <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:12px">Сұрақ, ұсыныс немесе қате туралы тікелей жазыңыз</div>
-        <button class="btn btn-cyan" onclick="openChat(getTgUser()?.id,'Әкімші')" style="width:100%;justify-content:center">💬 Чатты ашу</button>
+        <button class="btn btn-cyan" onclick="openMessenger()" style="width:100%;justify-content:center">💬 Хабарларды ашу</button>
       </div>`;
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Бейін жоқ</div><p style="color:var(--muted);font-size:12px">Алдымен тест ойнаңыз!</p></div>';}
 }
