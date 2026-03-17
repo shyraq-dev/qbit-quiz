@@ -1703,21 +1703,42 @@ async function loadLeaderboard(type){
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
 
+async function loadMyFeedback(){
+  const el=document.getElementById('myFeedbackList');
+  if(!el)return;
+  try{
+    const r=await fetch(`${API_BASE}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'my'})});
+    const d=await r.json();
+    if(!d.ok||!d.feedback?.length){el.innerHTML='<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);text-align:center;padding:8px">Хабарлама жоқ</div>';return;}
+    el.innerHTML=d.feedback.map(f=>`
+      <div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;border:1px solid ${f.reply&&!f.is_read_by_user?'rgba(0,245,255,0.3)':'var(--border)'}">
+        <div style="font-size:12px;color:var(--text);margin-bottom:4px;line-height:1.4">${esc(f.message)}</div>
+        <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${fmtDateTime(f.created_at)}</div>
+        ${f.reply?`<div style="margin-top:8px;padding:8px;background:rgba(0,245,255,0.06);border-left:2px solid var(--accent);border-radius:4px">
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--accent);margin-bottom:4px">⚡ ӘКІМШІ ЖАУАБЫ</div>
+          <div style="font-size:12px;color:var(--text);line-height:1.4">${esc(f.reply)}</div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-top:4px">${fmtDateTime(f.replied_at)}</div>
+        </div>`:''}
+      </div>`).join('');
+  }catch{el.innerHTML='<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--danger);text-align:center">Қате</div>';}
+}
+
 async function sendFeedback(){
   const textarea=document.getElementById('feedbackText');
   const status=document.getElementById('feedbackStatus');
   const msg=textarea?.value?.trim();
   if(!msg||msg.length<3){if(status)status.innerHTML='<span style="color:var(--danger)">⚠️ Хабарлама тым қысқа</span>';return;}
   if(msg.length>1000){if(status)status.innerHTML='<span style="color:var(--danger)">⚠️ Макс. 1000 таңба</span>';return;}
-  const btn=document.querySelector('#profileContent .btn-cyan');
+  const btn=document.getElementById('feedbackSendBtn');
   if(btn){btn.disabled=true;btn.textContent='Жіберілуде...';}
   try{
     const r=await fetch(`${API_BASE}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'send',message:msg})});
     const d=await r.json();
     if(d.ok){
       textarea.value='';
-      if(status)status.innerHTML='<span style="color:var(--accent3)">✅ Жіберілді! Рахмет!</span>';
-      setTimeout(()=>{if(status)status.innerHTML='';},3000);
+      if(status)status.innerHTML='<span style="color:var(--accent3)">✅ Жіберілді!</span>';
+      setTimeout(()=>{if(status)status.innerHTML='';},2000);
+      loadMyFeedback();
     }else{
       if(status)status.innerHTML=`<span style="color:var(--danger)">⚠️ ${esc(d.error||'Қате')}</span>`;
     }
@@ -1736,14 +1757,34 @@ async function loadAdminFeedback(){
     const d=await r.json();
     if(!d.ok||!d.feedback?.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Пікір жоқ</div></div>';return;}
     c.innerHTML=d.feedback.map(f=>`
-      <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="padding:12px 0;border-bottom:1px solid var(--border)" id="fb-${f.id}">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(f.first_name||'Белгісіз')}${f.username?' <span style="color:var(--muted);font-size:11px">@'+esc(f.username)+'</span>':''}</div>
           <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${fmtDateTime(f.created_at)}</div>
         </div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5;white-space:pre-wrap">${esc(f.message)}</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;white-space:pre-wrap;margin-bottom:8px">${esc(f.message)}</div>
+        ${f.reply?`<div style="padding:8px;background:rgba(0,245,255,0.06);border-left:2px solid var(--accent);border-radius:4px;margin-bottom:8px">
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--accent);margin-bottom:2px">ЖАУАП · ${fmtDateTime(f.replied_at)}</div>
+          <div style="font-size:12px;color:var(--text)">${esc(f.reply)}</div>
+        </div>`:''}
+        <div style="display:flex;gap:6px">
+          <textarea id="reply-${f.id}" placeholder="Жауап жазыңыз..." style="flex:1;min-height:50px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:Space Mono,monospace;font-size:11px;padding:7px;resize:none;outline:none">${f.reply?esc(f.reply):''}</textarea>
+          <button class="btn btn-cyan btn-sm" onclick="adminReply(${f.id})" style="align-self:flex-end">↩ Жіберу</button>
+        </div>
       </div>`).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
+}
+
+async function adminReply(id){
+  const ta=document.getElementById(`reply-${id}`);
+  const reply=ta?.value?.trim();
+  if(!reply)return;
+  try{
+    const r=await fetch(`${API_BASE}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'reply',id,reply})});
+    const d=await r.json();
+    if(d.ok){showToast('✅ Жауап жіберілді');loadAdminFeedback();}
+    else showToast('⚠️ '+( d.error||'Қате'));
+  }catch{showToast('⚠️ Желі қатесі');}
 }
 
 async function loadProfile(){
