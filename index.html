@@ -251,6 +251,30 @@
   .login-loading::before{content:'';width:16px;height:16px;border:2px solid rgba(0,245,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ══ CHAT STYLES ══ */
+.chat-screen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;background:var(--bg);display:none;flex-direction:column}
+.chat-screen.open{display:flex}
+.chat-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
+.chat-header-back{background:none;border:none;color:var(--accent);font-size:20px;cursor:pointer;padding:0;line-height:1}
+.chat-header-info{flex:1}
+.chat-header-name{font-family:Orbitron,monospace;font-size:13px;font-weight:700;color:var(--text)}
+.chat-header-status{font-family:Space Mono,monospace;font-size:9px;color:var(--accent3)}
+.chat-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.chat-bubble{max-width:80%;padding:9px 12px;border-radius:16px;font-size:13px;line-height:1.4;word-break:break-word;position:relative}
+.chat-bubble.user{align-self:flex-end;background:linear-gradient(135deg,rgba(0,245,255,0.2),rgba(124,58,237,0.2));border:1px solid rgba(0,245,255,0.3);border-bottom-right-radius:4px;color:var(--text)}
+.chat-bubble.admin{align-self:flex-start;background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--text)}
+.chat-bubble-time{font-family:Space Mono,monospace;font-size:8px;color:var(--muted);margin-top:4px;text-align:right}
+.chat-bubble.admin .chat-bubble-time{text-align:left}
+.chat-input-wrap{display:flex;align-items:flex-end;gap:8px;padding:10px 12px;border-top:1px solid var(--border);background:var(--surface)}
+.chat-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:Space Mono,monospace;font-size:12px;padding:9px 14px;resize:none;outline:none;max-height:100px;overflow-y:auto;line-height:1.4;transition:border 0.2s}
+.chat-input:focus{border-color:var(--accent)}
+.chat-send-btn{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:transform 0.1s}
+.chat-send-btn:active{transform:scale(0.9)}
+.chat-user-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;cursor:pointer;transition:background 0.2s;border:1px solid transparent}
+.chat-user-item:hover{background:rgba(0,245,255,0.05);border-color:rgba(0,245,255,0.1)}
+.chat-user-avatar{font-size:28px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border-radius:50%;flex-shrink:0}
+.chat-unread-badge{background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:9px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+
 /* ══ NOTIFICATION STYLES ══ */
 .notif-bell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.2);cursor:pointer;transition:all 0.2s}
 .notif-bell:hover{background:rgba(0,245,255,0.15)}
@@ -272,6 +296,24 @@
 </style>
 </head>
 <body>
+<!-- CHAT SCREEN -->
+<div class="chat-screen" id="chatScreen">
+  <div class="chat-header">
+    <button class="chat-header-back" onclick="closeChat()">←</button>
+    <div class="chat-header-info">
+      <div class="chat-header-name" id="chatHeaderName">Әкімші</div>
+      <div class="chat-header-status" id="chatHeaderStatus">● ОНЛАЙН</div>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-wrap">
+    <textarea class="chat-input" id="chatInput" placeholder="Хабарлама..." rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+    <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
+  </div>
+</div>
+
 <!-- NOTIFICATION PANEL -->
 <div class="notif-panel" id="notifPanel">
   <div class="notif-backdrop" onclick="closeNotifPanel()"></div>
@@ -342,7 +384,7 @@
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('users',event)">👥 Қолданушылар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('recent',event)">📜 Ойындар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('categories',event)">📂 Санаттар</button>
-        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('feedback',event)">💬 Пікірлер</button>
+        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('feedback',event)">💬 Чаттар</button>
       </div>
 
       <!-- Тест жасау / өңдеу -->
@@ -465,7 +507,7 @@
         <div class="card"><div class="card-title">📜 соңғы ойындар</div><div id="adm-recent-list"><div class="loading">Жүктелуде</div></div></div>
       </div>
       <div id="adm-section-feedback" style="display:none">
-        <div class="card"><div class="card-title">💬 кері байланыс</div><div id="adm-feedback-list"><div class="loading">Жүктелуде</div></div></div>
+        <div class="card"><div class="card-title">💬 чаттар</div><div id="adm-chat-users"><div class="loading">Жүктелуде</div></div></div>
       </div>
       <div id="adm-section-categories" style="display:none">
         <div class="card">
@@ -1129,7 +1171,7 @@ function admSection(name,e){
   if(name==='quizzes')renderAdminQuizzes();
   if(name==='users')loadAdminUsers();
   if(name==='recent')loadAdminRecent();
-  if(name==='feedback')loadAdminFeedback();
+  if(name==='feedback')loadAdminChatUsers();
   if(name==='games')updateGameQuizSelect();
   if(name==='categories'){const el=document.getElementById('adm-categories-list');if(el)el.innerHTML=renderAdminCategoryManager();}
 }
@@ -1703,6 +1745,128 @@ async function loadLeaderboard(type){
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
 
+// ══ ЧАТ ФУНКЦИЯЛАРЫ ══════════════════════════════════════
+
+let _chatUserId = null;      // Қазіргі ашық чат (пайдаланушы ID)
+let _chatRealtime = null;    // Realtime subscription
+
+function openChat(userId, name) {
+  _chatUserId = userId || null;
+  const screen = document.getElementById('chatScreen');
+  const nameEl = document.getElementById('chatHeaderName');
+  if (nameEl) nameEl.textContent = name || 'Әкімші';
+  if (screen) screen.classList.add('open');
+  loadChatMessages();
+  subscribeChatRealtime();
+}
+
+function closeChat() {
+  const screen = document.getElementById('chatScreen');
+  if (screen) screen.classList.remove('open');
+  if (_chatRealtime) { _chatRealtime.unsubscribe(); _chatRealtime = null; }
+  _chatUserId = null;
+}
+
+async function loadChatMessages() {
+  const el = document.getElementById('chatMessages');
+  if (!el) return;
+  const user = getTgUser();
+  if (!user) return;
+  const adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
+  const isAdmin = adminId && user.id === adminId;
+  const targetId = isAdmin ? _chatUserId : user.id;
+  if (!targetId) return;
+
+  try {
+    const r = await fetch(`${API_BASE}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: getTgInitData(), action: 'messages', userId: targetId })
+    });
+    const d = await r.json();
+    if (!d.ok) return;
+    renderChatMessages(d.messages, isAdmin);
+  } catch (e) { console.error(e); }
+}
+
+function renderChatMessages(messages, isAdmin) {
+  const el = document.getElementById('chatMessages');
+  if (!el) return;
+  if (!messages.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;margin-top:40px">Хабарлама жоқ.<br>Алғашқы хабарламаны жіберіңіз!</div>';
+    return;
+  }
+  el.innerHTML = messages.map(m => {
+    const isMine = isAdmin ? m.sender === 'admin' : m.sender === 'user';
+    return `<div class="chat-bubble ${m.sender}">
+      ${esc(m.text)}
+      <div class="chat-bubble-time">${fmtDateTime(m.created_at)}${m.is_read && isMine ? ' ✓✓' : ''}</div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input?.value?.trim();
+  if (!text) return;
+  const user = getTgUser();
+  if (!user) return;
+  const adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
+  const isAdmin = adminId && user.id === adminId;
+  const targetId = isAdmin ? _chatUserId : user.id;
+  if (!targetId) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  // Оптимистик UI — хабарламаны бірден көрсет
+  const el = document.getElementById('chatMessages');
+  const tempDiv = document.createElement('div');
+  tempDiv.className = 'chat-bubble ' + (isAdmin ? 'admin' : 'user');
+  tempDiv.innerHTML = esc(text) + '<div class="chat-bubble-time">Жіберілуде...</div>';
+  el.appendChild(tempDiv);
+  el.scrollTop = el.scrollHeight;
+
+  try {
+    await fetch(`${API_BASE}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: getTgInitData(), action: 'send', text, userId: targetId })
+    });
+  } catch (e) { console.error(e); }
+}
+
+function subscribeChatRealtime() {
+  if (!supabaseClient || !_chatUserId) return;
+  if (_chatRealtime) { _chatRealtime.unsubscribe(); }
+  const user = getTgUser();
+  const adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
+  const isAdmin = adminId && user?.id === adminId;
+
+  _chatRealtime = supabaseClient.channel('chat_' + _chatUserId)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'chat_messages',
+      filter: `user_id=eq.${_chatUserId}`
+    }, (payload) => {
+      const m = payload.new;
+      const el = document.getElementById('chatMessages');
+      if (!el) return;
+      // Оптимистик UI-дағы "жіберілуде" хабарламасын өшір
+      const pending = el.querySelectorAll('.chat-bubble');
+      pending.forEach(b => { if (b.querySelector('.chat-bubble-time')?.textContent?.includes('Жіберілуде')) b.remove(); });
+      const isMine = isAdmin ? m.sender === 'admin' : m.sender === 'user';
+      const div = document.createElement('div');
+      div.className = 'chat-bubble ' + m.sender;
+      div.innerHTML = esc(m.text) + `<div class="chat-bubble-time">${fmtDateTime(m.created_at)}</div>`;
+      el.appendChild(div);
+      el.scrollTop = el.scrollHeight;
+    })
+    .subscribe();
+}
+
 async function loadMyFeedback(){
   const el=document.getElementById('myFeedbackList');
   if(!el)return;
@@ -1749,42 +1913,36 @@ async function sendFeedback(){
   }
 }
 
-async function loadAdminFeedback(){
-  const c=document.getElementById('adm-feedback-list');
+async function loadAdminChatUsers(){
+  const c=document.getElementById('adm-chat-users');
   c.innerHTML='<div class="loading">Жүктелуде</div>';
   try{
-    const r=await fetch(`${API_BASE}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'list'})});
+    const r=await fetch(`${API_BASE}/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'users'})});
     const d=await r.json();
-    if(!d.ok||!d.feedback?.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Пікір жоқ</div></div>';return;}
-    c.innerHTML=d.feedback.map(f=>`
-      <div style="padding:12px 0;border-bottom:1px solid var(--border)" id="fb-${f.id}">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(f.first_name||'Белгісіз')}${f.username?' <span style="color:var(--muted);font-size:11px">@'+esc(f.username)+'</span>':''}</div>
-          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${fmtDateTime(f.created_at)}</div>
+    if(!d.ok||!d.users?.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Чат жоқ</div></div>';return;}
+    c.innerHTML=d.users.map(u=>`
+      <div class="chat-user-item" onclick="openAdminChat(${u.user_id},'${esc(u.first_name||'Пайдаланушы')}')">
+        <div class="chat-user-avatar">${u.avatar||'🐱'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(u.first_name||'Белгісіз')}${u.username?' <span style="color:var(--muted);font-size:10px">@'+esc(u.username)+'</span>':''}</div>
+          <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">${esc(u.last_message||'')}</div>
         </div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5;white-space:pre-wrap;margin-bottom:8px">${esc(f.message)}</div>
-        ${f.reply?`<div style="padding:8px;background:rgba(0,245,255,0.06);border-left:2px solid var(--accent);border-radius:4px;margin-bottom:8px">
-          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--accent);margin-bottom:2px">ЖАУАП · ${fmtDateTime(f.replied_at)}</div>
-          <div style="font-size:12px;color:var(--text)">${esc(f.reply)}</div>
-        </div>`:''}
-        <div style="display:flex;gap:6px">
-          <textarea id="reply-${f.id}" placeholder="Жауап жазыңыз..." style="flex:1;min-height:50px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:Space Mono,monospace;font-size:11px;padding:7px;resize:none;outline:none">${f.reply?esc(f.reply):''}</textarea>
-          <button class="btn btn-cyan btn-sm" onclick="adminReply(${f.id})" style="align-self:flex-end">↩ Жіберу</button>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <div style="font-family:Space Mono,monospace;font-size:8px;color:var(--muted)">${fmtDate(u.last_at)}</div>
+          ${u.unread?`<div class="chat-unread-badge">${u.unread}</div>`:''}
         </div>
       </div>`).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
 
-async function adminReply(id){
-  const ta=document.getElementById(`reply-${id}`);
-  const reply=ta?.value?.trim();
-  if(!reply)return;
-  try{
-    const r=await fetch(`${API_BASE}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'reply',id,reply})});
-    const d=await r.json();
-    if(d.ok){showToast('✅ Жауап жіберілді');loadAdminFeedback();}
-    else showToast('⚠️ '+( d.error||'Қате'));
-  }catch{showToast('⚠️ Желі қатесі');}
+function openAdminChat(userId, name){
+  _chatUserId = userId;
+  const nameEl=document.getElementById('chatHeaderName');
+  if(nameEl) nameEl.textContent = name;
+  const screen=document.getElementById('chatScreen');
+  if(screen) screen.classList.add('open');
+  loadChatMessages();
+  subscribeChatRealtime();
 }
 
 async function loadProfile(){
@@ -1826,11 +1984,9 @@ async function loadProfile(){
       </div>
       ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div style="font-size:13px;color:var(--text)">${esc(r.quiz_title||'Тест')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${fmtDate(r.played_at)} · ${r.time_sec}с</div></div><div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div></div>`).join('')}</div>`:''}
       <div class="card">
-        <div class="card-title">💬 кері байланыс</div>
-        <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:12px">Пікіріңіз, ұсынысыңыз немесе қате туралы хабарлаңыз</div>
-        <textarea id="feedbackText" placeholder="Хабарламаңызды жазыңыз..." style="width:100%;min-height:90px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Space Mono,monospace;font-size:12px;padding:10px;resize:vertical;outline:none;transition:border 0.2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-        <button class="btn btn-cyan" onclick="sendFeedback()" style="width:100%;justify-content:center;margin-top:10px">📨 Жіберу</button>
-        <div id="feedbackStatus" style="font-family:Space Mono,monospace;font-size:11px;text-align:center;margin-top:8px;min-height:16px"></div>
+        <div class="card-title">💬 әкімшімен байланыс</div>
+        <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:12px">Сұрақ, ұсыныс немесе қате туралы тікелей жазыңыз</div>
+        <button class="btn btn-cyan" onclick="openChat(getTgUser()?.id,'Әкімші')" style="width:100%;justify-content:center">💬 Чатты ашу</button>
       </div>`;
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Бейін жоқ</div><p style="color:var(--muted);font-size:12px">Алдымен тест ойнаңыз!</p></div>';}
 }
