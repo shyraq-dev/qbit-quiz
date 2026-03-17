@@ -1798,14 +1798,14 @@ function selectAnswer(optIdx){
   document.querySelectorAll('.answer-btn').forEach((btn,i)=>{btn.disabled=true;if(i===q.correct)btn.classList.add('correct');else if(i===optIdx&&!ok)btn.classList.add('wrong');});
   const exp=document.getElementById('explanation');if(exp)exp.classList.add('show');
   if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}else{ps.wrong++;ps.streak=0;}
-  ps.answers.push(ok);setTimeout(nextQuestion,1500);
+  ps.answers.push({ok, chosen: optIdx, correct: q.correct});setTimeout(nextQuestion,1500);
 }
 
 function autoAnswer(){
   const q=state.currentPlay.questions[state.playState.idx];
   document.querySelectorAll('.answer-btn').forEach((btn,i)=>{btn.disabled=true;if(i===q.correct)btn.classList.add('correct');});
   const exp=document.getElementById('explanation');if(exp)exp.classList.add('show');
-  state.playState.wrong++;state.playState.streak=0;state.playState.answers.push(false);setTimeout(nextQuestion,1500);
+  const _aq=state.currentPlay.questions[state.playState.idx];state.playState.wrong++;state.playState.streak=0;state.playState.answers.push({ok:false,chosen:null,correct:_aq.correct});setTimeout(nextQuestion,1500);
 }
 
 function nextQuestion(){
@@ -1856,6 +1856,27 @@ async function showResults(){
         <button class="btn btn-cyan" onclick="switchTab('leaderboard')">🏆 Рейтинг</button>
         <button class="btn btn-ghost" onclick="switchTab('library')">📦 Тесттер</button>
       </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">📋 сұрақтар талдауы</div>
+      ${quiz.questions.map((q,i)=>{
+        const a=ps.answers[i];
+        const isOk=a&&a.ok;
+        const chosen=a?a.chosen:null;
+        const correctOpt=q.options[q.correct];
+        const chosenOpt=chosen!==null?q.options[chosen]:null;
+        return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px">
+            <span style="font-size:14px;flex-shrink:0">${isOk?'✅':'❌'}</span>
+            <div style="font-size:12px;color:var(--text);line-height:1.4">${esc(q.text)}</div>
+          </div>
+          ${!isOk?`
+            <div style="font-family:Space Mono,monospace;font-size:10px;margin-left:22px">
+              ${chosenOpt!==null?`<div style="color:var(--danger);margin-bottom:3px">✗ Сіз: ${esc(chosenOpt)}</div>`:'<div style="color:var(--muted);margin-bottom:3px">— Жауап берілмеді</div>'}
+              <div style="color:var(--accent3)">✓ Дұрыс: ${esc(correctOpt)}</div>
+            </div>`:''}
+        </div>`;
+      }).join('')}
     </div>`;
 }
 
