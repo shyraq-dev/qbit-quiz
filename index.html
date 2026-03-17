@@ -342,6 +342,7 @@
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('users',event)">👥 Қолданушылар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('recent',event)">📜 Ойындар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('categories',event)">📂 Санаттар</button>
+        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('feedback',event)">💬 Пікірлер</button>
       </div>
 
       <!-- Тест жасау / өңдеу -->
@@ -462,6 +463,9 @@
       </div>
       <div id="adm-section-recent" style="display:none">
         <div class="card"><div class="card-title">📜 соңғы ойындар</div><div id="adm-recent-list"><div class="loading">Жүктелуде</div></div></div>
+      </div>
+      <div id="adm-section-feedback" style="display:none">
+        <div class="card"><div class="card-title">💬 кері байланыс</div><div id="adm-feedback-list"><div class="loading">Жүктелуде</div></div></div>
       </div>
       <div id="adm-section-categories" style="display:none">
         <div class="card">
@@ -1125,6 +1129,7 @@ function admSection(name,e){
   if(name==='quizzes')renderAdminQuizzes();
   if(name==='users')loadAdminUsers();
   if(name==='recent')loadAdminRecent();
+  if(name==='feedback')loadAdminFeedback();
   if(name==='games')updateGameQuizSelect();
   if(name==='categories'){const el=document.getElementById('adm-categories-list');if(el)el.innerHTML=renderAdminCategoryManager();}
 }
@@ -1698,6 +1703,49 @@ async function loadLeaderboard(type){
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
 
+async function sendFeedback(){
+  const textarea=document.getElementById('feedbackText');
+  const status=document.getElementById('feedbackStatus');
+  const msg=textarea?.value?.trim();
+  if(!msg||msg.length<3){if(status)status.innerHTML='<span style="color:var(--danger)">⚠️ Хабарлама тым қысқа</span>';return;}
+  if(msg.length>1000){if(status)status.innerHTML='<span style="color:var(--danger)">⚠️ Макс. 1000 таңба</span>';return;}
+  const btn=document.querySelector('#profileContent .btn-cyan');
+  if(btn){btn.disabled=true;btn.textContent='Жіберілуде...';}
+  try{
+    const r=await fetch(`${API_BASE}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'send',message:msg})});
+    const d=await r.json();
+    if(d.ok){
+      textarea.value='';
+      if(status)status.innerHTML='<span style="color:var(--accent3)">✅ Жіберілді! Рахмет!</span>';
+      setTimeout(()=>{if(status)status.innerHTML='';},3000);
+    }else{
+      if(status)status.innerHTML=`<span style="color:var(--danger)">⚠️ ${esc(d.error||'Қате')}</span>`;
+    }
+  }catch{
+    if(status)status.innerHTML='<span style="color:var(--danger)">⚠️ Желі қатесі</span>';
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='📨 Жіберу';}
+  }
+}
+
+async function loadAdminFeedback(){
+  const c=document.getElementById('adm-feedback-list');
+  c.innerHTML='<div class="loading">Жүктелуде</div>';
+  try{
+    const r=await fetch(`${API_BASE}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'list'})});
+    const d=await r.json();
+    if(!d.ok||!d.feedback?.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Пікір жоқ</div></div>';return;}
+    c.innerHTML=d.feedback.map(f=>`
+      <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(f.first_name||'Белгісіз')}${f.username?' <span style="color:var(--muted);font-size:11px">@'+esc(f.username)+'</span>':''}</div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${fmtDateTime(f.created_at)}</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;white-space:pre-wrap">${esc(f.message)}</div>
+      </div>`).join('');
+  }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
+}
+
 async function loadProfile(){
   const c=document.getElementById('profileContent');const user=getTgUser();
   if(!user){c.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Telegram арқылы кіріңіз</div></div>';return;}
@@ -1735,7 +1783,14 @@ async function loadProfile(){
         <div class="card-title">🏅 жетістіктер</div>
         ${achievements.map(a=>`<div class="achievement ${a.unlocked?'':'locked'}"><div class="ach-icon">${a.icon}</div><div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>${a.unlocked?'<div style="margin-left:auto;color:var(--accent3);font-size:18px">✓</div>':''}</div>`).join('')}
       </div>
-      ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div style="font-size:13px;color:var(--text)">${esc(r.quiz_title||'Тест')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${fmtDate(r.played_at)} · ${r.time_sec}с</div></div><div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div></div>`).join('')}</div>`:''}`;
+      ${d.recentResults?.length?`<div class="card"><div class="card-title">📋 соңғы ойындар</div>${d.recentResults.map(r=>`<div class="recent-item"><div><div style="font-size:13px;color:var(--text)">${esc(r.quiz_title||'Тест')}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${fmtDate(r.played_at)} · ${r.time_sec}с</div></div><div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:15px;color:${r.score>=70?'var(--accent3)':r.score>=50?'var(--warn)':'var(--danger)'}">${r.score}%</div></div></div>`).join('')}</div>`:''}
+      <div class="card">
+        <div class="card-title">💬 кері байланыс</div>
+        <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:12px">Пікіріңіз, ұсынысыңыз немесе қате туралы хабарлаңыз</div>
+        <textarea id="feedbackText" placeholder="Хабарламаңызды жазыңыз..." style="width:100%;min-height:90px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Space Mono,monospace;font-size:12px;padding:10px;resize:vertical;outline:none;transition:border 0.2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        <button class="btn btn-cyan" onclick="sendFeedback()" style="width:100%;justify-content:center;margin-top:10px">📨 Жіберу</button>
+        <div id="feedbackStatus" style="font-family:Space Mono,monospace;font-size:11px;text-align:center;margin-top:8px;min-height:16px"></div>
+      </div>`;
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Бейін жоқ</div><p style="color:var(--muted);font-size:12px">Алдымен тест ойнаңыз!</p></div>';}
 }
 
@@ -1863,18 +1918,27 @@ async function showResults(){
         const a=ps.answers[i];
         const isOk=a&&a.ok;
         const chosen=a?a.chosen:null;
-        const correctOpt=q.options[q.correct];
-        const chosenOpt=chosen!==null?q.options[chosen]:null;
-        return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
-          <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px">
-            <span style="font-size:14px;flex-shrink:0">${isOk?'✅':'❌'}</span>
-            <div style="font-size:12px;color:var(--text);line-height:1.4">${esc(q.text)}</div>
+        const letters='ABCD';
+        const optionsHtml=q.options.map((opt,oi)=>{
+          const isCorrect=oi===q.correct;
+          const isChosen=oi===chosen;
+          let color='var(--muted)';
+          let icon='○';
+          let bold='';
+          if(isCorrect){color='var(--accent3)';icon='✓';bold='font-weight:700';}
+          else if(isChosen&&!isOk){color='var(--danger)';icon='✗';bold='font-weight:600';}
+          return `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;${bold}">
+            <span style="font-family:Space Mono,monospace;font-size:11px;color:${color};flex-shrink:0;width:14px">${icon}</span>
+            <span style="font-size:11px;color:${color};line-height:1.4">${letters[oi]}. ${esc(opt)}</span>
+          </div>`;
+        }).join('');
+        return `<div style="padding:14px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px">
+            <span style="font-size:13px;flex-shrink:0">${isOk?'✅':'❌'}</span>
+            <div style="font-size:13px;color:var(--text);font-weight:600;line-height:1.4">${esc(q.text)}</div>
           </div>
-          ${!isOk?`
-            <div style="font-family:Space Mono,monospace;font-size:10px;margin-left:22px">
-              ${chosenOpt!==null?`<div style="color:var(--danger);margin-bottom:3px">✗ Сіз: ${esc(chosenOpt)}</div>`:'<div style="color:var(--muted);margin-bottom:3px">— Жауап берілмеді</div>'}
-              <div style="color:var(--accent3)">✓ Дұрыс: ${esc(correctOpt)}</div>
-            </div>`:''}
+          <div style="margin-left:22px">${optionsHtml}</div>
+          ${q.explanation?`<div style="margin-left:22px;margin-top:8px;padding:8px 10px;background:rgba(0,245,255,0.06);border-left:2px solid var(--accent);border-radius:4px;font-size:11px;color:var(--muted);line-height:1.5"><b style="color:var(--accent)">💡 Түсіндірме:</b> ${esc(q.explanation)}</div>`:''}
         </div>`;
       }).join('')}
     </div>`;
