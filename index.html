@@ -410,6 +410,7 @@
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('recent',event)">📜 Ойындар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('categories',event)">📂 Санаттар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('feedback',event)">💬 Чаттар</button>
+        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('feedbacks',event)">📝 Пікірлер</button>
       </div>
 
       <!-- Тест жасау / өңдеу -->
@@ -530,6 +531,9 @@
       </div>
       <div id="adm-section-recent" style="display:none">
         <div class="card"><div class="card-title">📜 соңғы ойындар</div><div id="adm-recent-list"><div class="loading">Жүктелуде</div></div></div>
+      </div>
+      <div id="adm-section-feedbacks" style="display:none">
+        <div class="card"><div class="card-title">📝 кері байланыс пікірлері</div><div id="adm-feedback-list"><div class="loading">Жүктелуде</div></div></div>
       </div>
       <div id="adm-section-feedback" style="display:none">
         <div class="card"><div class="card-title">💬 чаттар</div><div id="adm-chat-users"><div class="loading">Жүктелуде</div></div></div>
@@ -1206,6 +1210,7 @@ function admSection(name,e){
   if(name==='users')loadAdminUsers();
   if(name==='recent')loadAdminRecent();
   if(name==='feedback')loadAdminChatUsers();
+  if(name==='feedbacks')loadAdminFeedbacks();
   if(name==='games')updateGameQuizSelect();
   if(name==='categories'){const el=document.getElementById('adm-categories-list');if(el)el.innerHTML=renderAdminCategoryManager();}
 }
@@ -2017,15 +2022,18 @@ async function loadMyFeedback(){
 async function openAdminDirectChat(){
   const adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
   if (!adminId) { showToast('⚠️ Әкімші табылмады'); return; }
-  // Әкімшінің атын алу
-  try {
-    const r = await fetch(`${API_BASE}/profile`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ initData: getTgInitData(), userId: adminId })
-    });
-  } catch(e) {}
-  openChatWith(adminId, 'Әкімші', '', '⚡');
-  openMessenger();
+  const screen = document.getElementById('messengerScreen');
+  if (screen) screen.classList.add('open');
+  // Тізімді жасырып тікелей чат экранына өт
+  document.getElementById('messengerHome').style.display = 'none';
+  const win = document.getElementById('chatWindow');
+  if (win) win.style.display = 'flex';
+  document.getElementById('chatHeaderName').textContent = 'Әкімші';
+  document.getElementById('chatHeaderUsername').textContent = '';
+  document.getElementById('chatPartnerAvatar').textContent = '⚡';
+  _chatPartnerId = adminId;
+  loadChatMessages();
+  subscribeChatRealtime(adminId);
 }
 
 async function sendAdminChat(){
@@ -2077,6 +2085,25 @@ async function sendFeedback(){
   }finally{
     if(btn){btn.disabled=false;btn.textContent='📨 Жіберу';}
   }
+}
+
+async function loadAdminFeedbacks(){
+  const c=document.getElementById('adm-feedback-list');
+  if(!c) return;
+  c.innerHTML='<div class="loading">Жүктелуде</div>';
+  try{
+    const r=await fetch(`${API_BASE}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'list'})});
+    const d=await r.json();
+    if(!d.ok||!d.feedback?.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">Пікір жоқ</div></div>';return;}
+    c.innerHTML=d.feedback.map(f=>`
+      <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(f.first_name||'Белгісіз')}${f.username?' <span style="color:var(--muted);font-size:10px">@'+esc(f.username)+'</span>':''}</div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${fmtDateTime(f.created_at)}</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">${esc(f.message)}</div>
+      </div>`).join('');
+  }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
 
 async function loadAdminChatUsers(){
