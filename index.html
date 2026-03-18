@@ -1831,11 +1831,12 @@ async function loadConversations() {
       el.innerHTML = '<div style="text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;padding:30px 20px">Чат жоқ.<br><br>@username арқылы адам іздеп хабарласыңыз!</div>';
       return;
     }
+    const myAdminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
     el.innerHTML = d.conversations.map(c => `
-      <div class="chat-user-item" onclick="openChatWith(${c.partner_id},'${esc(c.first_name||'Пайдаланушы')}','${esc(c.app_username||'')}','${esc(c.avatar||'🐱')}')">
-        <div class="chat-user-avatar">${c.avatar||'🐱'}</div>
+      <div class="chat-user-item" onclick="openChatWith(${c.partner_id},'${c.partner_id===myAdminId?'Әкімші':esc(c.first_name||'Пайдаланушы')}','${esc(c.app_username||'')}','${c.partner_id===myAdminId?'⚡':esc(c.avatar||'🐱')}')">
+        <div class="chat-user-avatar">${c.partner_id===myAdminId?'⚡':(c.avatar||'🐱')}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.first_name||'Белгісіз')}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${c.partner_id===myAdminId?'⚡ Әкімші':esc(c.first_name||'Белгісіз')}</div>
           <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${c.app_username?'@'+esc(c.app_username):''}</div>
           <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;margin-top:2px">${esc(c.last_message||'')}</div>
         </div>
@@ -2110,14 +2111,15 @@ async function loadAdminChatUsers(){
   const c=document.getElementById('adm-chat-users');
   c.innerHTML='<div class="loading">Жүктелуде</div>';
   try{
-    const r=await fetch(`${API_BASE}/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'users'})});
+    const r=await fetch(`${API_BASE}/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'conversations'})});
     const d=await r.json();
-    if(!d.ok||!d.users?.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Чат жоқ</div></div>';return;}
-    c.innerHTML=d.users.map(u=>`
-      <div class="chat-user-item" onclick="openAdminChat(${u.user_id},'${esc(u.first_name||'Пайдаланушы')}')">
+    if(!d.ok||!d.conversations?.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Чат жоқ</div></div>';return;}
+    const adminId=window.__ADMIN_ID__?parseInt(window.__ADMIN_ID__):null;
+    c.innerHTML=d.conversations.map(u=>`
+      <div class="chat-user-item" onclick="openAdminChatWith(${u.partner_id},'${esc(u.first_name||'Пайдаланушы')}','${esc(u.app_username||'')}','${esc(u.avatar||'🐱')}')">
         <div class="chat-user-avatar">${u.avatar||'🐱'}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(u.first_name||'Белгісіз')}${u.username?' <span style="color:var(--muted);font-size:10px">@'+esc(u.username)+'</span>':''}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${u.partner_id===adminId?'⚡ Әкімші':esc(u.first_name||'Белгісіз')}${u.app_username?' <span style="color:var(--muted);font-size:10px">@'+esc(u.app_username)+'</span>':''}</div>
           <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">${esc(u.last_message||'')}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
@@ -2128,14 +2130,19 @@ async function loadAdminChatUsers(){
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
 
-function openAdminChat(userId, name){
-  _chatUserId = userId;
-  const nameEl=document.getElementById('chatHeaderName');
-  if(nameEl) nameEl.textContent = name;
-  const screen=document.getElementById('chatScreen');
+function openAdminChatWith(partnerId, name, username, avatar){
+  // Әкімші панелінен чат ашу — мессенджер экранын пайдалану
+  const screen=document.getElementById('messengerScreen');
   if(screen) screen.classList.add('open');
+  document.getElementById('messengerHome').style.display='none';
+  const win=document.getElementById('chatWindow');
+  if(win) win.style.display='flex';
+  document.getElementById('chatHeaderName').textContent=name;
+  document.getElementById('chatHeaderUsername').textContent=username?'@'+username:'';
+  document.getElementById('chatPartnerAvatar').textContent=avatar||'🐱';
+  _chatPartnerId=partnerId;
   loadChatMessages();
-  subscribeChatRealtime();
+  subscribeChatRealtime(partnerId);
 }
 
 async function loadProfile(){
