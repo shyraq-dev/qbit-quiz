@@ -848,7 +848,7 @@ function closeAvatarModal(){
 }
 
 let state={
-  quizzes:[],
+  quizzes:JSON.parse(localStorage.getItem('qbit_quizzes')||'[]'),
   plays:parseInt(localStorage.getItem('qbit_plays')||'0'),
   currentPlay:null,playState:null,timer:null,questionCounter:0,
 };
@@ -1184,9 +1184,6 @@ function initApp(){
   refreshCategorySelect();updateHeader();renderLibrary();updateExportSelect();
   if(!questions.length)addQuestion();
   renderStats();
-  // Тесттер мен санаттарды Supabase-тен жүктеу
-  loadQuizzesFromDB();
-  loadCategoriesFromDB();
   // Хабарландырулар
   const _u = getTgUser();
   if (_u) {
@@ -2529,6 +2526,7 @@ async function showResults(){
   const time=Math.round((Date.now()-ps.startTime)/1000);
   quiz.playCount=(quiz.playCount||0)+1;quiz.bestScore=Math.max(quiz.bestScore||0,score);
   state.plays=parseInt(state.plays)+1;
+  localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
   localStorage.setItem('qbit_plays',state.plays);updateHeader();
   const initData=getTgInitData();
   if(initData){try{await fetch(`${API_BASE}/save-result`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,result:{quizId:quiz.id,quizTitle:quiz.title,score,correct:ps.correct,wrong:ps.wrong,totalQuestions:answered,timeSec:time,maxStreak:ps.maxStreak,avatar:getMyAvatar()}})});}catch{}}
@@ -2678,10 +2676,8 @@ function renderLibrary(){
 
 function deleteQuiz(id){
   if(!isAdmin())return;if(!confirm('Жоюға сенімдісіз бе?'))return;
-  try{
-    await supabaseClient.from('quizzes').delete().eq('id',id);
-  }catch(e){console.error(e);}
   state.quizzes=state.quizzes.filter(q=>q.id!==id);
+  localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
   updateHeader();renderLibrary();updateExportSelect();
 }
 
@@ -2729,35 +2725,8 @@ const BUILTIN_CATEGORIES=[
   '🧠 Жалпы білім','📖 Тарих','🔬 Ғылым','💻 Технология',
   '🌍 География','🎭 Мәдениет','🔢 Математика','📚 Әдебиет','⚽ Спорт','🎯 Өзге'
 ];
-let _customCats = JSON.parse(localStorage.getItem('qbit_custom_cats')||'[]');
-
-// DB-тен санаттарды жүктеу (фон режимінде)
-async function loadCategoriesFromDB(){
-  if (!supabaseClient) return;
-  try{
-    const {data} = await supabaseClient.from('categories').select('name').order('name');
-    if (data && data.length) {
-      _customCats = data.map(c=>c.name);
-      localStorage.setItem('qbit_custom_cats', JSON.stringify(_customCats));
-      refreshCategorySelect();
-    }
-  }catch(e){ console.error('loadCategoriesFromDB:', e); }
-}
-
-function getCustomCategories(){
-  return _customCats;
-}
-
-function saveCustomCategories(cats){
-  _customCats = cats;
-  localStorage.setItem('qbit_custom_cats', JSON.stringify(cats));
-  // DB-ке сақтау (фон режимінде)
-  if (supabaseClient) {
-    supabaseClient.from('categories').delete().neq('name','').then(()=>{
-      if (cats.length) supabaseClient.from('categories').insert(cats.map(name=>({name}))).then(()=>{});
-    });
-  }
-}
+function getCustomCategories(){return JSON.parse(localStorage.getItem('qbit_custom_cats')||'[]');}
+function saveCustomCategories(cats){localStorage.setItem('qbit_custom_cats',JSON.stringify(cats));}
 function getAllCategories(){return [...BUILTIN_CATEGORIES,...getCustomCategories()];}
 
 function addCustomCategory(){
@@ -2965,7 +2934,7 @@ function clearAll(){
   }
 }
 
-async function saveQuiz(){
+function saveQuiz(){
   if(!isAdmin())return;
   const title=document.getElementById('quizTitle').value.trim();
   if(!title)return showToast('⚠️ Тест атауын енгізіңіз!');
@@ -2980,43 +2949,37 @@ async function saveQuiz(){
     questions:validQs.map(q=>({...q,options:q.options.filter(o=>o.trim())})),
   };
 
-  try{
-    if(editingQuizId){
-      // ── ӨҢДЕУ ──
-      const {error}=await supabaseClient.from('quizzes').update({
-        title:quizData.title,
-        category:quizData.category,
-        timer:quizData.timer,
-        difficulty:quizData.difficulty,
-        questions:quizData.questions,
-      }).eq('id',editingQuizId);
-      if(error)throw error;
+  if(editingQuizId){
+    // ── ӨҢДЕУ: бар тестті жаңарту ──
+    const idx=state.quizzes.findIndex(q=>q.id===editingQuizId);
+    if(idx!==-1){
+      state.quizzes[idx]={...state.quizzes[idx],...quizData};
       showToast(`✅ "${title}" жаңартылды!`);
-      editingQuizId=null;
-      document.getElementById('editModeBanner').style.display='none';
-      document.getElementById('saveButtonArea').innerHTML=`
-        <button class="btn btn-danger" onclick="clearAll()">🗑 Тазалау</button>
-        <button class="btn btn-primary" onclick="saveQuiz()">💾 Сақтау</button>`;
-    } else {
-      // ── ЖАҢА ТЕСТ ──
-      const user=getTgUser();
-      const {error}=await supabaseClient.from('quizzes').insert({
-        ...quizData,
-        created_by:user?.id||null,
-      });
-      if(error)throw error;
-      showToast(`✅ "${title}" сақталды!`);
     }
-    // Тесттерді қайта жүктеу
-    await loadQuizzesFromDB();
-    updateHeader();updateExportSelect();updateGameQuizSelect();
-    questions=[];addQuestion();
-    document.getElementById('quizTitle').value='';
-    switchTab('library');
-  }catch(e){
-    console.error('saveQuiz error:',e);
-    showToast('⚠️ Сақтау қатесі: '+( e.message||'белгісіз'));
+    // Өңдеу режимін аяқтау
+    editingQuizId=null;
+    document.getElementById('editModeBanner').style.display='none';
+    document.getElementById('saveButtonArea').innerHTML=`
+      <button class="btn btn-danger" onclick="clearAll()">🗑 Тазалау</button>
+      <button class="btn btn-primary" onclick="saveQuiz()">💾 Сақтау</button>`;
+  } else {
+    // ── ЖАҢА ТЕСТ ──
+    state.quizzes.unshift({
+      id:'quiz_'+Date.now(),
+      ...quizData,
+      created:fmtDate(new Date()),
+      playCount:0,bestScore:0,
+    });
+    showToast(`✅ "${title}" сақталды!`);
   }
+
+  localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
+  updateHeader();updateExportSelect();updateGameQuizSelect();
+
+  // Форманы тазалау
+  questions=[];addQuestion();
+  document.getElementById('quizTitle').value='';
+  switchTab('library');
 }
 
 // ══ UTILS ══
@@ -3028,50 +2991,16 @@ function showToast(msg){
   t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
 }
 
-async function loadQuizzesFromDB(){
-  if(!supabaseClient) return;
-  try{
-    const {data,error}=await supabaseClient.from('quizzes').select('*').order('created_at',{ascending:false});
-    if(error)throw error;
-    state.quizzes=(data||[]).map(q=>({
-      id:q.id,
-      title:q.title,
-      category:q.category||'📂 Жалпы',
-      timer:q.timer||20,
-      difficulty:q.difficulty||'medium',
-      questions:q.questions||[],
-      created:q.created_at?fmtDate(q.created_at):'',
-      playCount:q.play_count||0,
-      bestScore:q.best_score||0,
-      created_by:q.created_by,
-    }));
-    updateHeader();renderLibrary();updateExportSelect();updateGameQuizSelect();
-  }catch(e){console.error('loadQuizzesFromDB:',e);}
+function loadSample(){
+  const s={id:'quiz_sample',title:'Қазақстан тарихы — Негіздер',category:'📖 Тарих',timer:20,difficulty:'medium',created:fmtDate(new Date()),playCount:0,bestScore:0,questions:[
+    {id:'s1',text:'Қазақ хандығы қай жылы құрылды?',options:['1465','1500','1480','1520'],correct:0,explanation:'1465 жылы Керей мен Жәнібек хандар тарапынан құрылды.'},
+    {id:'s2',text:'Қазақстанның астанасы қандай?',options:['Алматы','Шымкент','Астана','Орал'],correct:2,explanation:'2022 жылы Астана атауына қайтарылды.'},
+    {id:'s3',text:'Тәуелсіздік жарияланған жыл?',options:['1990','1991','1992','1993'],correct:1,explanation:'1991 жылы 16 желтоқсанда жарияланды.'},
+    {id:'s4',text:'Ұлы Жібек жолы қайды байланыстырды?',options:['Қытай–Еуропа','Үндістан–Африка','Ресей–Жапония','Арабия–Қытай'],correct:0,explanation:'Қытайдан Еуропаға дейін созылды.'},
+  ]};
+  if(!state.quizzes.find(q=>q.id==='quiz_sample')){state.quizzes.push(s);localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));updateHeader();renderLibrary();updateExportSelect();}
 }
-
-async function loadSample(){
-  if(!supabaseClient) return;
-  try{
-    const {count}=await supabaseClient.from('quizzes').select('*',{count:'exact',head:true});
-    if(count>0) return;
-    const user=getTgUser();
-    await supabaseClient.from('quizzes').insert({
-      title:'Қазақстан тарихы — Негіздер',
-      category:'📖 Тарих',
-      timer:20,
-      difficulty:'medium',
-      created_by:user?.id||null,
-      questions:[
-        {id:'s1',text:'Қазақ хандығы қай жылы құрылды?',options:['1465','1500','1480','1520'],correct:0,explanation:'1465 жылы Керей мен Жәнібек хандар тарапынан құрылды.'},
-        {id:'s2',text:'Қазақстанның астанасы қандай?',options:['Алматы','Шымкент','Астана','Орал'],correct:2,explanation:'2022 жылы Астана атауына қайтарылды.'},
-        {id:'s3',text:'Тәуелсіздік жарияланған жыл?',options:['1990','1991','1992','1993'],correct:1,explanation:'1991 жылы 16 желтоқсанда жарияланды.'},
-        {id:'s4',text:'Ұлы Жібек жолы қайды байланыстырды?',options:['Қытай–Еуропа','Үндістан–Африка','Ресей–Жапония','Арабия–Қытай'],correct:0,explanation:'Қытайдан Еуропаға дейін созылды.'},
-      ],
-    });
-    await loadQuizzesFromDB();
-  }catch(e){console.error(e);}
-}
-
+if(state.quizzes.length===0)setTimeout(loadSample,300);
 init();
 </script>
 </body>
