@@ -293,6 +293,15 @@
 .messenger-btn:active{transform:scale(0.9)}
 .messenger-btn-badge{position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:8px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px}
 
+/* ══ CHAT CONTEXT MENU ══ */
+.chat-ctx-overlay{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.5)}
+.chat-ctx-menu{position:fixed;z-index:10002;background:var(--surface);border:1px solid var(--border);border-radius:14px;min-width:200px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+.chat-ctx-item{display:flex;align-items:center;gap:10px;padding:13px 16px;font-size:14px;color:var(--text);cursor:pointer;transition:background 0.15s;font-family:Rajdhani,sans-serif;font-weight:500}
+.chat-ctx-item:hover{background:rgba(255,255,255,0.06)}
+.chat-ctx-item.danger{color:var(--danger)}
+.chat-ctx-item.warn{color:var(--warn)}
+.chat-ctx-divider{height:1px;background:var(--border);margin:2px 0}
+
 /* ══ NOTIFICATION STYLES ══ */
 .notif-bell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.2);cursor:pointer;transition:all 0.2s}
 .notif-bell:hover{background:rgba(0,245,255,0.15)}
@@ -1825,6 +1834,8 @@ function closeMessenger() {
 function backToConversations() {
   document.getElementById('chatWindow').style.display = 'none';
   document.getElementById('messengerHome').style.display = 'flex';
+  document.getElementById('pinnedMsg')?.remove();
+  _pinnedMsgId = null;
   if (_chatRealtime) { _chatRealtime.unsubscribe(); _chatRealtime = null; }
   if (_typingChannel) { _typingChannel.unsubscribe(); _typingChannel = null; }
   clearInterval(_statusTimer);
@@ -1950,7 +1961,12 @@ function renderChatMessages(messages) {
     }
     const readTime = (isMine && m.is_read && m.updated_at) ? smartTime(m.updated_at) : '';
     return `<div style="display:flex;justify-content:${isMine?'flex-end':'flex-start'};margin-bottom:4px">
-      <div class="chat-bubble ${isMine?'user':'admin'}" style="position:relative" onclick="${isMine&&m.is_read?`showReadTooltip(this,'${readTime}')`:''}" >
+      <div class="chat-bubble ${isMine?'user':'admin'}" style="position:relative;user-select:none"
+        data-msg-id="${m.id}" data-is-mine="${isMine}"
+        oncontextmenu="event.preventDefault();showChatCtxMenu(event,${m.id},${isMine})"
+        ontouchstart="startLongPress(event,${m.id},${isMine})"
+        ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()"
+        onclick="${isMine&&m.is_read?`showReadTooltip(this,'${readTime}')`:''}">
         ${esc(m.text)}
         <div class="chat-bubble-time">${fmtDateTime(m.created_at)}${statusIcon}</div>
         ${isMine&&m.is_read?`<div class="read-tooltip">оқыды · ${m.updated_at?smartTime(m.updated_at):''}</div>`:''}
@@ -1967,6 +1983,11 @@ async function sendChatMessage() {
   const myId = getTgUser()?.id;
   if (parseInt(_chatPartnerId) === parseInt(myId)) {
     showToast('⚠️ Өзіңізбен өзіңіз жазыса алмайсыз');
+    input.value = '';
+    return;
+  }
+  if (isChatPartnerBlocked()) {
+    showToast('🚫 Бұл пайдаланушы бұғатталған');
     input.value = '';
     return;
   }
@@ -2190,6 +2211,153 @@ async function onChatInputTyping() {
 }
 
 // ── Хабарламаны басқанда оқылды уақытын көрсету ─────────
+// ══ ЧАТ КОНТЕКСТ МӘЗІРІ ═════════════════════════════════
+
+let _longPressTimer = null;
+let _blockedUsers = JSON.parse(localStorage.getItem('qbit_blocked')||'[]');
+let _pinnedMsgId = null;
+
+function startLongPress(event, msgId, isMine) {
+  cancelLongPress();
+  _longPressTimer = setTimeout(() => {
+    const touch = event.touches?.[0] || event;
+    showChatCtxMenu({ clientX: touch.clientX, clientY: touch.clientY }, msgId, isMine);
+  }, 500);
+}
+
+function cancelLongPress() {
+  clearTimeout(_longPressTimer);
+}
+
+function showChatCtxMenu(event, msgId, isMine) {
+  // Бұрынғы мәзірді жап
+  closeChatCtxMenu();
+
+  const myId = getTgUser()?.id;
+  const isBlocked = _blockedUsers.includes(parseInt(_chatPartnerId));
+  const isPinned = _pinnedMsgId === msgId;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'chat-ctx-overlay';
+  overlay.id = 'chatCtxOverlay';
+  overlay.onclick = closeChatCtxMenu;
+
+  const menu = document.createElement('div');
+  menu.className = 'chat-ctx-menu';
+  menu.id = 'chatCtxMenu';
+
+  const items = [];
+
+  // Бекіту/Шешу
+  items.push(`<div class="chat-ctx-item" onclick="togglePinMessage(${msgId})">
+    ${isPinned ? '📌 Бекітуді шешу' : '📌 Бекіту'}
+  </div>`);
+  items.push('<div class="chat-ctx-divider"></div>');
+
+  // Тазалау (барлық чатты)
+  items.push(`<div class="chat-ctx-item warn" onclick="clearChatHistory()">
+    🗑 Чатты тазалау
+  </div>`);
+
+  // Бұғаттау/Шешу
+  items.push(`<div class="chat-ctx-item warn" onclick="toggleBlockUser()">
+    ${isBlocked ? '🔓 Бұғаттауды шешу' : '🚫 Бұғаттау'}
+  </div>`);
+
+  // Жою — тек өз хабарламасын жоя алады
+  if (isMine === true || isMine === 'true') {
+    items.push('<div class="chat-ctx-divider"></div>');
+    items.push(`<div class="chat-ctx-item danger" onclick="deleteMessage(${msgId})">
+      🗑 Жою
+    </div>`);
+  }
+
+  menu.innerHTML = items.join('');
+
+  // Мәзір позициясы
+  const x = Math.min(event.clientX, window.innerWidth - 220);
+  const y = Math.min(event.clientY, window.innerHeight - (items.length * 46 + 20));
+  menu.style.cssText = `left:${x}px;top:${y}px`;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(menu);
+}
+
+function closeChatCtxMenu() {
+  document.getElementById('chatCtxOverlay')?.remove();
+  document.getElementById('chatCtxMenu')?.remove();
+}
+
+async function deleteMessage(msgId) {
+  closeChatCtxMenu();
+  if (!supabaseClient) return;
+  try {
+    await supabaseClient.from('chat_messages').delete()
+      .eq('id', msgId).eq('from_user_id', getTgUser()?.id);
+    // UI-дан алып тастау
+    document.querySelector(`[data-msg-id="${msgId}"]`)?.closest('div[style*="flex"]')?.remove();
+  } catch(e) { showToast('⚠️ Жою қатесі'); }
+}
+
+async function clearChatHistory() {
+  closeChatCtxMenu();
+  if (!_chatPartnerId) return;
+  if (!confirm('Барлық хабарламаларды жою?')) return;
+  try {
+    const myId = getTgUser()?.id;
+    await supabaseClient.from('chat_messages').delete()
+      .or(`and(from_user_id.eq.${myId},to_user_id.eq.${_chatPartnerId}),and(from_user_id.eq.${_chatPartnerId},to_user_id.eq.${myId})`);
+    document.getElementById('chatMessages').innerHTML =
+      '<div style="text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;margin-top:40px">Хабарлама жоқ.</div>';
+    showToast('✅ Чат тазаланды');
+  } catch(e) { showToast('⚠️ Қате'); }
+}
+
+function toggleBlockUser() {
+  closeChatCtxMenu();
+  const partnerId = parseInt(_chatPartnerId);
+  if (_blockedUsers.includes(partnerId)) {
+    _blockedUsers = _blockedUsers.filter(id => id !== partnerId);
+    showToast('🔓 Бұғаттау шешілді');
+  } else {
+    _blockedUsers.push(partnerId);
+    showToast('🚫 Пайдаланушы бұғатталды');
+  }
+  localStorage.setItem('qbit_blocked', JSON.stringify(_blockedUsers));
+}
+
+function togglePinMessage(msgId) {
+  closeChatCtxMenu();
+  if (_pinnedMsgId === msgId) {
+    _pinnedMsgId = null;
+    document.getElementById('pinnedMsg')?.remove();
+    showToast('📌 Бекіту шешілді');
+  } else {
+    _pinnedMsgId = msgId;
+    // Бекітілген хабарламаны header астына қос
+    const bubble = document.querySelector(`[data-msg-id="${msgId}"]`);
+    const text = bubble ? bubble.childNodes[0]?.textContent?.trim() : '';
+    document.getElementById('pinnedMsg')?.remove();
+    const pin = document.createElement('div');
+    pin.id = 'pinnedMsg';
+    pin.onclick = () => {
+      const el = document.querySelector(`[data-msg-id="${msgId}"]`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+    pin.style.cssText = 'padding:6px 12px;background:rgba(0,245,255,0.08);border-left:3px solid var(--accent);font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    pin.innerHTML = `📌 <span style="color:var(--accent)">Бекітілген:</span> ${esc(text)}`;
+    const chatWin = document.getElementById('chatWindow');
+    const header = chatWin?.querySelector('.chat-header');
+    header?.insertAdjacentElement('afterend', pin);
+    showToast('📌 Хабарлама бекітілді');
+  }
+}
+
+// sendChatMessage-те бұғатталған пайдаланушыны тексеру
+function isChatPartnerBlocked() {
+  return _blockedUsers.includes(parseInt(_chatPartnerId));
+}
+
 function showReadTooltip(el, time) {
   // Toggle tooltip
   const tooltip = el.querySelector('.read-tooltip');
