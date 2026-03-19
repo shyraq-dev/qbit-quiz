@@ -1892,8 +1892,25 @@ async function loadConversations() {
       return;
     }
     const myAdminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
-    el.innerHTML = d.conversations.map(c => `
-      <div class="chat-user-item" onclick="openChatWith(${c.partner_id},'${c.partner_id===myAdminId?'Әкімші':esc(c.first_name||'Пайдаланушы')}','${esc(c.app_username||'')}','${c.partner_id===myAdminId?'⚡':esc(c.avatar||'🐱')}')" oncontextmenu="event.preventDefault();showConvCtxMenu(event,${c.partner_id},'${esc(c.first_name||'')}')" ontouchstart="_convLongPressTimer=setTimeout(()=>showConvCtxMenu({clientX:event.touches[0].clientX,clientY:event.touches[0].clientY},${c.partner_id},'${esc(c.first_name||'')}'),600)" ontouchend="clearTimeout(_convLongPressTimer)" ontouchmove="clearTimeout(_convLongPressTimer)">
+    // _conversations сақтау
+    _conversations = d.conversations.map(c => ({...c, _pinned: _conversations.find(x=>x.partner_id===c.partner_id)?._pinned||false}));
+    renderConversationList();
+  } catch(e) { console.error(e); }
+}
+
+function renderConversationList() {
+  const el = document.getElementById('conversationList');
+  if (!el) return;
+  const adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
+  // Бекітілгендерді жоғарыға
+  const sorted = [..._conversations].sort((a,b) => (b._pinned?1:0)-(a._pinned?1:0));
+  if (!sorted.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;padding:30px 20px">Чат жоқ.<br><br>@username арқылы адам іздеп хабарласыңыз!</div>';
+    return;
+  }
+  const myAdminId = adminId;
+  el.innerHTML = sorted.map(c => `
+      <div class="chat-user-item" style="${c._pinned?'background:rgba(0,245,255,0.05);border-left:2px solid var(--accent)':''}" onclick="openChatWith(${c.partner_id},'${c.partner_id===myAdminId?'Әкімші':esc(c.first_name||'Пайдаланушы')}','${esc(c.app_username||'')}','${c.partner_id===myAdminId?'⚡':esc(c.avatar||'🐱')}')" oncontextmenu="event.preventDefault();showConvCtxMenu(event,${c.partner_id},'${esc(c.first_name||'')}')" ontouchstart="_convLongPressTimer=setTimeout(()=>showConvCtxMenu({clientX:event.touches[0].clientX,clientY:event.touches[0].clientY},${c.partner_id},'${esc(c.first_name||'')}'),600)" ontouchend="clearTimeout(_convLongPressTimer)" ontouchmove="clearTimeout(_convLongPressTimer)">
         <div class="chat-user-avatar">${c.partner_id===myAdminId?'⚡':(c.avatar||'🐱')}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:600;color:var(--text)">${c.partner_id===myAdminId?'⚡ Әкімші':esc(c.first_name||'Белгісіз')}</div>
@@ -1905,7 +1922,6 @@ async function loadConversations() {
           ${c.unread?`<div class="chat-unread-badge">${c.unread}</div>`:''}
         </div>
       </div>`).join('');
-  } catch(e) { console.error(e); }
 }
 
 let _searchTimer = null;
@@ -3510,17 +3526,19 @@ async function loadSample(){
     if(count>0) return;
     const user=getTgUser();
     await supabaseClient.from('quizzes').insert({
-      title:'Қазақстан тарихы — Негіздер',
-      category:'📖 Тарих',
-      timer:20,
-      difficulty:'medium',
-      created_by:user?.id||null,
-      questions:[
-        {id:'s1',text:'Қазақ хандығы қай жылы құрылды?',options:['1465','1500','1480','1520'],correct:0,explanation:'1465 жылы Керей мен Жәнібек хандар тарапынан құрылды.'},
-        {id:'s2',text:'Қазақстанның астанасы қандай?',options:['Алматы','Шымкент','Астана','Орал'],correct:2,explanation:'2022 жылы Астана атауына қайтарылды.'},
-        {id:'s3',text:'Тәуелсіздік жарияланған жыл?',options:['1990','1991','1992','1993'],correct:1,explanation:'1991 жылы 16 желтоқсанда жарияланды.'},
-        {id:'s4',text:'Ұлы Жібек жолы қайды байланыстырды?',options:['Қытай–Еуропа','Үндістан–Африка','Ресей–Жапония','Арабия–Қытай'],correct:0,explanation:'Қытайдан Еуропаға дейін созылды.'},
-      ],
+      data:{
+        title:'Қазақстан тарихы — Негіздер',
+        category:'📖 Тарих',
+        timer:20,
+        difficulty:'medium',
+        created_by:user?.id||null,
+        questions:[
+          {id:'s1',text:'Қазақ хандығы қай жылы құрылды?',options:['1465','1500','1480','1520'],correct:0,explanation:'1465 жылы Керей мен Жәнібек хандар тарапынан құрылды.'},
+          {id:'s2',text:'Қазақстанның астанасы қандай?',options:['Алматы','Шымкент','Астана','Орал'],correct:2,explanation:'2022 жылы Астана атауына қайтарылды.'},
+          {id:'s3',text:'Тәуелсіздік жарияланған жыл?',options:['1990','1991','1992','1993'],correct:1,explanation:'1991 жылы 16 желтоқсанда жарияланды.'},
+          {id:'s4',text:'Ұлы Жібек жолы қайды байланыстырды?',options:['Қытай–Еуропа','Үндістан–Африка','Ресей–Жапония','Арабия–Қытай'],correct:0,explanation:'Қытайдан Еуропаға дейін созылды.'},
+        ],
+      }
     });
     await loadQuizzesFromDB();
   }catch(e){console.error(e);}
