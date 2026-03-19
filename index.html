@@ -252,6 +252,20 @@
   @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ══ CHAT STYLES ══ */
+.chat-status{font-family:Space Mono,monospace;font-size:9px;transition:all 0.3s}
+.chat-status.online{color:var(--accent3)}
+.chat-status.typing{color:var(--accent)}
+.chat-status.offline{color:var(--muted)}
+.msg-status{font-size:9px;margin-left:4px;display:inline}
+.typing-bubble{display:flex;align-items:center;gap:4px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:16px;border-bottom-left-radius:4px;align-self:flex-start}
+.typing-dot{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:typingAnim 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes typingAnim{0%,60%,100%{opacity:0.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.chat-profile-modal{position:fixed;top:0;left:0;right:0;bottom:0;z-index:10000;display:flex;align-items:flex-end;background:rgba(0,0,0,0.6)}
+.chat-profile-card{background:var(--surface);border-radius:20px 20px 0 0;padding:24px;width:100%;max-height:70vh;overflow-y:auto}
+.read-tooltip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-family:Space Mono,monospace;font-size:9px;color:var(--muted);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.2s;z-index:10}
+.chat-bubble:hover .read-tooltip{opacity:1}
 .chat-screen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;background:var(--bg);display:none;flex-direction:column}
 .chat-screen.open{display:flex}
 .chat-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
@@ -324,10 +338,10 @@
   <div id="chatWindow" style="display:none;flex-direction:column;height:100%">
     <div class="chat-header">
       <button class="chat-header-back" onclick="backToConversations()">←</button>
-      <div style="font-size:24px;margin-right:8px" id="chatPartnerAvatar">🐱</div>
-      <div class="chat-header-info">
+      <div style="font-size:24px;margin-right:8px;cursor:pointer;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface2)" id="chatPartnerAvatar" onclick="openChatPartnerProfile()">🐱</div>
+      <div class="chat-header-info" onclick="openChatPartnerProfile()" style="cursor:pointer">
         <div class="chat-header-name" id="chatHeaderName"></div>
-        <div class="chat-header-status" id="chatHeaderUsername" style="color:var(--muted)"></div>
+        <div class="chat-status offline" id="chatHeaderStatus">жүктелуде...</div>
       </div>
     </div>
     <div class="chat-messages" id="chatMessages"></div>
@@ -1809,7 +1823,10 @@ function backToConversations() {
   document.getElementById('chatWindow').style.display = 'none';
   document.getElementById('messengerHome').style.display = 'flex';
   if (_chatRealtime) { _chatRealtime.unsubscribe(); _chatRealtime = null; }
+  if (_typingChannel) { _typingChannel.unsubscribe(); _typingChannel = null; }
+  clearInterval(_statusTimer);
   _chatPartnerId = null;
+  _isTyping = false;
   loadConversations();
 }
 
@@ -1880,16 +1897,21 @@ async function searchUsers(q) {
 
 function openChatWith(partnerId, name, username, avatar) {
   _chatPartnerId = partnerId;
+  _isTyping = false;
   document.getElementById('messengerHome').style.display = 'none';
   const win = document.getElementById('chatWindow');
   win.style.display = 'flex';
   document.getElementById('chatHeaderName').textContent = name;
-  document.getElementById('chatHeaderUsername').textContent = username ? '@'+username : '';
   document.getElementById('chatPartnerAvatar').textContent = avatar || '🐱';
   document.getElementById('searchResults').innerHTML = '';
   document.getElementById('messengerSearch').value = '';
   loadChatMessages();
   subscribeChatRealtime(partnerId);
+  startTypingPresence(partnerId);
+  // Status жаңарту (5 секунд сайын)
+  updatePartnerStatus();
+  clearInterval(_statusTimer);
+  _statusTimer = setInterval(updatePartnerStatus, 5000);
 }
 
 async function loadChatMessages() {
@@ -1915,12 +1937,20 @@ function renderChatMessages(messages) {
     return;
   }
   el.innerHTML = messages.map(m => {
-    // Серіктес жазған болса сол жақ, мен жазсам оң жақ
     const isMine = parseInt(m.from_user_id) !== parseInt(_chatPartnerId);
+    // Оқылды белгісі: ✔ жіберілді, ✔✔ сұр жеткізілді, ✔✔ көк оқылды
+    let statusIcon = '';
+    if (isMine) {
+      if (m.is_read) statusIcon = '<span class="msg-status" style="color:#60a5fa">✔✔</span>';
+      else if (m.is_delivered) statusIcon = '<span class="msg-status" style="color:var(--muted)">✔✔</span>';
+      else statusIcon = '<span class="msg-status" style="color:var(--muted)">✔</span>';
+    }
+    const readTime = (isMine && m.is_read && m.updated_at) ? smartTime(m.updated_at) : '';
     return `<div style="display:flex;justify-content:${isMine?'flex-end':'flex-start'};margin-bottom:4px">
-      <div class="chat-bubble ${isMine?'user':'admin'}">
+      <div class="chat-bubble ${isMine?'user':'admin'}" style="position:relative" onclick="${isMine&&m.is_read?`showReadTooltip(this,'${readTime}')`:''}" >
         ${esc(m.text)}
-        <div class="chat-bubble-time">${fmtDateTime(m.created_at)}${m.is_read&&isMine?' ✓✓':''}</div>
+        <div class="chat-bubble-time">${fmtDateTime(m.created_at)}${statusIcon}</div>
+        ${isMine&&m.is_read?`<div class="read-tooltip">оқыды · ${m.updated_at?smartTime(m.updated_at):''}</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -2034,6 +2064,186 @@ async function loadMyFeedback(){
         </div>`:''}
       </div>`).join('');
   }catch{el.innerHTML='<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--danger);text-align:center">Қате</div>';}
+}
+
+// ── Смарт уақыт форматы ─────────────────────────────────
+const KZ_MONTHS = ['қаң','ақп','нау','сәу','мам','мау','шіл','там','қыр','қаз','қар','жел'];
+
+function smartTime(isoStr) {
+  if (!isoStr) return '';
+  const d = toKZDate(isoStr);
+  const now = toKZDate(new Date().toISOString());
+  const diffSec = Math.floor((now - d) / 1000);
+  const HH = pad(d.getUTCHours()), MM = pad(d.getUTCMinutes());
+  const time = `${HH}:${MM}`;
+
+  // Бүгін
+  if (d.getUTCFullYear()===now.getUTCFullYear() &&
+      d.getUTCMonth()===now.getUTCMonth() &&
+      d.getUTCDate()===now.getUTCDate()) {
+    return `бүгін ${time}`;
+  }
+  // Кеше
+  const yesterday = new Date(now); yesterday.setUTCDate(now.getUTCDate()-1);
+  if (d.getUTCFullYear()===yesterday.getUTCFullYear() &&
+      d.getUTCMonth()===yesterday.getUTCMonth() &&
+      d.getUTCDate()===yesterday.getUTCDate()) {
+    return `кеше ${time}`;
+  }
+  // Осы жыл ішінде — DD month HH:MM
+  if (d.getUTCFullYear()===now.getUTCFullYear()) {
+    return `${d.getUTCDate()} ${KZ_MONTHS[d.getUTCMonth()]} ${time}`;
+  }
+  // Бір жылдан артық — DD.MM.YY HH:MM
+  return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth()+1)}.${String(d.getUTCFullYear()).slice(2)} ${time}`;
+}
+
+function formatLastSeen(isoStr) {
+  if (!isoStr) return 'белгісіз';
+  const d = new Date(isoStr);
+  const diffSec = Math.floor((new Date() - d) / 1000);
+  if (diffSec < 300) return 'таяуда кірді'; // 5 мин
+  return smartTime(isoStr) + ' кірді';
+}
+
+function isOnline(isoStr) {
+  if (!isoStr) return false;
+  return (new Date() - new Date(isoStr)) < 5 * 60 * 1000; // 5 мин
+}
+
+// ── Partner status жаңарту ───────────────────────────────
+let _statusTimer = null;
+async function updatePartnerStatus() {
+  if (!_chatPartnerId) return;
+  const statusEl = document.getElementById('chatHeaderStatus');
+  if (!statusEl) return;
+  try {
+    const r = await fetch(`${API_BASE}/chat`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'user_profile', userId: _chatPartnerId })
+    });
+    const d = await r.json();
+    if (!d.ok || !d.user) return;
+    const online = isOnline(d.user.last_seen);
+    if (_isTyping) {
+      statusEl.className = 'chat-status typing';
+      statusEl.innerHTML = 'жазып жатыр<span style="display:inline-flex;gap:2px;margin-left:3px;vertical-align:middle"><span class="typing-dot" style="display:inline-block"></span><span class="typing-dot" style="display:inline-block"></span><span class="typing-dot" style="display:inline-block"></span></span>';
+    } else if (online) {
+      statusEl.className = 'chat-status online';
+      statusEl.textContent = 'желіде';
+    } else {
+      statusEl.className = 'chat-status offline';
+      statusEl.textContent = formatLastSeen(d.user.last_seen);
+    }
+  } catch(e) {}
+}
+
+// ── Typing indicator (Supabase Realtime presence) ────────
+let _typingTimeout = null;
+let _isTyping = false;
+let _typingChannel = null;
+
+function startTypingPresence(partnerId) {
+  if (!supabaseClient) return;
+  if (_typingChannel) { _typingChannel.unsubscribe(); }
+  const myId = getTgUser()?.id;
+  _typingChannel = supabaseClient.channel(`typing_${Math.min(myId,partnerId)}_${Math.max(myId,partnerId)}`)
+    .on('presence', { event: 'sync' }, () => {
+      const state = _typingChannel.presenceState();
+      const partnerTyping = Object.values(state).flat().some(p => p.user_id === partnerId && p.typing);
+      _isTyping = partnerTyping;
+      updatePartnerStatus();
+      // Typing bubble
+      const el = document.getElementById('chatMessages');
+      const existing = document.getElementById('typingBubble');
+      if (partnerTyping) {
+        if (!existing && el) {
+          const div = document.createElement('div');
+          div.id = 'typingBubble';
+          div.style.cssText = 'display:flex;justify-content:flex-start;margin-bottom:4px';
+          div.innerHTML = '<div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+          el.appendChild(div);
+          el.scrollTop = el.scrollHeight;
+        }
+      } else {
+        if (existing) existing.remove();
+      }
+    })
+    .subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await _typingChannel.track({ user_id: myId, typing: false });
+      }
+    });
+}
+
+async function onChatInputTyping() {
+  if (!_typingChannel) return;
+  const myId = getTgUser()?.id;
+  await _typingChannel.track({ user_id: myId, typing: true });
+  clearTimeout(_typingTimeout);
+  _typingTimeout = setTimeout(async () => {
+    await _typingChannel.track({ user_id: myId, typing: false });
+  }, 2000);
+}
+
+// ── Хабарламаны басқанда оқылды уақытын көрсету ─────────
+function showReadTooltip(el, time) {
+  // Toggle tooltip
+  const tooltip = el.querySelector('.read-tooltip');
+  if (!tooltip) return;
+  const isVisible = tooltip.style.opacity === '1';
+  document.querySelectorAll('.read-tooltip').forEach(t => t.style.opacity = '0');
+  if (!isVisible) tooltip.style.opacity = '1';
+  setTimeout(() => { if (tooltip) tooltip.style.opacity = '0'; }, 3000);
+}
+
+// ── Серіктес профилін ашу ────────────────────────────────
+async function openChatPartnerProfile() {
+  if (!_chatPartnerId) return;
+  try {
+    const r = await fetch(`${API_BASE}/chat`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'user_profile', userId: _chatPartnerId })
+    });
+    const d = await r.json();
+    if (!d.ok || !d.user) return;
+    const u = d.user;
+    const pct = u.total_questions > 0 ? Math.round(u.total_correct / u.total_questions * 100) : 0;
+    const online = isOnline(u.last_seen);
+    const modal = document.createElement('div');
+    modal.className = 'chat-profile-modal';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    modal.innerHTML = `
+      <div class="chat-profile-card">
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:64px;width:80px;height:80px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;border:2px solid ${online?'var(--accent3)':'var(--border)'}">${u.avatar||'🐱'}</div>
+          <div style="font-family:Orbitron,monospace;font-size:18px;font-weight:700;color:var(--text)">${esc(u.first_name||'')}</div>
+          <div style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted);margin-top:4px">
+            ${u.app_username?'@'+esc(u.app_username):''}
+            ${u.username?' · @'+esc(u.username):''}
+          </div>
+          <div style="font-family:Space Mono,monospace;font-size:10px;margin-top:6px;color:${online?'var(--accent3)':'var(--muted)'}">
+            ${online?'● желіде':'○ '+formatLastSeen(u.last_seen)}
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+          <div style="text-align:center;padding:10px;background:var(--surface2);border-radius:8px">
+            <div style="font-family:Orbitron,monospace;font-size:18px;color:var(--accent)">${u.total_games||0}</div>
+            <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">ОЙЫН</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:var(--surface2);border-radius:8px">
+            <div style="font-family:Orbitron,monospace;font-size:18px;color:var(--accent3)">${pct}%</div>
+            <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">ОРТАША</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:var(--surface2);border-radius:8px">
+            <div style="font-family:Orbitron,monospace;font-size:18px;color:var(--accent2)">${u.total_correct||0}</div>
+            <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">ДҰРЫС</div>
+          </div>
+        </div>
+        <button onclick="this.closest('.chat-profile-modal').remove()" class="btn btn-ghost" style="width:100%;justify-content:center">Жабу</button>
+      </div>`;
+    document.body.appendChild(modal);
+  } catch(e) { console.error(e); }
 }
 
 async function openAdminDirectChat(){
