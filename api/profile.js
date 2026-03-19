@@ -27,7 +27,17 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { initData } = req.body;
+  const { initData, action, bio } = req.body;
+
+  // Bio жаңарту
+  if (action === 'update_bio') {
+    if (!verifyTelegramData(initData)) return res.status(401).json({ error: 'Unauthorized' });
+    const params = new URLSearchParams(initData);
+    const user = JSON.parse(params.get('user'));
+    const bioText = bio?.trim().slice(0, 200) || null;
+    await supabase.from('users').update({ bio: bioText }).eq('id', user.id);
+    return res.status(200).json({ ok: true });
+  }
 
   if (!verifyTelegramData(initData)) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -39,7 +49,7 @@ module.exports = async (req, res) => {
   try {
     // Пайдаланушы деректері
     const { data: userData } = await supabase
-      .from('users').select('*').eq('id', user.id).single();
+      .from('users').select('*, bio').eq('id', user.id).single();
 
     // Соңғы 10 ойын
     const { data: recentResults } = await supabase
