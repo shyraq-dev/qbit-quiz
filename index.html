@@ -2049,7 +2049,9 @@ async function sendChatMessage() {
   // Оптимистик UI
   const el = document.getElementById('chatMessages');
   const tmpWrapper = document.createElement('div');
-  tmpWrapper.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:4px';
+  tmpWrapper.id = 'wrap_tmp_' + Date.now();
+  tmpWrapper.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:4px;position:relative';
+  tmpWrapper.setAttribute('id', 'wrap_tmp_' + Date.now());
   const tmp = document.createElement('div');
   tmp.className = 'chat-bubble user';
   tmp.innerHTML = (replyText ? `
@@ -2057,7 +2059,7 @@ async function sendChatMessage() {
       <div class="reply-bubble-name">↩ Жауап</div>
       <div class="reply-bubble-text">${esc(replyText)}</div>
     </div>` : '') +
-    esc(text) + '<div class="chat-bubble-time">Жіберілуде...</div>';
+    esc(text) + '<div class="chat-bubble-time" style="opacity:0.5">Жіберілуде...</div>';
   tmpWrapper.appendChild(tmp);
   el.appendChild(tmpWrapper); el.scrollTop = el.scrollHeight;
 
@@ -2086,14 +2088,29 @@ function subscribeChatRealtime(partnerId) {
       if (m.from_user_id !== partnerId) { updateMessengerBadge(); return; }
       const el = document.getElementById('chatMessages');
       if (!el) return;
-      el.querySelectorAll('.chat-bubble').forEach(b => {
-        if (b.querySelector('.chat-bubble-time')?.textContent?.includes('Жіберілуде')) b.remove();
-      });
+      // Оптимистик "Жіберілуде..." wrapper-ді өшіру
+      el.querySelectorAll('[id^="wrap_tmp"]').forEach(w => w.remove());
+      // Reply bubble
+      const replyHtml = m.reply_to_text ? `
+        <div class="reply-bubble" onclick="scrollToMsg(${m.reply_to_id})">
+          <div class="reply-bubble-name">↩ Жауап</div>
+          <div class="reply-bubble-text">${esc(m.reply_to_text)}</div>
+        </div>` : '';
+      const isMine = parseInt(m.from_user_id) !== parseInt(partnerId);
       const wrapper = document.createElement('div');
-      wrapper.style.cssText = 'display:flex;justify-content:flex-start;margin-bottom:4px';
+      wrapper.id = `wrap_${m.id}`;
+      wrapper.style.cssText = `display:flex;justify-content:${isMine?'flex-end':'flex-start'};margin-bottom:4px;position:relative`;
       const div = document.createElement('div');
-      div.className = 'chat-bubble admin';
-      div.innerHTML = esc(m.text) + `<div class="chat-bubble-time">${fmtDateTime(m.created_at)}</div>`;
+      div.className = `chat-bubble ${isMine?'user':'admin'}`;
+      div.setAttribute('data-msg-id', m.id);
+      div.setAttribute('data-is-mine', isMine);
+      div.setAttribute('data-text', m.text);
+      div.style.cssText = 'position:relative;user-select:none';
+      div.setAttribute('oncontextmenu', `event.preventDefault();showChatCtxMenu(event,${m.id},${isMine},'${(m.text||'').replace(/'/g,"\\'")}' )`);
+      div.setAttribute('ontouchstart', `handleBubbleTouchStart(event,${m.id},${isMine},'${(m.text||'').replace(/'/g,"\\'")}' )`);
+      div.setAttribute('ontouchend', `handleBubbleTouchEnd(event,${m.id},${isMine},'${(m.text||'').replace(/'/g,"\\'")}' )`);
+      div.setAttribute('ontouchmove', `handleBubbleTouchMove(event,${m.id})`);
+      div.innerHTML = replyHtml + esc(m.text) + `<div class="chat-bubble-time">${fmtDateTime(m.created_at)}</div>`;
       wrapper.appendChild(div);
       el.appendChild(wrapper); el.scrollTop = el.scrollHeight;
     })
