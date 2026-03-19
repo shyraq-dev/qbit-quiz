@@ -1947,16 +1947,18 @@ async function loadProfile(){
         <div class="profile-avatar" id="profileAvatarEl" onclick="openAvatarModal()" title="Аватар өзгерту">${myAvatar}</div>
         <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:8px;letter-spacing:1px">✏️ АВАТАР ӨЗГЕРТУ</div>
         <div class="profile-name">${esc(u.first_name||'Қолданушы')}</div>
-        <div class="profile-username">${u.username?'@'+u.username:'ID: '+u.id}</div>
-        <div class="title-badge" style="color:${title.color};background:${title.bg};border:1px solid ${title.border}">${title.label}</div><br>
-        <div class="profile-rank-pill">🏅 Рейтинг: #${d.rank}</div>
-        <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <div class="profile-username" style="margin-bottom:0">${u.username?'@'+u.username:'ID: '+u.id}</div>
           ${u.app_username
-            ? `<div style="font-family:Space Mono,monospace;font-size:11px;color:var(--accent)">@${esc(u.app_username)}</div>
-               <button onclick="changeAppUsername()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:Space Mono,monospace">✏️</button>`
-            : `<button onclick="setAppUsername()" class="btn btn-ghost btn-sm" style="font-size:10px">+ @username орнату</button>`
+            ? `<div style="display:flex;align-items:center;gap:3px">
+                 <span style="font-family:Space Mono,monospace;font-size:11px;color:var(--accent)">· @${esc(u.app_username)}</span>
+                 <button onclick="changeAppUsername()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:0;line-height:1">✏️</button>
+               </div>`
+            : `<button onclick="setAppUsername()" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px">+ @username</button>`
           }
         </div>
+        <div class="title-badge" style="color:${title.color};background:${title.bg};border:1px solid ${title.border}">${title.label}</div><br>
+        <div class="profile-rank-pill">🏅 Рейтинг: #${d.rank}</div>
       </div>
       <div class="profile-stats">
         <div class="ps-box"><div class="ps-val">${u.total_games}</div><div class="ps-lbl">ОЙЫН</div></div>
