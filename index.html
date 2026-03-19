@@ -1930,6 +1930,12 @@ async function sendChatMessage() {
   const input = document.getElementById('chatInput');
   const text = input?.value?.trim();
   if (!text || !_chatPartnerId) return;
+  const myId = getTgUser()?.id;
+  if (parseInt(_chatPartnerId) === parseInt(myId)) {
+    showToast('⚠️ Өзіңізбен өзіңіз жазыса алмайсыз');
+    input.value = '';
+    return;
+  }
   input.value = ''; input.style.height = 'auto';
   const el = document.getElementById('chatMessages');
   const tmpWrapper = document.createElement('div');
