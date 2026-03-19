@@ -2428,8 +2428,9 @@ function showConvCtxMenu(event, partnerId, name) {
   const menu = document.createElement('div');
   menu.className = 'chat-ctx-menu';
   menu.id = 'chatCtxMenu';
+  const isPinnedConv = !!(_conversations?.find(c=>c.partner_id===partnerId)?._pinned);
   menu.innerHTML = `
-    <div class="chat-ctx-item" onclick="pinConversation(${partnerId})">${(_conversations?.find(c=>c.partner_id===partnerId)?._pinned)?'📌 Бекітуді шешу':'📌 Бекіту'}</div>
+    <div class="chat-ctx-item" onclick="pinConversation(${partnerId})">${isPinnedConv?'📌 Бекітуді шешу':'📌 Бекіту'}</div>
     <div class="chat-ctx-divider"></div>
     <div class="chat-ctx-item warn" onclick="clearConvHistory(${partnerId})">🗑 Тазалау</div>
     <div class="chat-ctx-item warn" onclick="toggleBlockFromList(${partnerId})">${isBlocked?'🔓 Бұғаттан алу':'🚫 Бұғаттау'}</div>
