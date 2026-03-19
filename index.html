@@ -9,6 +9,11 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@300;500;700&family=Orbitron:wght@400;700;900&display=swap');
   :root{--bg:#030712;--surface:#0d1117;--surface2:#161b22;--border:#21262d;--accent:#00f5ff;--accent2:#7c3aed;--accent3:#10b981;--danger:#ef4444;--warn:#f59e0b;--text:#e6edf3;--muted:#8b949e;--glow:0 0 20px rgba(0,245,255,0.3);}
+  :root.light{--bg:#f0f4f8;--surface:#ffffff;--surface2:#e8edf2;--border:#d0d7de;--accent:#0969da;--accent2:#7c3aed;--accent3:#1a7f37;--danger:#d1242f;--warn:#9a6700;--text:#1f2328;--muted:#656d76;--glow:0 0 20px rgba(9,105,218,0.2);}
+  *{transition:background-color 0.2s,border-color 0.2s,color 0.2s;}
+  .theme-toggle{width:44px;height:24px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;position:relative;transition:background 0.3s;display:flex;align-items:center;padding:2px;flex-shrink:0}
+  .theme-toggle-knob{width:18px;height:18px;border-radius:50%;background:var(--accent);transition:transform 0.3s;font-size:11px;display:flex;align-items:center;justify-content:center}
+  :root.light .theme-toggle-knob{transform:translateX(20px)}
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden;}
   body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
@@ -437,6 +442,7 @@
     </div>
     <div class="header-right">
       <div id="adminBadge"></div>
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Тема ауыстыру"><div class="theme-toggle-knob" id="themeKnob">🌙</div></button>
       <div class="notif-bell" onclick="openNotifPanel()" id="notifBell">🔔<span class="notif-badge" id="notifBadge"></span></div>
       <div style="display:flex;gap:16px;">
         <div class="stat-chip"><div class="stat-val" id="totalQuizzes">0</div><div class="stat-label">тест</div></div>
@@ -1211,6 +1217,23 @@ function subscribeNotifRealtime(userId) {
     .subscribe();
 }
 
+// ══ ТЕМА ══════════════════════════════════════════════════
+function initTheme() {
+  const saved = localStorage.getItem('qbit_theme') || 'dark';
+  if (saved === 'light') {
+    document.documentElement.classList.add('light');
+    const knob = document.getElementById('themeKnob');
+    if (knob) knob.textContent = '☀️';
+  }
+}
+
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light');
+  localStorage.setItem('qbit_theme', isLight ? 'light' : 'dark');
+  const knob = document.getElementById('themeKnob');
+  if (knob) knob.textContent = isLight ? '☀️' : '🌙';
+}
+
 function initApp(){
   hideLoginScreen();
   if(isAdmin()){
@@ -1218,6 +1241,7 @@ function initApp(){
     document.getElementById('tab-export').style.display='';
     document.getElementById('adminBadge').innerHTML=`<div class="admin-badge"><div class="admin-dot"></div>ADMIN</div>`;
   }
+  initTheme();
   refreshCategorySelect();updateHeader();renderLibrary();updateExportSelect();
   if(!questions.length)addQuestion();
   renderStats();
