@@ -1200,7 +1200,7 @@ function switchTab(tab){
 }
 
 function admSection(name,e){
-  ['create','games','quizzes','users','recent','categories'].forEach(s=>{
+  ['create','games','quizzes','users','recent','categories','feedback','feedbacks'].forEach(s=>{
     const el=document.getElementById('adm-section-'+s);if(el)el.style.display='none';
   });
   document.getElementById('adm-section-'+name).style.display='block';
