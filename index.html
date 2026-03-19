@@ -293,6 +293,26 @@
 .messenger-btn:active{transform:scale(0.9)}
 .messenger-btn-badge{position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:8px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px}
 
+/* ══ CHAT REPLY / EDIT / SWIPE ══ */
+.reply-preview{display:none;padding:8px 12px;background:rgba(0,245,255,0.08);border-left:3px solid var(--accent);margin:0 12px 4px;border-radius:0 8px 8px 0;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);position:relative}
+.reply-preview.show{display:flex;align-items:center;gap:8px}
+.reply-preview-text{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.reply-preview-close{cursor:pointer;color:var(--muted);font-size:16px;line-height:1;padding:0 4px}
+.reply-bubble{background:rgba(0,245,255,0.06);border-left:2px solid var(--accent);border-radius:4px;padding:4px 8px;margin-bottom:4px;font-size:10px;color:var(--muted);font-family:Space Mono,monospace}
+.edit-mode-bar{display:none;padding:8px 12px;background:rgba(124,58,237,0.15);border-top:1px solid rgba(124,58,237,0.3);font-family:Space Mono,monospace;font-size:10px;color:var(--accent2);align-items:center;gap:8px}
+.edit-mode-bar.show{display:flex}
+.bubble-edited{font-family:Space Mono,monospace;font-size:8px;color:var(--muted);margin-left:4px}
+.swipe-reply-hint{position:absolute;left:-32px;top:50%;transform:translateY(-50%);font-size:18px;opacity:0;transition:opacity 0.2s;pointer-events:none}
+
+/* ══ DELETE DIALOG ══ */
+.delete-dialog-overlay{position:fixed;inset:0;z-index:10003;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center}
+.delete-dialog{background:var(--surface);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:480px}
+.delete-dialog-title{font-family:Orbitron,monospace;font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;text-align:center}
+.delete-dialog-check{display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:10px;margin-bottom:16px;cursor:pointer}
+.delete-dialog-check input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+.delete-dialog-check label{font-size:14px;color:var(--text);cursor:pointer;font-family:Rajdhani,sans-serif;font-weight:500}
+.delete-dialog-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
 /* ══ CHAT CONTEXT MENU ══ */
 .chat-ctx-overlay{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.5)}
 .chat-ctx-menu{position:fixed;z-index:10002;background:var(--surface);border:1px solid var(--border);border-radius:14px;min-width:200px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
@@ -354,10 +374,20 @@
       </div>
     </div>
     <div class="chat-messages" id="chatMessages"></div>
+    <div class="edit-mode-bar" id="editModeBar">
+      <span>✏️ Өңдеу режимі:</span>
+      <span id="editModeText" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)"></span>
+      <span onclick="cancelEditMode()" style="cursor:pointer;font-size:18px;line-height:1">✕</span>
+    </div>
+    <div class="reply-preview" id="replyPreview">
+      <span>↩️</span>
+      <div class="reply-preview-text" id="replyPreviewText"></div>
+      <span class="reply-preview-close" onclick="cancelReply()">✕</span>
+    </div>
     <div class="chat-input-wrap">
       <textarea class="chat-input" id="chatInput" placeholder="Хабарлама..." rows="1"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"
-        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';onChatInputTyping()"></textarea>
       <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
     </div>
   </div>
@@ -1865,7 +1895,7 @@ async function loadConversations() {
     }
     const myAdminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
     el.innerHTML = d.conversations.map(c => `
-      <div class="chat-user-item" onclick="openChatWith(${c.partner_id},'${c.partner_id===myAdminId?'Әкімші':esc(c.first_name||'Пайдаланушы')}','${esc(c.app_username||'')}','${c.partner_id===myAdminId?'⚡':esc(c.avatar||'🐱')}')">
+      <div class="chat-user-item" onclick="openChatWith(${c.partner_id},'${c.partner_id===myAdminId?'Әкімші':esc(c.first_name||'Пайдаланушы')}','${esc(c.app_username||'')}','${c.partner_id===myAdminId?'⚡':esc(c.avatar||'🐱')}')" oncontextmenu="event.preventDefault();showConvCtxMenu(event,${c.partner_id},'${esc(c.first_name||'')}')" ontouchstart="_convLongPressTimer=setTimeout(()=>showConvCtxMenu({clientX:event.touches[0].clientX,clientY:event.touches[0].clientY},${c.partner_id},'${esc(c.first_name||'')}'),600)" ontouchend="clearTimeout(_convLongPressTimer)" ontouchmove="clearTimeout(_convLongPressTimer)">
         <div class="chat-user-avatar">${c.partner_id===myAdminId?'⚡':(c.avatar||'🐱')}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:600;color:var(--text)">${c.partner_id===myAdminId?'⚡ Әкімші':esc(c.first_name||'Белгісіз')}</div>
@@ -1983,27 +2013,55 @@ async function sendChatMessage() {
   const myId = getTgUser()?.id;
   if (parseInt(_chatPartnerId) === parseInt(myId)) {
     showToast('⚠️ Өзіңізбен өзіңіз жазыса алмайсыз');
-    input.value = '';
-    return;
+    input.value = ''; return;
   }
   if (isChatPartnerBlocked()) {
     showToast('🚫 Бұл пайдаланушы бұғатталған');
-    input.value = '';
+    input.value = ''; return;
+  }
+
+  // Өңдеу режимі
+  if (_editMsgId) {
+    try {
+      await fetch(`${API_BASE}/chat`, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ initData: getTgInitData(), action: 'edit', messageId: _editMsgId, newText: text })
+      });
+      // UI жаңарту
+      const bubble = document.querySelector(`[data-msg-id="${_editMsgId}"]`);
+      if (bubble) {
+        const timeEl = bubble.querySelector('.chat-bubble-time');
+        const timeHtml = timeEl ? timeEl.outerHTML : '';
+        bubble.innerHTML = esc(text) + '<span class="bubble-edited">(өңделді)</span>' + timeHtml;
+      }
+      cancelEditMode();
+    } catch(e) { showToast('⚠️ Өңдеу қатесі'); }
     return;
   }
+
   input.value = ''; input.style.height = 'auto';
+  // Reply тазалау
+  const replyId = _replyToId;
+  const replyText = _replyToText;
+  cancelReply();
+
+  // Оптимистик UI
   const el = document.getElementById('chatMessages');
   const tmpWrapper = document.createElement('div');
   tmpWrapper.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:4px';
   const tmp = document.createElement('div');
   tmp.className = 'chat-bubble user';
-  tmp.innerHTML = esc(text) + '<div class="chat-bubble-time">Жіберілуде...</div>';
+  tmp.innerHTML = (replyText ? `<div class="reply-bubble">↩ ${esc(replyText)}</div>` : '') +
+    esc(text) + '<div class="chat-bubble-time">Жіберілуде...</div>';
   tmpWrapper.appendChild(tmp);
   el.appendChild(tmpWrapper); el.scrollTop = el.scrollHeight;
+
   try {
-    await fetch(`${API_BASE}/chat`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ initData: getTgInitData(), action: 'send', text, toUserId: _chatPartnerId })
+    await fetch(`${API_BASE}/chat`, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'send', text,
+        toUserId: _chatPartnerId,
+        reply_to_id: replyId || undefined,
+        reply_to_text: replyText || undefined,
+      })
     });
   } catch(e) { console.error(e); }
 }
@@ -2229,56 +2287,179 @@ function cancelLongPress() {
   clearTimeout(_longPressTimer);
 }
 
-function showChatCtxMenu(event, msgId, isMine) {
-  // Бұрынғы мәзірді жап
+// ── Reply state ─────────────────────────────────────────
+let _replyToId = null;
+let _convLongPressTimer = null;
+let _conversations = [];
+let _replyToText = null;
+let _editMsgId = null;
+
+function startReply(msgId, text) {
+  _replyToId = msgId;
+  _replyToText = text;
+  _editMsgId = null;
+  const bar = document.getElementById('editModeBar');
+  const preview = document.getElementById('replyPreview');
+  const previewText = document.getElementById('replyPreviewText');
+  if (bar) bar.classList.remove('show');
+  if (preview) preview.classList.add('show');
+  if (previewText) previewText.textContent = text;
+  document.getElementById('chatInput')?.focus();
+}
+
+function cancelReply() {
+  _replyToId = null; _replyToText = null;
+  document.getElementById('replyPreview')?.classList.remove('show');
+}
+
+function startEditMode(msgId, text) {
+  _editMsgId = msgId;
+  _replyToId = null; _replyToText = null;
+  document.getElementById('replyPreview')?.classList.remove('show');
+  const bar = document.getElementById('editModeBar');
+  const barText = document.getElementById('editModeText');
+  if (bar) bar.classList.add('show');
+  if (barText) barText.textContent = text;
+  const input = document.getElementById('chatInput');
+  if (input) { input.value = text; input.focus(); input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 80) + 'px'; }
+}
+
+function cancelEditMode() {
+  _editMsgId = null;
+  document.getElementById('editModeBar')?.classList.remove('show');
+  document.getElementById('chatInput').value = '';
+}
+
+// ── Swipe to reply ───────────────────────────────────────
+let _swipeStartX = 0;
+let _swipeEl = null;
+let _swipeMsgId = null;
+let _swipeText = null;
+let _swipeTriggered = false;
+
+function handleBubbleTouchStart(event, msgId, isMine, text) {
+  _swipeStartX = event.touches[0].clientX;
+  _swipeMsgId = msgId;
+  _swipeText = text;
+  _swipeTriggered = false;
+  _swipeEl = event.currentTarget;
+  startLongPress(event, msgId, isMine, text);
+}
+
+function handleBubbleTouchMove(event, msgId) {
+  cancelLongPress();
+  const dx = event.touches[0].clientX - _swipeStartX;
+  const hint = document.getElementById('hint_' + msgId);
+  // Солға сырғыту (dx < 0)
+  if (dx < -20 && dx > -80) {
+    if (_swipeEl) _swipeEl.style.transform = `translateX(${Math.max(dx, -60)}px)`;
+    if (hint) hint.style.opacity = Math.min(Math.abs(dx) / 60, 1);
+  } else if (dx >= 0) {
+    if (_swipeEl) _swipeEl.style.transform = '';
+    if (hint) hint.style.opacity = 0;
+  }
+  if (dx < -60 && !_swipeTriggered) {
+    _swipeTriggered = true;
+  }
+}
+
+function handleBubbleTouchEnd(event, msgId, isMine, text) {
+  cancelLongPress();
+  const hint = document.getElementById('hint_' + msgId);
+  if (_swipeEl) { _swipeEl.style.transform = ''; _swipeEl.style.transition = 'transform 0.2s'; setTimeout(() => { if (_swipeEl) _swipeEl.style.transition = ''; }, 200); }
+  if (hint) hint.style.opacity = 0;
+  if (_swipeTriggered) {
+    startReply(msgId, text);
+  }
+  _swipeEl = null; _swipeTriggered = false;
+}
+
+// ── Чаттар тізімінен чат мәзірі ─────────────────────────
+function showConvCtxMenu(event, partnerId, name) {
+  event.preventDefault();
+  event.stopPropagation();
   closeChatCtxMenu();
-
-  const myId = getTgUser()?.id;
-  const isBlocked = _blockedUsers.includes(parseInt(_chatPartnerId));
-  const isPinned = _pinnedMsgId === msgId;
-
+  const isBlocked = _blockedUsers.includes(parseInt(partnerId));
   const overlay = document.createElement('div');
   overlay.className = 'chat-ctx-overlay';
   overlay.id = 'chatCtxOverlay';
   overlay.onclick = closeChatCtxMenu;
-
   const menu = document.createElement('div');
   menu.className = 'chat-ctx-menu';
   menu.id = 'chatCtxMenu';
-
-  const items = [];
-
-  // Бекіту/Шешу
-  items.push(`<div class="chat-ctx-item" onclick="togglePinMessage(${msgId})">
-    ${isPinned ? '📌 Бекітуді шешу' : '📌 Бекіту'}
-  </div>`);
-  items.push('<div class="chat-ctx-divider"></div>');
-
-  // Тазалау (барлық чатты)
-  items.push(`<div class="chat-ctx-item warn" onclick="clearChatHistory()">
-    🗑 Чатты тазалау
-  </div>`);
-
-  // Бұғаттау/Шешу
-  items.push(`<div class="chat-ctx-item warn" onclick="toggleBlockUser()">
-    ${isBlocked ? '🔓 Бұғаттауды шешу' : '🚫 Бұғаттау'}
-  </div>`);
-
-  // Жою — тек өз хабарламасын жоя алады
-  if (isMine === true || isMine === 'true') {
-    items.push('<div class="chat-ctx-divider"></div>');
-    items.push(`<div class="chat-ctx-item danger" onclick="deleteMessage(${msgId})">
-      🗑 Жою
-    </div>`);
-  }
-
-  menu.innerHTML = items.join('');
-
-  // Мәзір позициясы
-  const x = Math.min(event.clientX, window.innerWidth - 220);
-  const y = Math.min(event.clientY, window.innerHeight - (items.length * 46 + 20));
+  menu.innerHTML = `
+    <div class="chat-ctx-item" onclick="pinConversation(${partnerId})">📌 Бекіту</div>
+    <div class="chat-ctx-divider"></div>
+    <div class="chat-ctx-item warn" onclick="clearConvHistory(${partnerId})">🗑 Тазалау</div>
+    <div class="chat-ctx-item warn" onclick="toggleBlockFromList(${partnerId})">${isBlocked?'🔓 Бұғаттан алу':'🚫 Бұғаттау'}</div>
+    <div class="chat-ctx-divider"></div>
+    <div class="chat-ctx-item danger" onclick="deleteConversation(${partnerId})">🗑 Жою</div>`;
+  const x = Math.min(event.clientX || 20, window.innerWidth - 220);
+  const y = Math.min(event.clientY || 100, window.innerHeight - 250);
   menu.style.cssText = `left:${x}px;top:${y}px`;
+  document.body.appendChild(overlay);
+  document.body.appendChild(menu);
+}
 
+async function pinConversation(partnerId) {
+  closeChatCtxMenu();
+  showToast('📌 Чат бекітілді');
+  // Тізімде жоғарыға шығару (жергілікті)
+  const conv = _conversations?.find(c => c.partner_id === partnerId);
+  if (conv) { conv._pinned = true; renderConversationList(); }
+}
+
+async function clearConvHistory(partnerId) {
+  closeChatCtxMenu();
+  if (!confirm('Барлық хабарламаларды жою?')) return;
+  const myId = getTgUser()?.id;
+  try {
+    await supabaseClient.from('chat_messages').delete()
+      .or(`and(from_user_id.eq.${myId},to_user_id.eq.${partnerId}),and(from_user_id.eq.${partnerId},to_user_id.eq.${myId})`);
+    loadConversations();
+    showToast('✅ Тазаланды');
+  } catch(e) { showToast('⚠️ Қате'); }
+}
+
+async function deleteConversation(partnerId) {
+  closeChatCtxMenu();
+  if (!confirm('Чатты жою?')) return;
+  await clearConvHistory(partnerId);
+}
+
+function toggleBlockFromList(partnerId) {
+  closeChatCtxMenu();
+  _chatPartnerId = partnerId;
+  toggleBlockUser();
+}
+
+function showChatCtxMenu(event, msgId, isMine, text) {
+  closeChatCtxMenu();
+  const isPinned = _pinnedMsgId === msgId;
+  const isMineB = isMine === true || isMine === 'true';
+  const safeText = (text||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const overlay = document.createElement('div');
+  overlay.className = 'chat-ctx-overlay'; overlay.id = 'chatCtxOverlay';
+  overlay.onclick = closeChatCtxMenu;
+  const menu = document.createElement('div');
+  menu.className = 'chat-ctx-menu'; menu.id = 'chatCtxMenu';
+  let html = '';
+  html += `<div class="chat-ctx-item" onclick="startReply(${msgId},'${safeText}');closeChatCtxMenu()">↩️ Жауап беру</div>`;
+  html += `<div class="chat-ctx-item" onclick="navigator.clipboard?.writeText(decodeURIComponent('${encodeURIComponent(text||'')}'));showToast('📋 Көшірілді');closeChatCtxMenu()">📋 Көшіру</div>`;
+  html += `<div class="chat-ctx-item" onclick="forwardMessage(${msgId},'${safeText}');closeChatCtxMenu()">↪️ Жөнелту</div>`;
+  html += `<div class="chat-ctx-item" onclick="togglePinMessage(${msgId});closeChatCtxMenu()">${isPinned?'📌 Бекітуді шешу':'📌 Бекіту'}</div>`;
+  if (isMineB) {
+    html += `<div class="chat-ctx-item" onclick="startEditMode(${msgId},'${safeText}');closeChatCtxMenu()">✏️ Өңдеу</div>`;
+    html += '<div class="chat-ctx-divider"></div>';
+    html += `<div class="chat-ctx-item danger" onclick="closeChatCtxMenu();deleteMessage(${msgId})">🗑 Жою</div>`;
+  } else {
+    html += '<div class="chat-ctx-divider"></div>';
+    html += `<div class="chat-ctx-item danger" onclick="closeChatCtxMenu();deleteMessage(${msgId})">🗑 Жою</div>`;
+  }
+  menu.innerHTML = html;
+  const x = Math.min(event.clientX||20, window.innerWidth-220);
+  const y = Math.min(event.clientY||100, window.innerHeight-300);
+  menu.style.cssText = `left:${x}px;top:${y}px`;
   document.body.appendChild(overlay);
   document.body.appendChild(menu);
 }
@@ -2288,15 +2469,76 @@ function closeChatCtxMenu() {
   document.getElementById('chatCtxMenu')?.remove();
 }
 
-async function deleteMessage(msgId) {
-  closeChatCtxMenu();
-  if (!supabaseClient) return;
+function showDeleteDialog(msgIds, partnerName) {
+  // Бұрынғы dialog-ды жап
+  document.getElementById('deleteDialogOverlay')?.remove();
+
+  const count = Array.isArray(msgIds) ? msgIds.length : 1;
+  const ids = Array.isArray(msgIds) ? msgIds : [msgIds];
+  const title = count === 1 ? 'Хатты жою' : `${count} хатты жою`;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'delete-dialog-overlay';
+  overlay.id = 'deleteDialogOverlay';
+
+  overlay.innerHTML = `
+    <div class="delete-dialog">
+      <div class="delete-dialog-title">${title}</div>
+      <label class="delete-dialog-check">
+        <input type="checkbox" id="deleteForPartner">
+        <span>${esc(partnerName||'Серіктес')} үшін де жою</span>
+      </label>
+      <div class="delete-dialog-btns">
+        <button class="btn btn-ghost" onclick="document.getElementById('deleteDialogOverlay').remove()" style="justify-content:center">← Артқа</button>
+        <button class="btn btn-danger" onclick="confirmDeleteMessages([${ids.join(',')}])" style="justify-content:center">🗑 Жою</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+}
+
+async function confirmDeleteMessages(ids) {
+  const forPartner = document.getElementById('deleteForPartner')?.checked;
+  document.getElementById('deleteDialogOverlay')?.remove();
+
+  for (const msgId of ids) {
+    try {
+      const action = forPartner ? 'delete_for_all' : 'delete_for_me';
+      await fetch(`${API_BASE}/chat`, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ initData: getTgInitData(), action, messageId: msgId })
+      });
+      document.getElementById(`wrap_${msgId}`)?.remove();
+    } catch(e) { console.error(e); }
+  }
+  showToast('✅ Жойылды');
+}
+
+async function deleteMessage(msgId, mode) {
+  // Dialog арқылы жою
+  const partnerName = document.getElementById('chatHeaderName')?.textContent || 'Серіктес';
+  showDeleteDialog([msgId], partnerName);
+}
+
+async function forwardMessage(msgId, text) {
+  // Жөнелту — чаттар тізімінен серіктес таңдату
+  const convs = document.querySelectorAll('.chat-user-item');
+  if (!convs.length) { showToast('⚠️ Жөнелтуге чат жоқ'); return; }
+  // Қарапайым prompt арқылы @username сұрау
+  const username = prompt('Жөнелту үшін @username енгізіңіз:');
+  if (!username) return;
+  const q = username.replace('@','').toLowerCase();
   try {
-    await supabaseClient.from('chat_messages').delete()
-      .eq('id', msgId).eq('from_user_id', getTgUser()?.id);
-    // UI-дан алып тастау
-    document.querySelector(`[data-msg-id="${msgId}"]`)?.closest('div[style*="flex"]')?.remove();
-  } catch(e) { showToast('⚠️ Жою қатесі'); }
+    const r = await fetch(`${API_BASE}/chat`, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'search', query: q })
+    });
+    const d = await r.json();
+    if (!d.ok || !d.users?.length) { showToast('⚠️ Пайдаланушы табылмады'); return; }
+    const target = d.users[0];
+    await fetch(`${API_BASE}/chat`, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'send', toUserId: target.id, text: '↪️ ' + text })
+    });
+    showToast(`✅ @${target.app_username}-ға жөнелтілді`);
+  } catch(e) { showToast('⚠️ Қате'); }
 }
 
 async function clearChatHistory() {
@@ -3217,6 +3459,8 @@ async function loadQuizzesFromDB(){
       };
     });
     updateHeader();renderLibrary();updateExportSelect();updateGameQuizSelect();
+    // Тесттер жоқ болса үлгі тест қос
+    if(!state.quizzes.length) loadSample();
   }catch(e){console.error('loadQuizzesFromDB:',e);}
 }
 
