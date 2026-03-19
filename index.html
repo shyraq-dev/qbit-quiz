@@ -2869,6 +2869,45 @@ function openAdminChatWith(partnerId, name, username, avatar){
   subscribeChatRealtime(partnerId);
 }
 
+async function editBio(current) {
+  // Bio редактор modal
+  const existing = document.getElementById('bioModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'bioModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:480px">
+      <div style="font-family:Orbitron,monospace;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px">✏️ ӨЗІ ЖАЙЛЫ</div>
+      <textarea id="bioInput" maxlength="200" placeholder="Өзіңіз жайлы жазыңыз..." style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:14px;padding:10px;resize:none;outline:none;transition:border 0.2s;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">${esc(current||'')}</textarea>
+      <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);text-align:right;margin-top:4px"><span id="bioCount">${(current||'').length}</span>/200</div>
+      <div style="display:grid;grid-template-columns:${current?'1fr 1fr 1fr':'1fr 1fr'};gap:8px;margin-top:12px">
+        <button class="btn btn-ghost" onclick="document.getElementById('bioModal').remove()" style="justify-content:center">← Артқа</button>
+        ${current?`<button class="btn btn-danger" onclick="saveBio(null)" style="justify-content:center">🗑 Өшіру</button>`:''}
+        <button class="btn btn-cyan" onclick="saveBio(document.getElementById('bioInput').value)" style="justify-content:center">✅ Сақтау</button>
+      </div>
+    </div>`;
+  modal.querySelector('#bioInput').addEventListener('input', function() {
+    document.getElementById('bioCount').textContent = this.value.length;
+  });
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+  setTimeout(() => modal.querySelector('#bioInput')?.focus(), 100);
+}
+
+async function saveBio(bioText) {
+  document.getElementById('bioModal')?.remove();
+  try {
+    await fetch(`${API_BASE}/profile`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'update_bio', bio: bioText || '' })
+    });
+    showToast(bioText ? '✅ Bio сақталды' : '✅ Bio өшірілді');
+    loadProfile(); // Профильді жаңарту
+  } catch(e) { showToast('⚠️ Қате'); }
+}
+
 async function loadProfile(){
   const c=document.getElementById('profileContent');const user=getTgUser();
   if(!user){c.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Telegram арқылы кіріңіз</div></div>';return;}
@@ -2903,6 +2942,13 @@ async function loadProfile(){
         </div>
         <div class="title-badge" style="color:${title.color};background:${title.bg};border:1px solid ${title.border};margin-bottom:8px">${title.label}</div>
         <div class="profile-rank-pill">🏅 Рейтинг: #${d.rank}</div>
+        <div id="profileBioBlock" style="margin-top:12px;width:100%;text-align:center">
+          ${u.bio
+            ? `<div style="font-size:13px;color:var(--muted);line-height:1.5;padding:0 16px;cursor:pointer" onclick="editBio('${esc(u.bio||'').replace(/'/g,"\\'")}')">${esc(u.bio)}</div>
+               <button onclick="editBio('${esc(u.bio||'').replace(/'/g,"\\'")}')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:9px;color:var(--accent);cursor:pointer;margin-top:4px">✏️ өңдеу</button>`
+            : `<button onclick="editBio('')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer;border:1px dashed var(--border);border-radius:8px;padding:6px 14px">+ өзіңіз жайлы жазыңыз</button>`
+          }
+        </div>
       </div>
       <div class="profile-stats">
         <div class="ps-box"><div class="ps-val">${u.total_games}</div><div class="ps-lbl">ОЙЫН</div></div>
