@@ -441,9 +441,13 @@
       </div>
     </div>
     <div class="header-right">
-      <div id="adminBadge"></div>
-      <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Тема ауыстыру"><div class="theme-toggle-knob" id="themeKnob">🌙</div></button>
-      <div class="notif-bell" onclick="openNotifPanel()" id="notifBell">🔔<span class="notif-badge" id="notifBadge"></span></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Тема ауыстыру"><div class="theme-toggle-knob" id="themeKnob">🌙</div></button>
+          <div class="notif-bell" onclick="openNotifPanel()" id="notifBell">🔔<span class="notif-badge" id="notifBadge"></span></div>
+        </div>
+        <div id="adminBadge"></div>
+      </div>
       <div style="display:flex;gap:16px;">
         <div class="stat-chip"><div class="stat-val" id="totalQuizzes">0</div><div class="stat-label">тест</div></div>
         <div class="stat-chip"><div class="stat-val" id="totalPlays">0</div><div class="stat-label">ойын</div></div>
