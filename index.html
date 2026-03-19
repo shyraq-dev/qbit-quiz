@@ -298,7 +298,9 @@
 .reply-preview.show{display:flex;align-items:center;gap:8px}
 .reply-preview-text{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .reply-preview-close{cursor:pointer;color:var(--muted);font-size:16px;line-height:1;padding:0 4px}
-.reply-bubble{background:rgba(0,245,255,0.06);border-left:2px solid var(--accent);border-radius:4px;padding:4px 8px;margin-bottom:4px;font-size:10px;color:var(--muted);font-family:Space Mono,monospace}
+.reply-bubble{background:rgba(0,0,0,0.15);border-left:3px solid var(--accent);border-radius:4px;padding:5px 8px;margin-bottom:6px;cursor:pointer;overflow:hidden}
+.reply-bubble-name{font-family:Space Mono,monospace;font-size:9px;color:var(--accent);margin-bottom:2px;font-weight:700}
+.reply-bubble-text{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
 .edit-mode-bar{display:none;padding:8px 12px;background:rgba(124,58,237,0.15);border-top:1px solid rgba(124,58,237,0.3);font-family:Space Mono,monospace;font-size:10px;color:var(--accent2);align-items:center;gap:8px}
 .edit-mode-bar.show{display:flex}
 .bubble-edited{font-family:Space Mono,monospace;font-size:8px;color:var(--muted);margin-left:4px}
@@ -2050,7 +2052,11 @@ async function sendChatMessage() {
   tmpWrapper.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:4px';
   const tmp = document.createElement('div');
   tmp.className = 'chat-bubble user';
-  tmp.innerHTML = (replyText ? `<div class="reply-bubble">↩ ${esc(replyText)}</div>` : '') +
+  tmp.innerHTML = (replyText ? `
+    <div class="reply-bubble">
+      <div class="reply-bubble-name">↩ Жауап</div>
+      <div class="reply-bubble-text">${esc(replyText)}</div>
+    </div>` : '') +
     esc(text) + '<div class="chat-bubble-time">Жіберілуде...</div>';
   tmpWrapper.appendChild(tmp);
   el.appendChild(tmpWrapper); el.scrollTop = el.scrollHeight;
@@ -2598,6 +2604,20 @@ function togglePinMessage(msgId) {
 // sendChatMessage-те бұғатталған пайдаланушыны тексеру
 function isChatPartnerBlocked() {
   return _blockedUsers.includes(parseInt(_chatPartnerId));
+}
+
+function scrollToMsg(msgId) {
+  if (!msgId) return;
+  const el = document.getElementById(`wrap_${msgId}`);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Жыпылықтау эффектісі
+  const bubble = el.querySelector('.chat-bubble');
+  if (bubble) {
+    bubble.style.transition = 'background 0.3s';
+    bubble.style.background = 'rgba(0,245,255,0.2)';
+    setTimeout(() => { bubble.style.background = ''; }, 800);
+  }
 }
 
 function showReadTooltip(el, time) {
