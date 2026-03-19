@@ -2489,8 +2489,8 @@ function showChatCtxMenu(event, msgId, isMine, text) {
   menu.className = 'chat-ctx-menu'; menu.id = 'chatCtxMenu';
   let html = '';
 
-  html += `<div class="chat-ctx-item" onclick="navigator.clipboard?.writeText(decodeURIComponent('${encodeURIComponent(text||'')}'));showToast('📋 Көшірілді');closeChatCtxMenu()">📋 Көшіру</div>`;
-  html += `<div class="chat-ctx-item" onclick="forwardMessage(${msgId},'${safeText}');closeChatCtxMenu()">↪️ Жөнелту</div>`;
+  html += `<div class="chat-ctx-item" onclick="copyMsgById(${msgId});closeChatCtxMenu()">📋 Көшіру</div>`;
+  html += `<div class="chat-ctx-item" onclick="forwardMsgById(${msgId});closeChatCtxMenu()">↪️ Жөнелту</div>`;
   html += `<div class="chat-ctx-item" onclick="togglePinMessage(${msgId});closeChatCtxMenu()">${isPinned?'📌 Бекітуді шешу':'📌 Бекіту'}</div>`;
   if (isMineB) {
     html += `<div class="chat-ctx-item" onclick="startEditMode(${msgId},'${safeText}');closeChatCtxMenu()">✏️ Өңдеу</div>`;
@@ -2563,6 +2563,29 @@ async function deleteMessage(msgId, mode) {
   showDeleteDialog([msgId], partnerName);
 }
 
+function getMsgText(msgId) {
+  const el = document.querySelector(`[data-msg-id="${msgId}"]`);
+  if (!el) return '';
+  // reply bubble мен edited span-ды алып тастап тек негізгі мәтін алу
+  const clone = el.cloneNode(true);
+  clone.querySelectorAll('.reply-bubble,.chat-bubble-time,.read-tooltip,.bubble-edited,.msg-status').forEach(e=>e.remove());
+  return clone.textContent.trim();
+}
+
+function copyMsgById(msgId) {
+  const text = getMsgText(msgId);
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('📋 Көшірілді'));
+  } else {
+    showToast('⚠️ Браузер қолдамайды');
+  }
+}
+
+async function forwardMsgById(msgId) {
+  const text = getMsgText(msgId);
+  forwardMessage(msgId, text);
+}
+
 async function forwardMessage(msgId, text) {
   // Жөнелту — чаттар тізімінен серіктес таңдату
   const convs = document.querySelectorAll('.chat-user-item');
@@ -2579,7 +2602,7 @@ async function forwardMessage(msgId, text) {
     if (!d.ok || !d.users?.length) { showToast('⚠️ Пайдаланушы табылмады'); return; }
     const target = d.users[0];
     await fetch(`${API_BASE}/chat`, { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ initData: getTgInitData(), action: 'send', toUserId: target.id, text: '↪️ ' + text })
+      body: JSON.stringify({ initData: getTgInitData(), action: 'send', toUserId: target.id, text: text })
     });
     showToast(`✅ @${target.app_username}-ға жөнелтілді`);
   } catch(e) { showToast('⚠️ Қате'); }
