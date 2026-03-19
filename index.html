@@ -2429,7 +2429,7 @@ function showConvCtxMenu(event, partnerId, name) {
   menu.className = 'chat-ctx-menu';
   menu.id = 'chatCtxMenu';
   menu.innerHTML = `
-    <div class="chat-ctx-item" onclick="pinConversation(${partnerId})">📌 Бекіту</div>
+    <div class="chat-ctx-item" onclick="pinConversation(${partnerId})">\${(_conversations?.find(c=>c.partner_id===${partnerId})?._pinned)?'📌 Бекітуді шешу':'📌 Бекіту'}</div>
     <div class="chat-ctx-divider"></div>
     <div class="chat-ctx-item warn" onclick="clearConvHistory(${partnerId})">🗑 Тазалау</div>
     <div class="chat-ctx-item warn" onclick="toggleBlockFromList(${partnerId})">${isBlocked?'🔓 Бұғаттан алу':'🚫 Бұғаттау'}</div>
@@ -2444,10 +2444,12 @@ function showConvCtxMenu(event, partnerId, name) {
 
 async function pinConversation(partnerId) {
   closeChatCtxMenu();
-  showToast('📌 Чат бекітілді');
-  // Тізімде жоғарыға шығару (жергілікті)
   const conv = _conversations?.find(c => c.partner_id === partnerId);
-  if (conv) { conv._pinned = true; renderConversationList(); }
+  if (conv) {
+    conv._pinned = !conv._pinned;
+    showToast(conv._pinned ? '📌 Чат бекітілді' : '📌 Бекіту шешілді');
+    renderConversationList();
+  }
 }
 
 async function clearConvHistory(partnerId) {
@@ -3522,8 +3524,6 @@ async function loadQuizzesFromDB(){
 async function loadSample(){
   if(!supabaseClient) return;
   try{
-    const {count}=await supabaseClient.from('quizzes').select('*',{count:'exact',head:true});
-    if(count>0) return;
     const user=getTgUser();
     await supabaseClient.from('quizzes').insert({
       data:{
