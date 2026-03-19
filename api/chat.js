@@ -62,14 +62,21 @@ module.exports = async (req, res) => {
     }
     if (action==='messages') {
       if (!toUserId) return res.json({ok:false,error:'toUserId керек'});
-      const {data} = await supabase.from('chat_messages').select('*').or(`and(from_user_id.eq.${user.id},to_user_id.eq.${toUserId}),and(from_user_id.eq.${toUserId},to_user_id.eq.${user.id})`).order('created_at',{ascending:true}).limit(100);
+      const {data: allMsgs} = await supabase.from('chat_messages').select('*').or(`and(from_user_id.eq.${user.id},to_user_id.eq.${toUserId}),and(from_user_id.eq.${toUserId},to_user_id.eq.${user.id})`).order('created_at',{ascending:true}).limit(100);
+      // Өзі үшін жойылған хаттарды фильтрлеу
+      const data = (allMsgs||[]).filter(m => !(m.deleted_for||[]).includes(user.id));
       await supabase.from('chat_messages').update({is_read:true,is_delivered:true}).eq('from_user_id',toUserId).eq('to_user_id',user.id).eq('is_read',false);
       return res.json({ok:true,messages:data||[]});
     }
     if (action==='send') {
       if (!toUserId) return res.json({ok:false,error:'toUserId керек'});
       if (!text||text.trim().length<1) return res.json({ok:false,error:'Бос'});
-      const {data} = await supabase.from('chat_messages').insert({from_user_id:user.id,to_user_id:toUserId,text:text.trim(),is_delivered:false,is_read:false}).select().single();
+      const { reply_to_id, reply_to_text } = req.body;
+      const {data} = await supabase.from('chat_messages').insert({
+        from_user_id:user.id, to_user_id:toUserId, text:text.trim(),
+        is_delivered:false, is_read:false,
+        reply_to_id: reply_to_id||null, reply_to_text: reply_to_text||null,
+      }).select().single();
       return res.json({ok:true,message:data});
     }
     if (action==='mark_read') {
@@ -80,6 +87,40 @@ module.exports = async (req, res) => {
     if (action==='unread') {
       const {count} = await supabase.from('chat_messages').select('*',{count:'exact',head:true}).eq('to_user_id',user.id).eq('is_read',false);
       return res.json({ok:true,count:count||0});
+    }
+    // ── Хатты өңдеу ─────────────────────────────────────
+    if (action==='edit') {
+      const { messageId, newText } = req.body;
+      if (!messageId || !newText?.trim()) return res.json({ok:false,error:'Бос'});
+      await supabase.from('chat_messages')
+        .update({ text: newText.trim(), edited_text: newText.trim(), is_edited: true })
+        .eq('id', messageId).eq('from_user_id', user.id);
+      return res.json({ok:true});
+    }
+    // ── Хатты жою (тек өзі үшін) ─────────────────────────
+    if (action==='delete_for_me') {
+      const { messageId } = req.body;
+      const { data: msg } = await supabase.from('chat_messages')
+        .select('deleted_for').eq('id', messageId).single();
+      const deletedFor = msg?.deleted_for || [];
+      if (!deletedFor.includes(user.id)) deletedFor.push(user.id);
+      await supabase.from('chat_messages').update({ deleted_for: deletedFor }).eq('id', messageId);
+      return res.json({ok:true});
+    }
+    // ── Хатты жою (екеуі үшін де) ────────────────────────
+    if (action==='delete_for_all') {
+      const { messageId } = req.body;
+      await supabase.from('chat_messages').delete()
+        .eq('id', messageId).eq('from_user_id', user.id);
+      return res.json({ok:true});
+    }
+    // ── Чатты бекіту/шешу ────────────────────────────────
+    if (action==='pin_conversation') {
+      const { partnerId, pin } = req.body;
+      await supabase.from('users').update({
+        pinned_chat: pin ? partnerId : null
+      }).eq('id', user.id);
+      return res.json({ok:true});
     }
     return res.status(400).json({ok:false,error:'Unknown action'});
   } catch(e) {
