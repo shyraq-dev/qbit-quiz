@@ -59,6 +59,7 @@
   .btn-ghost.active,.adm-nav.active{color:var(--accent);border-color:rgba(0,245,255,0.3);background:rgba(0,245,255,0.08);}
   .btn-sm{padding:5px 12px;font-size:13px;}
   .btn-lg{padding:14px 28px;font-size:17px;}
+  /* Edit mode banner */
   .edit-mode-banner{background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(0,245,255,0.08));border:1px solid rgba(0,245,255,0.35);border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .edit-mode-label{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent);letter-spacing:1.5px;}
   .edit-mode-title{font-size:14px;font-weight:600;color:var(--text);margin-top:2px;}
@@ -130,7 +131,7 @@
   .lb-score-sub{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);text-align:right;}
   .lb-me-row{background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(0,245,255,0.05));border-color:rgba(0,245,255,0.25);}
   .profile-hero{text-align:center;padding:24px 20px 18px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(0,245,255,0.05));border:1px solid var(--border);border-radius:18px;margin-bottom:14px;}
-  .profile-avatar{width:80px;height:80px;border-radius:50%;margin:0 auto 10px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:52px;border:3px solid rgba(0,245,255,0.3);box-shadow:var(--glow);cursor:pointer;transition:transform 0.2s;overflow:hidden;line-height:1;}
+  .profile-avatar{width:80px;height:80px;border-radius:50%;margin:0 auto 10px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:40px;border:3px solid rgba(0,245,255,0.3);box-shadow:var(--glow);cursor:pointer;transition:transform 0.2s;overflow:hidden;line-height:1;}
   .profile-avatar:hover{transform:scale(1.06);}
   .profile-name{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);margin-bottom:3px;}
   .profile-username{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px;}
@@ -139,13 +140,10 @@
   .avatar-modal{position:fixed;inset:0;background:rgba(3,7,18,0.92);z-index:9990;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.2s ease;}
   .avatar-modal-box{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:520px;max-height:80vh;overflow-y:auto;}
   .avatar-modal-title{font-family:'Orbitron',monospace;font-size:13px;color:var(--accent);letter-spacing:2px;margin-bottom:16px;text-align:center;}
-
-  /* ── FIX 1: avatar-grid + avatar-option ── */
-  .avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;place-items:center;}
-  .avatar-option{width:48px;height:48px;min-width:48px;min-height:48px;border-radius:50% !important;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:34px;cursor:pointer;transition:all 0.15s;margin:0;overflow:hidden !important;line-height:1;flex-shrink:0;}
+  .avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;}
+  .avatar-option{width:50px;height:50px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;transition:all 0.15s;margin:0 auto;overflow:hidden;line-height:1;}
   .avatar-option:hover{border-color:var(--accent);transform:scale(1.1);}
   .avatar-option.selected{border-color:var(--accent);background:rgba(0,245,255,0.12);box-shadow:0 0 12px rgba(0,245,255,0.35);}
-
   .player-chip-avatar{font-size:26px;margin-bottom:3px;}
   .player-chip{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;animation:popIn 0.3s ease;}
   .player-chip.me{border-color:var(--accent);background:rgba(0,245,255,0.08);}
@@ -164,6 +162,8 @@
   .game-code{font-family:'Orbitron',monospace;font-size:48px;font-weight:900;color:var(--accent);text-shadow:var(--glow);letter-spacing:8px;margin:12px 0;}
   .game-code-label{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
   .player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:16px;}
+  .player-chip{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;animation:popIn 0.3s ease;}
+  .player-chip.me{border-color:var(--accent);background:rgba(0,245,255,0.08);}
   @keyframes popIn{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}
   .player-chip-name{font-size:13px;font-weight:600;color:var(--text);}
   .player-chip-score{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent);margin-top:2px;}
@@ -215,10 +215,12 @@
   ::-webkit-scrollbar{width:3px;}
   ::-webkit-scrollbar-track{background:var(--surface);}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  /* Санат фильтр батырмалары */
   .cat-filter-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;transition:all 0.2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
   .cat-filter-btn:hover{border-color:rgba(0,245,255,0.3);color:var(--text);}
   .cat-filter-btn.active{background:rgba(0,245,255,0.1);border-color:rgba(0,245,255,0.4);color:var(--accent);}
   .cat-filter-btn .cat-count{background:rgba(0,245,255,0.15);border-radius:10px;padding:1px 6px;font-size:9px;}
+  /* Санат стат карточкасы */
   .cat-stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:all 0.2s;text-align:center;}
   .cat-stat-card:hover{border-color:rgba(0,245,255,0.25);transform:translateY(-2px);}
   .cat-stat-card.active{border-color:rgba(0,245,255,0.4);background:rgba(0,245,255,0.06);}
@@ -233,6 +235,7 @@
     #app{padding:14px;padding-bottom:90px;}
   }
 
+  /* ── TELEGRAM LOGIN ЭКРАНЫ ── */
   #loginScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px;}
   #loginScreen::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
   .login-logo{display:flex;flex-direction:column;align-items:center;gap:12px;}
@@ -248,64 +251,68 @@
   .login-loading::before{content:'';width:16px;height:16px;border:2px solid rgba(0,245,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ── FIX 2: chat input wrap + send button ── */
-  .chat-screen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;background:var(--bg);display:none;flex-direction:column;}
-  .chat-screen.open{display:flex;}
-  .chat-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
-  .chat-header-back{background:none;border:none;color:var(--accent);font-size:20px;cursor:pointer;padding:0;line-height:1;}
-  .chat-header-info{flex:1;}
-  .chat-header-name{font-family:Orbitron,monospace;font-size:13px;font-weight:700;color:var(--text);}
-  .chat-header-status{font-family:Space Mono,monospace;font-size:9px;color:var(--accent3);}
-  .chat-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;}
-  .chat-bubble{max-width:80%;padding:9px 12px;border-radius:16px;font-size:13px;line-height:1.4;word-break:break-word;position:relative;}
-  .chat-bubble.user{align-self:flex-end;background:linear-gradient(135deg,rgba(0,245,255,0.2),rgba(124,58,237,0.2));border:1px solid rgba(0,245,255,0.3);border-bottom-right-radius:4px;color:var(--text);}
-  .chat-bubble.admin{align-self:flex-start;background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--text);}
-  .chat-bubble-time{font-family:Space Mono,monospace;font-size:8px;color:var(--muted);margin-top:4px;text-align:right;}
-  .chat-bubble.admin .chat-bubble-time{text-align:left;}
-  .chat-input-wrap{display:flex;flex-direction:row;align-items:flex-end;gap:8px;padding:10px 12px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;min-height:58px;}
-  .chat-input{flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:Space Mono,monospace;font-size:12px;padding:9px 14px;resize:none;outline:none;max-height:80px;overflow-y:auto;line-height:1.4;transition:border 0.2s;scrollbar-width:none;-ms-overflow-style:none;display:block;}
-  .chat-input:focus{border-color:var(--accent);}
-  .chat-input::-webkit-scrollbar{display:none;}
-  .chat-send-btn{width:38px;height:38px;min-width:38px;min-height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:transform 0.1s;margin-bottom:0;align-self:flex-end;}
-  .chat-send-btn:active{transform:scale(0.9);}
-  .chat-user-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;cursor:pointer;transition:background 0.2s;border:1px solid transparent;}
-  .chat-user-item:hover{background:rgba(0,245,255,0.05);border-color:rgba(0,245,255,0.1);}
-  .chat-user-avatar{font-size:28px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border-radius:50%;flex-shrink:0;}
-  .chat-unread-badge{background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:9px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
-  .messenger-btn{position:fixed;bottom:80px;right:16px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,245,255,0.3);z-index:100;transition:transform 0.2s;}
-  .messenger-btn:active{transform:scale(0.9);}
-  .messenger-btn-badge{position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:8px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px;}
-  .notif-bell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.2);cursor:pointer;transition:all 0.2s;}
-  .notif-bell:hover{background:rgba(0,245,255,0.15);}
-  .notif-badge{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;display:none;}
-  .notif-panel{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;display:none;flex-direction:column;}
-  .notif-panel.open{display:flex;}
-  .notif-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.6);}
-  .notif-drawer{position:absolute;top:0;right:0;bottom:0;width:min(360px,100vw);background:var(--surface);display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,0.4);}
-  .notif-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border);}
-  .notif-header-title{font-family:Orbitron,monospace;font-size:14px;font-weight:700;color:var(--accent);letter-spacing:1px;}
-  .notif-list{flex:1;overflow-y:auto;padding:8px;}
-  .notif-item{padding:12px;border-radius:10px;margin-bottom:6px;cursor:pointer;transition:all 0.2s;border:1px solid transparent;}
-  .notif-item:hover{background:rgba(0,245,255,0.05);border-color:rgba(0,245,255,0.1);}
-  .notif-item.unread{background:rgba(0,245,255,0.06);border-color:rgba(0,245,255,0.15);}
-  .notif-item-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
-  .notif-item-body{font-size:11px;color:var(--muted);font-family:Space Mono,monospace;}
-  .notif-item-time{font-size:9px;color:var(--muted);font-family:Space Mono,monospace;margin-top:4px;opacity:0.7;}
-  .notif-empty{text-align:center;padding:40px 20px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;}
+/* ══ CHAT STYLES ══ */
+.chat-screen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;background:var(--bg);display:none;flex-direction:column}
+.chat-screen.open{display:flex}
+.chat-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
+.chat-header-back{background:none;border:none;color:var(--accent);font-size:20px;cursor:pointer;padding:0;line-height:1}
+.chat-header-info{flex:1}
+.chat-header-name{font-family:Orbitron,monospace;font-size:13px;font-weight:700;color:var(--text)}
+.chat-header-status{font-family:Space Mono,monospace;font-size:9px;color:var(--accent3)}
+.chat-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.chat-bubble{max-width:80%;padding:9px 12px;border-radius:16px;font-size:13px;line-height:1.4;word-break:break-word;position:relative}
+.chat-bubble.user{align-self:flex-end;background:linear-gradient(135deg,rgba(0,245,255,0.2),rgba(124,58,237,0.2));border:1px solid rgba(0,245,255,0.3);border-bottom-right-radius:4px;color:var(--text)}
+.chat-bubble.admin{align-self:flex-start;background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--text)}
+.chat-bubble-time{font-family:Space Mono,monospace;font-size:8px;color:var(--muted);margin-top:4px;text-align:right}
+.chat-bubble.admin .chat-bubble-time{text-align:left}
+.chat-input-wrap{display:flex;align-items:flex-end;gap:8px;padding:10px 12px;border-top:1px solid var(--border);background:var(--surface)}
+.chat-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:Space Mono,monospace;font-size:12px;padding:9px 14px;resize:none;outline:none;max-height:80px;overflow-y:auto;line-height:1.4;transition:border 0.2s;scrollbar-width:none;-ms-overflow-style:none;}
+.chat-input:focus{border-color:var(--accent)}
+.chat-input::-webkit-scrollbar{display:none}
+.chat-send-btn{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:transform 0.1s;margin-bottom:1px}
+.chat-send-btn:active{transform:scale(0.9)}
+.chat-user-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;cursor:pointer;transition:background 0.2s;border:1px solid transparent}
+.chat-user-item:hover{background:rgba(0,245,255,0.05);border-color:rgba(0,245,255,0.1)}
+.chat-user-avatar{font-size:28px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border-radius:50%;flex-shrink:0}
+.chat-unread-badge{background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:9px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.messenger-btn{position:fixed;bottom:80px;right:16px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,245,255,0.3);z-index:100;transition:transform 0.2s}
+.messenger-btn:active{transform:scale(0.9)}
+.messenger-btn-badge{position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:8px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px}
+
+/* ══ NOTIFICATION STYLES ══ */
+.notif-bell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.2);cursor:pointer;transition:all 0.2s}
+.notif-bell:hover{background:rgba(0,245,255,0.15)}
+.notif-badge{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;display:none}
+.notif-panel{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;display:none;flex-direction:column}
+.notif-panel.open{display:flex}
+.notif-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.6)}
+.notif-drawer{position:absolute;top:0;right:0;bottom:0;width:min(360px,100vw);background:var(--surface);display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,0.4)}
+.notif-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border)}
+.notif-header-title{font-family:Orbitron,monospace;font-size:14px;font-weight:700;color:var(--accent);letter-spacing:1px}
+.notif-list{flex:1;overflow-y:auto;padding:8px}
+.notif-item{padding:12px;border-radius:10px;margin-bottom:6px;cursor:pointer;transition:all 0.2s;border:1px solid transparent}
+.notif-item:hover{background:rgba(0,245,255,0.05);border-color:rgba(0,245,255,0.1)}
+.notif-item.unread{background:rgba(0,245,255,0.06);border-color:rgba(0,245,255,0.15)}
+.notif-item-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.notif-item-body{font-size:11px;color:var(--muted);font-family:Space Mono,monospace}
+.notif-item-time{font-size:9px;color:var(--muted);font-family:Space Mono,monospace;margin-top:4px;opacity:0.7}
+.notif-empty{text-align:center;padding:40px 20px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px}
 </style>
 </head>
 <body>
 <!-- MESSENGER SCREEN -->
 <div class="chat-screen" id="messengerScreen">
+  <!-- Чаттар тізімі -->
   <div id="messengerHome" style="display:flex;flex-direction:column;height:100%">
     <div class="chat-header">
       <button class="chat-header-back" onclick="closeMessenger()">←</button>
       <div class="chat-header-info">
         <div class="chat-header-name">💬 ХАБАРЛАР</div>
       </div>
+
     </div>
     <div style="padding:10px 12px;border-bottom:1px solid var(--border)">
-      <input id="messengerSearch" placeholder="@username іздеу..."
+      <input id="messengerSearch" placeholder="@username іздеу..." 
         style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:Space Mono,monospace;font-size:12px;padding:8px 14px;outline:none"
         oninput="searchUsers(this.value)">
       <div id="searchResults" style="margin-top:8px"></div>
@@ -313,6 +320,7 @@
     <div id="conversationList" style="flex:1;overflow-y:auto;padding:8px"></div>
   </div>
 
+  <!-- Чат экраны -->
   <div id="chatWindow" style="display:none;flex-direction:column;height:100%">
     <div class="chat-header">
       <button class="chat-header-back" onclick="backToConversations()">←</button>
@@ -363,12 +371,10 @@
     <div style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted);margin-top:14px;text-align:center">📱 Telegram қосымшасы ашылады</div>
   </div>
 </div>
-
 <div id="realtimeStatus" class="realtime-status" style="display:none">
   <span id="realtimeStatusText"></span>
   <button id="realtimeReconnectBtn" onclick="manualReconnect()" style="display:none;margin-left:8px;padding:2px 8px;border-radius:10px;border:1px solid currentColor;background:transparent;color:inherit;font-size:10px;cursor:pointer;font-family:Space Mono,monospace">↺ Қайта</button>
 </div>
-
 <div id="app">
   <header>
     <div class="logo">
@@ -388,6 +394,7 @@
     </div>
   </header>
 
+  <!-- ⚡ ӘКІМШІ -->
   <div class="panel" id="panel-create">
     <div id="admin-dashboard">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
@@ -407,7 +414,9 @@
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('reviews',event)">📝 Пікірлер</button>
       </div>
 
+      <!-- Тест жасау / өңдеу -->
       <div id="adm-section-create">
+        <!-- Edit mode banner (жасырылған) -->
         <div id="editModeBanner" class="edit-mode-banner" style="display:none">
           <div>
             <div class="edit-mode-label">✏️ ӨҢДЕУ РЕЖИМІ</div>
@@ -456,6 +465,7 @@
         </div>
       </div>
 
+      <!-- Ойын жасау + Live Monitor -->
       <div id="adm-section-games" style="display:none">
         <div class="card">
           <div class="card-title">🎮 жарыс ойыны жасау</div>
@@ -481,16 +491,19 @@
           <div id="hostQuestionPanel" style="display:none">
             <div class="card">
               <div class="card-title">🎯 хост басқармасы</div>
+              <!-- Сұрақ мәтіні + прогресс -->
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
                 <div class="tag tag-purple" id="hostQCounter">1/1</div>
                 <div id="pauseBadge" style="display:none;padding:4px 12px;border-radius:20px;background:rgba(245,158,11,0.2);border:1px solid var(--warn);font-family:Space Mono,monospace;font-size:10px;color:var(--warn);letter-spacing:1px">⏸ PAUSE</div>
               </div>
               <div id="hostQText" style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:16px;line-height:1.4"></div>
               <div id="hostAnswerStats" style="margin-bottom:16px"></div>
+              <!-- Негізгі батырмалар -->
               <div style="display:flex;gap:8px;margin-bottom:10px">
                 <button class="btn btn-cyan" onclick="showAnswers()" id="btnShowAnswers" style="flex:1;justify-content:center">👁 Жауаптарды көрсет</button>
                 <button class="btn btn-primary" onclick="hostNextQuestion()" id="btnNext" style="flex:1;justify-content:center;display:none">➡ Келесі</button>
               </div>
+              <!-- Хост extra controls -->
               <div style="display:flex;gap:8px">
                 <button class="btn btn-ghost btn-sm" onclick="togglePause()" id="btnPause" style="flex:1;justify-content:center">⏸ Пауза</button>
                 <button class="btn btn-ghost btn-sm" onclick="skipQuestion()" id="btnSkip" style="flex:1;justify-content:center">⏭ Скип</button>
@@ -536,24 +549,30 @@
     </div>
   </div>
 
+  <!-- 📦 ТЕСТТЕР -->
   <div class="panel active" id="panel-library">
     <div class="card">
       <div class="card-title">📦 тесттер</div>
+      <!-- Іздеу -->
       <div style="position:relative;margin-bottom:10px">
         <input type="text" id="libSearch" placeholder="🔍 Тест атауы бойынша іздеу..." oninput="renderLibrary()" style="margin-bottom:0;padding-left:14px"/>
       </div>
+      <!-- Санат фильтрлері -->
       <div id="categoryFilters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+      <!-- Санат статистикасы -->
       <div id="categoryStats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:14px"></div>
       <div id="quizLibrary"></div>
     </div>
   </div>
 
+  <!-- 📝 ТЕСТ -->
   <div class="panel" id="panel-play">
     <div id="playContent">
       <div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">Тест таңдаңыз</div></div>
     </div>
   </div>
 
+  <!-- 🎮 ОЙЫН -->
   <div class="panel" id="panel-game">
     <div id="gameContent">
       <div id="gameJoinScreen">
@@ -587,8 +606,12 @@
             <button class="btn btn-ghost" onclick="copyGameCode()" style="justify-content:center;gap:8px">
               📋 Кодты көшіру — <span id="lobbyCodeInvite" style="font-family:Orbitron,monospace;color:var(--accent);font-weight:700"></span>
             </button>
-            <button class="btn btn-ghost" onclick="copyInviteLink()" style="justify-content:center;gap:8px">🔗 Сілтемені көшіру</button>
-            <button class="btn btn-cyan" onclick="shareInvite()" style="justify-content:center;gap:8px">📤 Telegram-да бөлісу</button>
+            <button class="btn btn-ghost" onclick="copyInviteLink()" style="justify-content:center;gap:8px">
+              🔗 Сілтемені көшіру
+            </button>
+            <button class="btn btn-cyan" onclick="shareInvite()" style="justify-content:center;gap:8px">
+              📤 Telegram-да бөлісу
+            </button>
           </div>
         </div>
       </div>
@@ -614,6 +637,7 @@
     </div>
   </div>
 
+  <!-- 🏆 РЕЙТИНГ -->
   <div class="panel" id="panel-leaderboard">
     <div class="card">
       <div class="card-title">🏆 рейтинг</div>
@@ -625,10 +649,12 @@
     </div>
   </div>
 
+  <!-- 👤 БЕЙІН -->
   <div class="panel" id="panel-profile">
     <div id="profileContent"><div class="loading">Жүктелуде</div></div>
   </div>
 
+  <!-- 📤 ЭКСПОРТ -->
   <div class="panel" id="panel-export">
     <div class="card">
       <div class="card-title">📤 telegram экспорт</div>
@@ -645,10 +671,12 @@
     <div class="card"><div class="card-title">📊 статистика</div><div id="statsPanel" style="color:var(--muted);font-size:13px;text-align:center;padding:16px">Статистика үшін тест ойнаңыз</div></div>
   </div>
 
+  <!-- MESSENGER BTN -->
   <button class="messenger-btn" id="messengerBtn" onclick="openMessenger()" style="display:none">
     💬<span class="messenger-btn-badge" id="messengerBtnBadge"></span>
   </button>
 
+  <!-- TABS -->
   <div class="tabs">
     <button class="tab admin-tab" id="tab-create" onclick="switchTab('create')" style="display:none"><span class="tab-icon">⚡</span><span class="tab-label">Әкімші</span></button>
     <button class="tab active" id="tab-library" onclick="switchTab('library')"><span class="tab-icon">📦</span><span class="tab-label">Тесттер</span></button>
@@ -665,23 +693,31 @@ const API_BASE='/api';
 const tg=window.Telegram?.WebApp;
 if(tg){tg.ready();tg.expand();}
 
+// ── Браузер login session (Telegram Widget арқылы кірген соң сақталады) ──
 let _browserSession=null;
 try{const s=sessionStorage.getItem('qbit_tg_user');if(s)_browserSession=JSON.parse(s);}catch(e){}
 
 function getTgUser(){
+  // 1. Telegram WebApp (Telegram ішінде)
   if(tg?.initDataUnsafe?.user) return tg.initDataUnsafe.user;
+  // 2. Browser session (Widget арқылы кірген)
   if(_browserSession) return _browserSession;
   return null;
 }
 function getTgInitData(){
   if(tg?.initData) return tg.initData;
+  // Browser session үшін синтетикалық initData (сервер тарапта верификация жасалған)
   if(_browserSession?._initData) return _browserSession._initData;
   return '';
 }
 function isAdmin(){const u=getTgUser();return u&&String(u.id)===String(window.__ADMIN_ID__);}
 function isBrowser(){return !tg?.initData;}
 
-window.onTelegramAuth=function(userData){_processTelegramAuth(userData);};
+// ── Telegram Login Widget callback ──
+// Global scope-та болуы міндетті (Widget eval арқылы шақырады)
+window.onTelegramAuth=function(userData){
+  _processTelegramAuth(userData);
+};
 
 function _processTelegramAuth(userData){
   const wrap=document.getElementById('loginWidgetWrap');
@@ -692,7 +728,8 @@ function _processTelegramAuth(userData){
       if(d.ok){
         _browserSession={...userData,_initData:d.initData};
         try{sessionStorage.setItem('qbit_tg_user',JSON.stringify(_browserSession));}catch(e){}
-        hideLoginScreen();initApp();
+        hideLoginScreen();
+        initApp();
       }else{
         if(wrap) wrap.innerHTML='<div style="color:var(--danger);font-family:Space Mono,monospace;font-size:12px;text-align:center">⚠️ Кіру қатесі.<br><button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="location.reload()">Қайталау</button></div>';
       }
@@ -702,19 +739,30 @@ function _processTelegramAuth(userData){
     });
 }
 
+// ── postMessage арқылы Widget-тен деректер қабылдау (CSP fallback) ──
 window.addEventListener('message', function(event){
   if(event.origin !== 'https://oauth.telegram.org') return;
   try{
     const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-    if(data && data.event === 'auth_result' && data.result){_processTelegramAuth(data.result);}
+    if(data && data.event === 'auth_result' && data.result){
+      _processTelegramAuth(data.result);
+    }
   }catch(e){}
 });
 
-function showLoginScreen(){const screen=document.getElementById('loginScreen');if(screen) screen.style.display='flex';}
-function hideLoginScreen(){const screen=document.getElementById('loginScreen');if(screen) screen.style.display='none';}
+function showLoginScreen(){
+  const screen=document.getElementById('loginScreen');
+  if(screen) screen.style.display='flex';
+}
+
+function hideLoginScreen(){
+  const screen=document.getElementById('loginScreen');
+  if(screen) screen.style.display='none';
+}
 
 let supabaseClient=null;
 
+// ══ АВАТАРЛАР ══
 const AVATARS=[
   '🐱','🐶','🦊','🐼','🐨','🐯','🦁','🐸','🐺','🦝',
   '🐻','🐮','🐷','🐙','🦄','🐲','🦋','🐬','🦅','🦉',
@@ -722,6 +770,7 @@ const AVATARS=[
   '⚡','🔥','💎','🌙','⭐','🍀','🎯','🏆','💜','🌊',
 ];
 
+// Кейіпкер атақтар (ойын санына + нәтижеге байланысты)
 const TITLES=[
   {id:'rookie',   label:'Жаңадан бастаушы', color:'#6b7280', bg:'rgba(107,114,128,0.15)', border:'rgba(107,114,128,0.3)', minGames:0,  minPct:0 },
   {id:'student',  label:'Студент',           color:'#60a5fa', bg:'rgba(96,165,250,0.15)',  border:'rgba(96,165,250,0.3)',  minGames:3,  minPct:40},
@@ -733,7 +782,9 @@ const TITLES=[
 
 function getTitle(totalGames=0, avgPct=0){
   let best=TITLES[0];
-  for(const t of TITLES){if(totalGames>=t.minGames && avgPct>=t.minPct) best=t;}
+  for(const t of TITLES){
+    if(totalGames>=t.minGames && avgPct>=t.minPct) best=t;
+  }
   return best;
 }
 
@@ -742,6 +793,7 @@ function getPlayerAvatar(userId){
   const myId=String(getTgUser()?.id||'');
   const uid=String(userId);
   if(uid===myId)return getMyAvatar();
+  // gameState кэшінен іздеу, жоқ болса localStorage-тан
   if(gameState.avatarCache[uid])return gameState.avatarCache[uid];
   try{const s=JSON.parse(localStorage.getItem('qbit_av_store')||'{}');if(s[uid])return s[uid];}catch(e){}
   return '🐱';
@@ -770,6 +822,7 @@ function selectAvatar(a){
   document.querySelectorAll('.avatar-option').forEach(el=>{
     el.classList.toggle('selected', el.textContent===a);
   });
+  // Профиль аватарын жаңарту
   const pa=document.getElementById('profileAvatarEl');
   if(pa)pa.textContent=a;
   showToast(`${a} аватар таңдалды!`);
@@ -786,12 +839,13 @@ let state={
   currentPlay:null,playState:null,timer:null,questionCounter:0,
 };
 let questions=[];
-let editingQuizId=null;
+let editingQuizId=null; // ── ӨҢДЕУ КҮЙІ ──
 let gameState={
   code:null,session:null,isHost:false,myScore:0,
   currentQ:-1,answerStartTime:null,realtimeSub:null,gameTimer:null,
   liveStatsInterval:null,isPaused:false,
-  avatarCache:{},
+  avatarCache:{}, // userId -> avatar emoji
+  // Reconnect
   reconnectAttempts:0,reconnectTimer:null,isReconnecting:false,
 };
 
@@ -824,10 +878,11 @@ function manualReconnect(){
   subscribeToGame(gameState.code,gameState.isHost);
 }
 
-const RECONNECT_DELAYS=[2000,4000,8000,15000,30000];
+// ══ RECONNECT ЖҮЙЕСІ ══
+const RECONNECT_DELAYS=[2000,4000,8000,15000,30000]; // exponential backoff
 
 function scheduleReconnect(code,isHost){
-  if(!gameState.code)return;
+  if(!gameState.code)return; // ойыннан шыққан
   clearTimeout(gameState.reconnectTimer);
   const attempt=gameState.reconnectAttempts;
   const delay=RECONNECT_DELAYS[Math.min(attempt,RECONNECT_DELAYS.length-1)];
@@ -847,20 +902,31 @@ function resetReconnect(){
   clearTimeout(gameState.reconnectTimer);
 }
 
+// Браузер онлайн/офлайн оқиғаларын тыңдау
 window.addEventListener('online',()=>{
-  if(gameState.code){showToast('🌐 Интернет қалпына келді, қайта қосылуда...');resetReconnect();subscribeToGame(gameState.code,gameState.isHost);}
+  if(gameState.code){
+    showToast('🌐 Интернет қалпына келді, қайта қосылуда...');
+    resetReconnect();
+    subscribeToGame(gameState.code,gameState.isHost);
+  }
 });
 window.addEventListener('offline',()=>{
-  if(gameState.code){setRealtimeStatus('offline');showToast('📵 Интернет байланысы үзілді');}
+  if(gameState.code){
+    setRealtimeStatus('offline');
+    showToast('📵 Интернет байланысы үзілді');
+  }
 });
 
+// Visibility change — қосымша фокустан шыққанда/кіргенде
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&gameState.code&&!gameState.isReconnecting){
+    // Экранға оралғанда сессияны тексеру
     checkCurrentSession(gameState.code,gameState.isHost);
   }
 });
 
 async function init(){
+  // ── Config жүктеу ──
   let botUsername='';
   try{
     const r=await fetch(`${API_BASE}/config`);
@@ -874,126 +940,222 @@ async function init(){
     }
   }catch(e){console.error(e);}
 
+  // ── Аутентификация тексеру ──
+  // Telegram WebApp-та ашылған → initData бар → тікелей жүктейміз
   if(tg?.initData){
     initApp();
+    // startapp параметрін тексер — шақыру сілтемесі арқылы келген болса
     const startParam = tg?.initDataUnsafe?.start_param;
-    if(startParam && startParam.length === 6){setTimeout(() => joinGameByCode(startParam), 1000);}
+    if(startParam && startParam.length === 6) {
+      // Код болса лоббиге автоматты қосылу
+      setTimeout(() => joinGameByCode(startParam), 1000);
+    }
     return;
   }
-  if(_browserSession){initApp();return;}
-  if(botUsername){document.getElementById("loginScreen").style.display="flex";}
-  else{initApp();}
+  // Браузерде sessionStorage-тан кірген session бар → тікелей жүктейміз
+  if(_browserSession){
+    initApp();
+    return;
+  }
+  // Браузерде, session жоқ → Login экранын көрсет
+  if(botUsername){
+    document.getElementById("loginScreen").style.display="flex";
+  } else {
+    // botUsername жоқ болса (config қатесі) — guest режим (тек library)
+    initApp();
+  }
 }
 
-const KZ_OFFSET = 5;
-function toKZDate(iso){const utc=new Date(iso);return new Date(utc.getTime()+KZ_OFFSET*60*60*1000);}
-function pad(n){return String(n).padStart(2,'0');}
-function fmtDate(iso){const d=toKZDate(iso);return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth()+1)}.${d.getUTCFullYear()}`;}
-function fmtDateTime(iso){const d=toKZDate(iso);return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth()+1)}.${d.getUTCFullYear()}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;}
+// ══ УАҚЫТ УТИЛИТАСЫ ══════════════════════════════════════
+const KZ_OFFSET = 5; // UTC+5
+
+function toKZDate(iso) {
+  // UTC уақытына +5 сағат қосу
+  const utc = new Date(iso);
+  return new Date(utc.getTime() + KZ_OFFSET * 60 * 60 * 1000);
+}
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function fmtDate(iso) {
+  const d = toKZDate(iso);
+  return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth()+1)}.${d.getUTCFullYear()}`;
+}
+
+function fmtDateTime(iso) {
+  const d = toKZDate(iso);
+  return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth()+1)}.${d.getUTCFullYear()}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+
+// ══ ХАБАРЛАНДЫРУЛАР ══════════════════════════════════════
 
 let _notifOpen = false;
 
-function getInviteLink(){
-  const code=document.getElementById('lobbyCode')?.textContent||'';
-  if(!code||code==='——')return '';
+// ══ ШАҚЫРУ ФУНКЦИЯЛАРЫ ══════════════════════════════════
+
+function getInviteLink() {
+  const code = document.getElementById('lobbyCode')?.textContent || '';
+  if (!code || code === '——') return '';
   return `https://t.me/${botUsername}/quiz?startapp=${code}`;
 }
 
-function copyGameCode(){
-  const code=document.getElementById('lobbyCode')?.textContent||'';
-  if(!code||code==='——')return;
-  navigator.clipboard?.writeText(code).then(()=>showToast('📋 Код көшірілді: '+code)).catch(()=>{
-    const el=document.createElement('input');el.value=code;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);showToast('📋 Код көшірілді: '+code);
+function copyGameCode() {
+  const code = document.getElementById('lobbyCode')?.textContent || '';
+  if (!code || code === '——') return;
+  navigator.clipboard?.writeText(code).then(() => {
+    showToast('📋 Код көшірілді: ' + code);
+  }).catch(() => {
+    // Fallback
+    const el = document.createElement('input');
+    el.value = code;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('📋 Код көшірілді: ' + code);
   });
 }
 
-function copyInviteLink(){
-  const link=getInviteLink();
-  if(!link){showToast('⚠️ Алдымен ойын жаса');return;}
-  navigator.clipboard?.writeText(link).then(()=>showToast('🔗 Сілтеме көшірілді!')).catch(()=>{
-    const el=document.createElement('input');el.value=link;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);showToast('🔗 Сілтеме көшірілді!');
+function copyInviteLink() {
+  const link = getInviteLink();
+  if (!link) { showToast('⚠️ Алдымен ойын жаса'); return; }
+  navigator.clipboard?.writeText(link).then(() => {
+    showToast('🔗 Сілтеме көшірілді!');
+  }).catch(() => {
+    const el = document.createElement('input');
+    el.value = link;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('🔗 Сілтеме көшірілді!');
   });
 }
 
-function shareInvite(){
-  const code=document.getElementById('lobbyCode')?.textContent||'';
-  if(!code||code==='——'){showToast('⚠️ Алдымен ойын жаса');return;}
-  const link=getInviteLink();
-  const tg=window.Telegram?.WebApp;
-  const shareUrl='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent('🎮 QBit Quiz-ге шақырамын! Ойын коды: '+code);
-  if(tg?.openLink){tg.openLink(shareUrl);}
-  else if(tg?.showPopup){tg.showPopup({title:'📤 Достарды шақыру',message:'Мына сілтемені достарыңа жібер:\n\n'+link,buttons:[{type:'default',text:'Жабу'}]});}
-  else{window.open(shareUrl,'_blank');}
+function shareInvite() {
+  const code = document.getElementById('lobbyCode')?.textContent || '';
+  if (!code || code === '——') { showToast('⚠️ Алдымен ойын жаса'); return; }
+  const link = getInviteLink();
+  const tg = window.Telegram?.WebApp;
+  const shareUrl = 'https://t.me/share/url?url=' + encodeURIComponent(link) +
+    '&text=' + encodeURIComponent('🎮 QBit Quiz-ге шақырамын! Ойын коды: ' + code);
+  if (tg?.openLink) {
+    tg.openLink(shareUrl);
+  } else if (tg?.showPopup) {
+    tg.showPopup({
+      title: '📤 Достарды шақыру',
+      message: 'Мына сілтемені достарыңа жібер:\n\n' + link,
+      buttons: [{ type: 'default', text: 'Жабу' }]
+    });
+  } else {
+    window.open(shareUrl, '_blank');
+  }
 }
 
-async function loadNotifications(){
-  const user=getTgUser();if(!user)return;
-  try{
-    const r=await fetch(`${API_BASE}/notifications`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'list'})});
-    const d=await r.json();if(!d.ok)return;
-    updateNotifBadge(d.unread);renderNotifList(d.notifications);
-  }catch(e){console.error(e);}
+async function loadNotifications() {
+  const user = getTgUser();
+  if (!user) return;
+  try {
+    const r = await fetch(`${API_BASE}/notifications`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: getTgInitData(), action: 'list' })
+    });
+    const d = await r.json();
+    if (!d.ok) return;
+    updateNotifBadge(d.unread);
+    renderNotifList(d.notifications);
+  } catch (e) { console.error(e); }
 }
 
-function updateNotifBadge(count){
-  const badge=document.getElementById('notifBadge');if(!badge)return;
-  if(count>0){badge.textContent=count>99?'99+':count;badge.style.display='flex';}
-  else{badge.style.display='none';}
+function updateNotifBadge(count) {
+  const badge = document.getElementById('notifBadge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
-function renderNotifList(notifications){
-  const el=document.getElementById('notifList');if(!el)return;
-  if(!notifications||!notifications.length){el.innerHTML='<div class="notif-empty">🔕<br><br>Хабарландыру жоқ</div>';return;}
-  el.innerHTML=notifications.map(n=>`
-    <div class="notif-item ${n.is_read?'':'unread'}" onclick="readNotif(${n.id}, this)">
+function renderNotifList(notifications) {
+  const el = document.getElementById('notifList');
+  if (!el) return;
+  if (!notifications || !notifications.length) {
+    el.innerHTML = '<div class="notif-empty">🔕<br><br>Хабарландыру жоқ</div>';
+    return;
+  }
+  el.innerHTML = notifications.map(n => `
+    <div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="readNotif(${n.id}, this)">
       <div class="notif-item-title">${esc(n.title)}</div>
       <div class="notif-item-body">${esc(n.body)}</div>
       <div class="notif-item-time">${formatNotifTime(n.created_at)}</div>
     </div>`).join('');
 }
 
-function formatNotifTime(iso){
-  const d=new Date(iso);const now=new Date();const diff=Math.floor((now-d)/1000);
-  if(diff<60)return 'Жаңа ғана';
-  if(diff<3600)return `${Math.floor(diff/60)} мин бұрын`;
-  if(diff<86400)return `${Math.floor(diff/3600)} сағ бұрын`;
-  const kz=toKZDate(iso);return `${pad(kz.getUTCDate())}.${pad(kz.getUTCMonth()+1)}.${kz.getUTCFullYear()}`;
+function formatNotifTime(iso) {
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'Жаңа ғана';
+  if (diff < 3600) return `${Math.floor(diff/60)} мин бұрын`;
+  if (diff < 86400) return `${Math.floor(diff/3600)} сағ бұрын`;
+  const kz = toKZDate(iso); return `${pad(kz.getUTCDate())}.${pad(kz.getUTCMonth()+1)}.${kz.getUTCFullYear()}`;
 }
 
-async function openNotifPanel(){
-  const panel=document.getElementById('notifPanel');
-  if(panel)panel.classList.add('open');
-  _notifOpen=true;
+async function openNotifPanel() {
+  const panel = document.getElementById('notifPanel');
+  if (panel) panel.classList.add('open');
+  _notifOpen = true;
   await loadNotifications();
 }
 
-function closeNotifPanel(){
-  const panel=document.getElementById('notifPanel');
-  if(panel)panel.classList.remove('open');
-  _notifOpen=false;
+function closeNotifPanel() {
+  const panel = document.getElementById('notifPanel');
+  if (panel) panel.classList.remove('open');
+  _notifOpen = false;
 }
 
-async function readNotif(id,el){
+async function readNotif(id, el) {
   el.classList.remove('unread');
-  fetch(`${API_BASE}/notifications`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'read',id})}).catch(()=>{});
-  const badge=document.getElementById('notifBadge');
-  if(badge&&badge.style.display!=='none'){const cur=parseInt(badge.textContent)||0;updateNotifBadge(Math.max(0,cur-1));}
+  fetch(`${API_BASE}/notifications`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData: getTgInitData(), action: 'read', id })
+  }).catch(() => {});
+  // Badge жаңарту
+  const badge = document.getElementById('notifBadge');
+  if (badge && badge.style.display !== 'none') {
+    const cur = parseInt(badge.textContent) || 0;
+    updateNotifBadge(Math.max(0, cur - 1));
+  }
 }
 
-async function markAllRead(){
-  await fetch(`${API_BASE}/notifications`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'read_all'})});
+async function markAllRead() {
+  await fetch(`${API_BASE}/notifications`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData: getTgInitData(), action: 'read_all' })
+  });
   updateNotifBadge(0);
-  document.querySelectorAll('.notif-item.unread').forEach(el=>el.classList.remove('unread'));
+  document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
 }
 
-function subscribeNotifRealtime(userId){
-  if(!supabaseClient)return;
-  supabaseClient.channel('notif_'+userId)
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${userId}`},(payload)=>{
-      const badge=document.getElementById('notifBadge');
-      const cur=parseInt(badge?.textContent)||0;
-      updateNotifBadge(cur+1);
-      if(_notifOpen)loadNotifications();
+// Realtime — жаңа хабарлама келгенде badge жаңарту
+function subscribeNotifRealtime(userId) {
+  if (!supabaseClient) return;
+  supabaseClient.channel('notif_' + userId)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'notifications',
+      filter: `user_id=eq.${userId}`
+    }, (payload) => {
+      const badge = document.getElementById('notifBadge');
+      const cur = parseInt(badge?.textContent) || 0;
+      updateNotifBadge(cur + 1);
+      if (_notifOpen) loadNotifications();
     })
     .subscribe();
 }
@@ -1008,12 +1170,14 @@ function initApp(){
   refreshCategorySelect();updateHeader();renderLibrary();updateExportSelect();
   if(!questions.length)addQuestion();
   renderStats();
-  const _u=getTgUser();
-  if(_u){
+  // Хабарландырулар
+  const _u = getTgUser();
+  if (_u) {
     loadNotifications();
     subscribeNotifRealtime(_u.id);
-    const messengerBtn=document.getElementById('messengerBtn');
-    if(messengerBtn)messengerBtn.style.display='flex';
+    // Мессенджер батырмасын көрсет + badge жаңарт
+    const messengerBtn = document.getElementById('messengerBtn');
+    if (messengerBtn) messengerBtn.style.display = 'flex';
     updateMessengerBadge();
   }
 }
@@ -1113,11 +1277,14 @@ async function loadAdminRecent(){
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
 
+// ══ LIVE STATS ══
 async function refreshLiveStats(){
   if(!gameState.code)return;
   try{
     const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'live_stats',payload:{code:gameState.code}})});
-    const d=await r.json();if(!d.ok)return;
+    const d=await r.json();
+    if(!d.ok)return;
+    // Аватар кэшін жаңарту
     (d.playerStats||[]).forEach(p=>{
       if(p.avatar){
         gameState.avatarCache[String(p.user_id)]=p.avatar;
@@ -1132,6 +1299,7 @@ function renderLiveMonitor(players,session){
   const c=document.getElementById('livePlayerList');if(!c)return;
   if(!players||!players.length){c.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-family:Space Mono,monospace;font-size:11px">Ойыншы жоқ</div>';return;}
   const isPaused=session?.is_paused;
+  // Sync pause UI
   const btn=document.getElementById('btnPause');
   const badge=document.getElementById('pauseBadge');
   if(btn&&isPaused!==gameState.isPaused){
@@ -1148,7 +1316,8 @@ function renderLiveMonitor(players,session){
       <div class="live-rank">${rankIcon}</div>
       <div class="live-avatar">${getPlayerAvatar(p.user_id)}</div>
       <div style="flex:1;min-width:0">
-        <div class="live-name">${esc(p.first_name||'Ойыншы')}${isKicked?` <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--danger)">KICKED</span>`:''}</div>
+        <div class="live-name">${esc(p.first_name||'Ойыншы')}${isKicked?` <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--danger)">KICKED</span>`:''}
+        </div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
           <div style="height:8px;background:var(--accent3);border-radius:3px;width:${p.correct*8}px;max-width:60px;min-width:${p.correct?'4px':'0'};transition:width 0.5s"></div>
           <div style="height:8px;background:var(--danger);border-radius:3px;width:${p.wrong*8}px;max-width:60px;min-width:${p.wrong?'4px':'0'};transition:width 0.5s"></div>
@@ -1164,6 +1333,7 @@ function renderLiveMonitor(players,session){
   }).join('');
 }
 
+// ══ GAME HOST ══
 async function createGame(){
   const quizId=document.getElementById('gameQuizSelect').value;
   if(!quizId)return showToast('⚠️ Тест таңдаңыз!');
@@ -1205,6 +1375,7 @@ async function hostNextQuestion(){
   if(d.finished){clearInterval(gameState.liveStatsInterval);showGameScoreboard();}
 }
 
+// ══ PAUSE ══
 async function togglePause(){
   const btn=document.getElementById('btnPause');
   const badge=document.getElementById('pauseBadge');
@@ -1223,9 +1394,11 @@ async function togglePause(){
   }finally{btn.disabled=false;}
 }
 
+// ══ SKIP ══
 async function skipQuestion(){
   if(!confirm('Ағымдағы сұрақты өткізіп жіберейік пе?'))return;
-  const btn=document.getElementById('btnSkip');btn.disabled=true;
+  const btn=document.getElementById('btnSkip');
+  btn.disabled=true;
   try{
     const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'skip',payload:{code:gameState.code}})});
     const d=await r.json();
@@ -1235,7 +1408,8 @@ async function skipQuestion(){
   }finally{btn.disabled=false;}
 }
 
-async function kickPlayer(targetUserId,targetName){
+// ══ KICK ══
+async function kickPlayer(targetUserId, targetName){
   if(!confirm(`"${targetName}" ойыншыны шығару?`))return;
   try{
     const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'kick',payload:{code:gameState.code,targetUserId}})});
@@ -1245,9 +1419,11 @@ async function kickPlayer(targetUserId,targetName){
   }catch{showToast('⚠️ Қате');}
 }
 
+
 function cancelGame(){
   if(gameState.realtimeSub){try{gameState.realtimeSub.unsubscribe();}catch(e){}}
-  clearInterval(gameState.liveStatsInterval);clearTimeout(gameState.reconnectTimer);
+  clearInterval(gameState.liveStatsInterval);
+  clearTimeout(gameState.reconnectTimer);
   const overlay=document.getElementById('pauseOverlay');if(overlay)overlay.remove();
   document.getElementById('activeGamePanel').style.display='none';
   document.getElementById('hostQuestionPanel').style.display='none';
@@ -1255,12 +1431,14 @@ function cancelGame(){
   document.getElementById('realtimeStatus').style.display='none';
 }
 
+// ══ GAME PLAYER ══
 async function joinGameByCode(code){
+  // Шақыру сілтемесі арқылы автоматты қосылу
   try{
     switchTab('game');
     document.getElementById('gameCodeInput').value=code;
     await joinGame();
-  }catch(e){console.error('Auto-join error:',e);}
+  }catch(e){ console.error('Auto-join error:', e); }
 }
 
 async function joinGame(){
@@ -1275,7 +1453,7 @@ async function joinGame(){
     document.getElementById('lobbyCode').textContent=code;
     document.getElementById('lobbyQuizName').textContent=d.session.quiz_data?.title||'';
     const inviteEl=document.getElementById('lobbyCodeInvite');
-    if(inviteEl)inviteEl.textContent=code;
+    if(inviteEl) inviteEl.textContent=code;
     showGameScreen('lobby');
     subscribeToGame(code,false);
   }catch(e){console.error(e);showToast('⚠️ Қате');}
@@ -1283,18 +1461,23 @@ async function joinGame(){
 
 function backToGameJoin(){
   if(gameState.realtimeSub){try{gameState.realtimeSub.unsubscribe();}catch(e){}}
-  clearInterval(gameState.gameTimer);clearInterval(gameState.liveStatsInterval);clearTimeout(gameState.reconnectTimer);
+  clearInterval(gameState.gameTimer);clearInterval(gameState.liveStatsInterval);
+  clearTimeout(gameState.reconnectTimer);
   const overlay=document.getElementById('pauseOverlay');if(overlay)overlay.remove();
   gameState={code:null,session:null,isHost:false,myScore:0,currentQ:-1,realtimeSub:null,gameTimer:null,liveStatsInterval:null,isPaused:false,reconnectAttempts:0,reconnectTimer:null,isReconnecting:false};
   document.getElementById('realtimeStatus').style.display='none';
   showGameScreen('join');
 }
 
+// ══ REALTIME ══
 function subscribeToGame(code,isHost){
   if(!supabaseClient){showToast('⚠️ Realtime қосылмады');return;}
-  if(gameState.realtimeSub){try{gameState.realtimeSub.unsubscribe();}catch(e){}gameState.realtimeSub=null;}
+  if(gameState.realtimeSub){
+    try{gameState.realtimeSub.unsubscribe();}catch(e){}
+    gameState.realtimeSub=null;
+  }
   setRealtimeStatus('connecting');
-  const channel=supabaseClient.channel('game_'+code+'_'+Date.now());
+  const channel=supabaseClient.channel('game_'+code+'_'+Date.now()); // unique channel name
   channel
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'game_sessions'},(payload)=>{
       if(payload.new.id!==code)return;
@@ -1315,9 +1498,14 @@ function subscribeToGame(code,isHost){
         resetReconnect();
         refreshLobbyPlayers(code);
         checkCurrentSession(code,isHost);
-        if(gameState.isReconnecting){showToast('✅ Ойынға қайта қосылдыңыз!');gameState.isReconnecting=false;}
+        if(gameState.isReconnecting){
+          showToast('✅ Ойынға қайта қосылдыңыз!');
+          gameState.isReconnecting=false;
+        }
       }
-      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){scheduleReconnect(code,isHost);}
+      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+        scheduleReconnect(code,isHost);
+      }
     });
   gameState.realtimeSub=channel;
 }
@@ -1335,6 +1523,7 @@ async function refreshLobbyPlayers(code){
   const{data}=await supabaseClient.from('game_players').select('*').eq('session_id',code).order('score',{ascending:false});
   const players=data||[];
   const myId=getTgUser()?.id;
+  // Аватар кэшін жаңарту (gameState + localStorage)
   players.forEach(p=>{
     if(p.avatar){
       gameState.avatarCache[String(p.user_id)]=p.avatar;
@@ -1343,11 +1532,11 @@ async function refreshLobbyPlayers(code){
   });
   const lobbyEl=document.getElementById('lobbyPlayers');
   const countEl=document.getElementById('playerCount');
-  if(lobbyEl)lobbyEl.innerHTML=players.map(p=>{const av=p.user_id==myId?getMyAvatar():(p.avatar||'🐱');return `<div class="player-chip ${p.user_id==myId?'me':''}"><div class="player-chip-avatar">${av}</div><div class="player-chip-name">${esc(p.first_name||'?')}</div><div class="player-chip-score">${p.score} ⭐</div></div>`;}).join('');
+  if(lobbyEl)lobbyEl.innerHTML=players.map(p=>{const av=p.user_id==myId?getMyAvatar():(p.avatar||'🐱');return `<div class="player-chip ${p.user_id==myId?'me':''}"><div class="player-chip-avatar">${av}</div><div class="player-chip-name">${esc(p.first_name||'?')}</div><div class="player-chip-score">${p.score} ⭐</div></div>`}).join('');
   if(countEl)countEl.textContent=players.length;
   const lobbyPlayerList=document.getElementById('lobbyPlayerList');
   const lobbyCount=document.getElementById('lobbyPlayerCount');
-  if(lobbyPlayerList)lobbyPlayerList.innerHTML=players.map(p=>{const av=p.user_id==myId?getMyAvatar():(p.avatar||'🐱');return `<div class="player-chip ${p.user_id==myId?'me':''}"><div class="player-chip-avatar">${av}</div><div class="player-chip-name">${esc(p.first_name||'?')}</div></div>`;}).join('');
+  if(lobbyPlayerList)lobbyPlayerList.innerHTML=players.map(p=>{const av=p.user_id==myId?getMyAvatar():(p.avatar||'🐱');return `<div class="player-chip ${p.user_id==myId?'me':''}"><div class="player-chip-avatar">${av}</div><div class="player-chip-name">${esc(p.first_name||'?')}</div></div>`}).join('');
   if(lobbyCount)lobbyCount.textContent=players.length;
 }
 
@@ -1360,9 +1549,11 @@ function handleSessionUpdate(session,isHost){
 
   if(session.status==='finished'){clearInterval(gameState.gameTimer);showGameScoreboard();return;}
 
+  // ── Пауза өзгерді (ойыншы үшін) ──
   if(!isHost&&session.is_paused!==prevPaused){
     if(session.is_paused){
       clearInterval(gameState.gameTimer);
+      // Overlay қосу
       let overlay=document.getElementById('pauseOverlay');
       if(!overlay){
         overlay=document.createElement('div');
@@ -1371,12 +1562,13 @@ function handleSessionUpdate(session,isHost){
         overlay.innerHTML=`<div style="font-size:52px">⏸</div><div style="font-family:Orbitron,monospace;font-size:18px;color:var(--warn);letter-spacing:3px">ПАУЗА</div><div style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted)">Хост жалғастыруын күтіңіз</div>`;
         document.body.appendChild(overlay);
       }
-    }else{
+    } else {
       const overlay=document.getElementById('pauseOverlay');
       if(overlay)overlay.remove();
     }
   }
 
+  // ── Kicked болса ──
   if(!isHost){
     const myId=String(getTgUser()?.id);
     const kicked=session.kicked_players||[];
@@ -1394,6 +1586,7 @@ function handleSessionUpdate(session,isHost){
     }
   }
 
+  // ── Жауаптар ашылды ──
   if(session.status==='playing'&&session.show_answers&&!prevShowAnswers){
     const q=session.quiz_data.questions[session.current_question];
     revealAnswers(q.correct);
@@ -1408,10 +1601,13 @@ function handleSessionUpdate(session,isHost){
     return;
   }
 
+  // ── Жаңа сұрақ ──
   if(session.status==='playing'&&!session.show_answers){
     const isNewGame=(prevStatus==='waiting'||prevStatus==null||prevStatus===undefined);
+    // prevQ -1 болса (бастапқы) немесе индекс өзгерсе — жаңа сұрақ
     const isNewQuestion=(prevQ===-1||prevQ==null||session.current_question!==prevQ);
     if(isNewGame||isNewQuestion){
+      // Пауза overlay жою (жаңа сұрақта автоматты жалғасу)
       const overlay=document.getElementById('pauseOverlay');
       if(overlay)overlay.remove();
       gameState.currentQ=session.current_question;
@@ -1422,6 +1618,7 @@ function handleSessionUpdate(session,isHost){
         if(panel)panel.style.display='block';
         const hostQText=document.getElementById('hostQText');
         if(hostQText)hostQText.textContent=q.text;
+        // Прогресс санауышы
         const counter=document.getElementById('hostQCounter');
         if(counter)counter.textContent=`${session.current_question+1}/${session.quiz_data.questions.length}`;
         const btnShow=document.getElementById('btnShowAnswers');
@@ -1430,6 +1627,7 @@ function handleSessionUpdate(session,isHost){
         if(btnShow){btnShow.style.display='';btnShow.disabled=false;}
         if(btnNext)btnNext.style.display='none';
         if(stats)stats.innerHTML='';
+        // Пауза батырмасын қалпына келтіру
         const btnPause=document.getElementById('btnPause');
         if(btnPause){btnPause.textContent='⏸ Пауза';btnPause.className='btn btn-ghost btn-sm';btnPause.style.flex='1';btnPause.style.justifyContent='center';}
         const badge=document.getElementById('pauseBadge');
@@ -1565,6 +1763,7 @@ async function loadLeaderboard(type){
     const d=await r.json();
     if(!d.ok||!d.data.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">Деректер жоқ</div></div>';return;}
     const myId=getTgUser()?.id;
+    // Аватар кэшін leaderboard деректерінен толтыру
     d.data.forEach(u=>{
       const uid=String(u.id||u.user_id);
       if(u.avatar&&uid){
@@ -1579,54 +1778,62 @@ async function loadLeaderboard(type){
       let sv,ss;
       if(type==='all'){const p=u.total_questions>0?Math.round(u.total_correct/u.total_questions*100):0;sv=p+'%';ss=u.total_games+' ойын';}
       else{sv=(u.avg_score||0)+'%';ss=u.games+' ойын';}
+      // avatar: API-дан тікелей алу (кэш жаңартылды, getPlayerAvatar да дұрыс қайтарады)
       const uAvatar=isMe?getMyAvatar():(u.avatar||getPlayerAvatar(u.id||u.user_id));
       return `<div class="lb-row ${isMe?'lb-me-row':''}"><div class="lb-rank ${rc}">${ri}</div><div class="lb-avatar ${isMe?'me':''}">${uAvatar}</div><div class="lb-info"><div class="lb-name">${esc(name)}${isMe?' 👈':''}</div><div class="lb-sub">${u.username?'@'+u.username:''}</div></div><div><div class="lb-score">${sv}</div><div class="lb-score-sub">${ss}</div></div></div>`;
     }).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
 
+// ══ ЧАТ ФУНКЦИЯЛАРЫ ══════════════════════════════════════
+
+// ══ МЕССЕНДЖЕР ФУНКЦИЯЛАРЫ ═══════════════════════════════
+
 let _chatPartnerId = null;
 let _chatRealtime = null;
 
-function openMessenger(){
-  const screen=document.getElementById('messengerScreen');
-  if(screen)screen.classList.add('open');
+function openMessenger() {
+  const screen = document.getElementById('messengerScreen');
+  if (screen) screen.classList.add('open');
   showConversations();
   loadConversations();
 }
 
-function closeMessenger(){
-  const screen=document.getElementById('messengerScreen');
-  if(screen)screen.classList.remove('open');
-  if(_chatRealtime){_chatRealtime.unsubscribe();_chatRealtime=null;}
+function closeMessenger() {
+  const screen = document.getElementById('messengerScreen');
+  if (screen) screen.classList.remove('open');
+  if (_chatRealtime) { _chatRealtime.unsubscribe(); _chatRealtime = null; }
 }
 
-function backToConversations(){
-  document.getElementById('chatWindow').style.display='none';
-  document.getElementById('messengerHome').style.display='flex';
-  if(_chatRealtime){_chatRealtime.unsubscribe();_chatRealtime=null;}
-  _chatPartnerId=null;
+function backToConversations() {
+  document.getElementById('chatWindow').style.display = 'none';
+  document.getElementById('messengerHome').style.display = 'flex';
+  if (_chatRealtime) { _chatRealtime.unsubscribe(); _chatRealtime = null; }
+  _chatPartnerId = null;
   loadConversations();
 }
 
-function showConversations(){
-  document.getElementById('messengerHome').style.display='flex';
-  document.getElementById('chatWindow').style.display='none';
+function showConversations() {
+  document.getElementById('messengerHome').style.display = 'flex';
+  document.getElementById('chatWindow').style.display = 'none';
 }
 
-async function loadConversations(){
-  const el=document.getElementById('conversationList');
-  if(!el)return;
-  el.innerHTML='<div class="loading">Жүктелуде</div>';
-  try{
-    const r=await fetch(`${API_BASE}/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'conversations'})});
-    const d=await r.json();
-    if(!d.ok||!d.conversations?.length){
-      el.innerHTML='<div style="text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;padding:30px 20px">Чат жоқ.<br><br>@username арқылы адам іздеп хабарласыңыз!</div>';
+async function loadConversations() {
+  const el = document.getElementById('conversationList');
+  if (!el) return;
+  el.innerHTML = '<div class="loading">Жүктелуде</div>';
+  try {
+    const r = await fetch(`${API_BASE}/chat`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'conversations' })
+    });
+    const d = await r.json();
+    if (!d.ok || !d.conversations?.length) {
+      el.innerHTML = '<div style="text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;padding:30px 20px">Чат жоқ.<br><br>@username арқылы адам іздеп хабарласыңыз!</div>';
       return;
     }
-    const myAdminId=window.__ADMIN_ID__?parseInt(window.__ADMIN_ID__):null;
-    el.innerHTML=d.conversations.map(c=>`
+    const myAdminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
+    el.innerHTML = d.conversations.map(c => `
       <div class="chat-user-item" onclick="openChatWith(${c.partner_id},'${c.partner_id===myAdminId?'Әкімші':esc(c.first_name||'Пайдаланушы')}','${esc(c.app_username||'')}','${c.partner_id===myAdminId?'⚡':esc(c.avatar||'🐱')}')">
         <div class="chat-user-avatar">${c.partner_id===myAdminId?'⚡':(c.avatar||'🐱')}</div>
         <div style="flex:1;min-width:0">
@@ -1639,21 +1846,27 @@ async function loadConversations(){
           ${c.unread?`<div class="chat-unread-badge">${c.unread}</div>`:''}
         </div>
       </div>`).join('');
-  }catch(e){console.error(e);}
+  } catch(e) { console.error(e); }
 }
 
-let _searchTimer=null;
-async function searchUsers(q){
-  const el=document.getElementById('searchResults');
-  if(!el)return;
-  if(!q||q.trim().length<2){el.innerHTML='';return;}
+let _searchTimer = null;
+async function searchUsers(q) {
+  const el = document.getElementById('searchResults');
+  if (!el) return;
+  if (!q || q.trim().length < 2) { el.innerHTML = ''; return; }
   clearTimeout(_searchTimer);
-  _searchTimer=setTimeout(async()=>{
-    try{
-      const r=await fetch(`${API_BASE}/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'search',query:q})});
-      const d=await r.json();
-      if(!d.ok||!d.users?.length){el.innerHTML='<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);padding:8px">Табылмады</div>';return;}
-      el.innerHTML=d.users.map(u=>`
+  _searchTimer = setTimeout(async () => {
+    try {
+      const r = await fetch(`${API_BASE}/chat`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ initData: getTgInitData(), action: 'search', query: q })
+      });
+      const d = await r.json();
+      if (!d.ok || !d.users?.length) {
+        el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);padding:8px">Табылмады</div>';
+        return;
+      }
+      el.innerHTML = d.users.map(u => `
         <div class="chat-user-item" onclick="openChatWith(${u.id},'${esc(u.first_name||'')}','${esc(u.app_username||'')}','${esc(u.avatar||'🐱')}')">
           <div class="chat-user-avatar" style="width:36px;height:36px;font-size:22px">${u.avatar||'🐱'}</div>
           <div>
@@ -1661,45 +1874,49 @@ async function searchUsers(q){
             <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--accent)">@${esc(u.app_username)}</div>
           </div>
         </div>`).join('');
-    }catch(e){}
-  },400);
+    } catch(e) {}
+  }, 400);
 }
 
-function openChatWith(partnerId,name,username,avatar){
-  _chatPartnerId=partnerId;
-  document.getElementById('messengerHome').style.display='none';
-  const win=document.getElementById('chatWindow');
-  win.style.display='flex';
-  document.getElementById('chatHeaderName').textContent=name;
-  document.getElementById('chatHeaderUsername').textContent=username?'@'+username:'';
-  document.getElementById('chatPartnerAvatar').textContent=avatar||'🐱';
-  document.getElementById('searchResults').innerHTML='';
-  document.getElementById('messengerSearch').value='';
+function openChatWith(partnerId, name, username, avatar) {
+  _chatPartnerId = partnerId;
+  document.getElementById('messengerHome').style.display = 'none';
+  const win = document.getElementById('chatWindow');
+  win.style.display = 'flex';
+  document.getElementById('chatHeaderName').textContent = name;
+  document.getElementById('chatHeaderUsername').textContent = username ? '@'+username : '';
+  document.getElementById('chatPartnerAvatar').textContent = avatar || '🐱';
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('messengerSearch').value = '';
   loadChatMessages();
   subscribeChatRealtime(partnerId);
 }
 
-async function loadChatMessages(){
-  const el=document.getElementById('chatMessages');
-  if(!el||!_chatPartnerId)return;
-  try{
-    const r=await fetch(`${API_BASE}/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'messages',toUserId:_chatPartnerId})});
-    const d=await r.json();
-    if(!d.ok)return;
+async function loadChatMessages() {
+  const el = document.getElementById('chatMessages');
+  if (!el || !_chatPartnerId) return;
+  try {
+    const r = await fetch(`${API_BASE}/chat`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'messages', toUserId: _chatPartnerId })
+    });
+    const d = await r.json();
+    if (!d.ok) return;
     renderChatMessages(d.messages);
-  }catch(e){console.error(e);}
+  } catch(e) { console.error(e); }
 }
 
-function renderChatMessages(messages){
-  const el=document.getElementById('chatMessages');
-  if(!el)return;
-  const myId=getTgUser()?.id;
-  if(!messages.length){
-    el.innerHTML='<div style="text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;margin-top:40px">Хабарлама жоқ.<br>Алғашқы хабарламаны жіберіңіз!</div>';
+function renderChatMessages(messages) {
+  const el = document.getElementById('chatMessages');
+  if (!el) return;
+  const myId = getTgUser()?.id;
+  if (!messages.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;margin-top:40px">Хабарлама жоқ.<br>Алғашқы хабарламаны жіберіңіз!</div>';
     return;
   }
-  el.innerHTML=messages.map(m=>{
-    const isMine=parseInt(m.from_user_id)!==parseInt(_chatPartnerId);
+  el.innerHTML = messages.map(m => {
+    // Серіктес жазған болса сол жақ, мен жазсам оң жақ
+    const isMine = parseInt(m.from_user_id) !== parseInt(_chatPartnerId);
     return `<div style="display:flex;justify-content:${isMine?'flex-end':'flex-start'};margin-bottom:4px">
       <div class="chat-bubble ${isMine?'user':'admin'}">
         ${esc(m.text)}
@@ -1707,79 +1924,97 @@ function renderChatMessages(messages){
       </div>
     </div>`;
   }).join('');
-  el.scrollTop=el.scrollHeight;
+  el.scrollTop = el.scrollHeight;
 }
 
-async function sendChatMessage(){
-  const input=document.getElementById('chatInput');
-  const text=input?.value?.trim();
-  if(!text||!_chatPartnerId)return;
-  const myId=getTgUser()?.id;
-  if(parseInt(_chatPartnerId)===parseInt(myId)){showToast('⚠️ Өзіңізбен өзіңіз жазыса алмайсыз');input.value='';return;}
-  input.value='';input.style.height='auto';
-  const el=document.getElementById('chatMessages');
-  const tmpWrapper=document.createElement('div');
-  tmpWrapper.style.cssText='display:flex;justify-content:flex-end;margin-bottom:4px';
-  const tmp=document.createElement('div');
-  tmp.className='chat-bubble user';
-  tmp.innerHTML=esc(text)+'<div class="chat-bubble-time">Жіберілуде...</div>';
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input?.value?.trim();
+  if (!text || !_chatPartnerId) return;
+  const myId = getTgUser()?.id;
+  if (parseInt(_chatPartnerId) === parseInt(myId)) {
+    showToast('⚠️ Өзіңізбен өзіңіз жазыса алмайсыз');
+    input.value = '';
+    return;
+  }
+  input.value = ''; input.style.height = 'auto';
+  const el = document.getElementById('chatMessages');
+  const tmpWrapper = document.createElement('div');
+  tmpWrapper.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:4px';
+  const tmp = document.createElement('div');
+  tmp.className = 'chat-bubble user';
+  tmp.innerHTML = esc(text) + '<div class="chat-bubble-time">Жіберілуде...</div>';
   tmpWrapper.appendChild(tmp);
-  el.appendChild(tmpWrapper);el.scrollTop=el.scrollHeight;
-  try{
-    await fetch(`${API_BASE}/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'send',text,toUserId:_chatPartnerId})});
-  }catch(e){console.error(e);}
+  el.appendChild(tmpWrapper); el.scrollTop = el.scrollHeight;
+  try {
+    await fetch(`${API_BASE}/chat`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'send', text, toUserId: _chatPartnerId })
+    });
+  } catch(e) { console.error(e); }
 }
 
-function subscribeChatRealtime(partnerId){
-  if(!supabaseClient)return;
-  const myId=getTgUser()?.id;
-  if(!myId)return;
-  if(_chatRealtime){_chatRealtime.unsubscribe();}
-  _chatRealtime=supabaseClient.channel('chat_'+myId+'_'+partnerId)
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages',filter:`to_user_id=eq.${myId}`},(payload)=>{
-      const m=payload.new;
-      if(m.from_user_id!==partnerId){updateMessengerBadge();return;}
-      const el=document.getElementById('chatMessages');
-      if(!el)return;
-      el.querySelectorAll('.chat-bubble').forEach(b=>{
-        if(b.querySelector('.chat-bubble-time')?.textContent?.includes('Жіберілуде'))b.remove();
+function subscribeChatRealtime(partnerId) {
+  if (!supabaseClient) return;
+  const myId = getTgUser()?.id;
+  if (!myId) return;
+  if (_chatRealtime) { _chatRealtime.unsubscribe(); }
+  _chatRealtime = supabaseClient.channel('chat_'+myId+'_'+partnerId)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'chat_messages',
+      filter: `to_user_id=eq.${myId}`
+    }, (payload) => {
+      const m = payload.new;
+      if (m.from_user_id !== partnerId) { updateMessengerBadge(); return; }
+      const el = document.getElementById('chatMessages');
+      if (!el) return;
+      el.querySelectorAll('.chat-bubble').forEach(b => {
+        if (b.querySelector('.chat-bubble-time')?.textContent?.includes('Жіберілуде')) b.remove();
       });
-      const wrapper=document.createElement('div');
-      wrapper.style.cssText='display:flex;justify-content:flex-start;margin-bottom:4px';
-      const div=document.createElement('div');
-      div.className='chat-bubble admin';
-      div.innerHTML=esc(m.text)+`<div class="chat-bubble-time">${fmtDateTime(m.created_at)}</div>`;
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex;justify-content:flex-start;margin-bottom:4px';
+      const div = document.createElement('div');
+      div.className = 'chat-bubble admin';
+      div.innerHTML = esc(m.text) + `<div class="chat-bubble-time">${fmtDateTime(m.created_at)}</div>`;
       wrapper.appendChild(div);
-      el.appendChild(wrapper);el.scrollTop=el.scrollHeight;
+      el.appendChild(wrapper); el.scrollTop = el.scrollHeight;
     })
     .subscribe();
 }
 
-async function setAppUsername(){
-  const val=prompt('@username орнатыңыз (тек әріп, сан, _):');
-  if(!val)return;
-  const r=await fetch(`${API_BASE}/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'set_username',appUsername:val})});
-  const d=await r.json();
-  if(d.ok){showToast('\u2705 @'+val+' орнатылды!');loadProfile();}
+async function setAppUsername() {
+  const val = prompt('@username орнатыңыз (тек әріп, сан, _):');
+  if (!val) return;
+  const r = await fetch(`${API_BASE}/chat`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ initData: getTgInitData(), action: 'set_username', appUsername: val })
+  });
+  const d = await r.json();
+  if (d.ok) { showToast('\u2705 @'+val+' орнатылды!'); loadProfile(); }
   else showToast('\u26A0\uFE0F '+(d.error||'Қате'));
 }
 
-async function changeAppUsername(){setAppUsername();}
+async function changeAppUsername() { setAppUsername(); }
 
-async function updateMessengerBadge(){
-  const user=getTgUser();if(!user)return;
-  try{
-    const r=await fetch(`${API_BASE}/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'unread'})});
-    const d=await r.json();
-    const badge=document.getElementById('messengerBtnBadge');
-    const btn=document.getElementById('messengerBtn');
-    if(btn)btn.style.display='flex';
-    if(badge){
-      if(d.count>0){badge.textContent=d.count;badge.style.display='flex';}
-      else badge.style.display='none';
+async function updateMessengerBadge() {
+  const user = getTgUser();
+  if (!user) return;
+  try {
+    const r = await fetch(`${API_BASE}/chat`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'unread' })
+    });
+    const d = await r.json();
+    const badge = document.getElementById('messengerBtnBadge');
+    const btn = document.getElementById('messengerBtn');
+    if (btn) btn.style.display = 'flex';
+    if (badge) {
+      if (d.count > 0) { badge.textContent = d.count; badge.style.display = 'flex'; }
+      else badge.style.display = 'none';
     }
-  }catch(e){}
+  } catch(e) {}
 }
+
 
 async function loadMyFeedback(){
   const el=document.getElementById('myFeedbackList');
@@ -1802,17 +2037,19 @@ async function loadMyFeedback(){
 }
 
 async function openAdminDirectChat(){
-  const adminId=window.__ADMIN_ID__?parseInt(window.__ADMIN_ID__):null;
-  if(!adminId){showToast('⚠️ Әкімші табылмады');return;}
-  const screen=document.getElementById('messengerScreen');
-  if(screen)screen.classList.add('open');
-  document.getElementById('messengerHome').style.display='none';
-  const win=document.getElementById('chatWindow');
-  if(win){win.style.display='flex';win.style.flexDirection='column';}
-  document.getElementById('chatHeaderName').textContent='Әкімші';
-  document.getElementById('chatHeaderUsername').textContent='';
-  document.getElementById('chatPartnerAvatar').textContent='⚡';
-  _chatPartnerId=adminId;
+  const adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
+  if (!adminId) { showToast('⚠️ Әкімші табылмады'); return; }
+  // Мессенджер экранын аш
+  const screen = document.getElementById('messengerScreen');
+  if (screen) screen.classList.add('open');
+  // Тізімді жасырып тікелей чат экранына өт
+  document.getElementById('messengerHome').style.display = 'none';
+  const win = document.getElementById('chatWindow');
+  if (win) { win.style.display = 'flex'; win.style.flexDirection = 'column'; }
+  document.getElementById('chatHeaderName').textContent = 'Әкімші';
+  document.getElementById('chatHeaderUsername').textContent = '';
+  document.getElementById('chatPartnerAvatar').textContent = '⚡';
+  _chatPartnerId = adminId;
   loadChatMessages();
   subscribeChatRealtime(adminId);
 }
@@ -1821,24 +2058,24 @@ async function sendAdminChat(){
   const textarea=document.getElementById('adminChatText');
   const status=document.getElementById('adminChatStatus');
   const msg=textarea?.value?.trim();
-  if(!msg||msg.length<1)return;
+  if(!msg||msg.length<1) return;
   const btn=document.getElementById('adminChatSendBtn');
-  if(btn)btn.disabled=true;
+  if(btn) btn.disabled=true;
   try{
     const r=await fetch(`${API_BASE}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'send',message:msg})});
     const d=await r.json();
     if(d.ok){
       textarea.value='';
-      if(status)status.innerHTML='<span style="color:var(--accent3)">✅ Жіберілді!</span>';
-      setTimeout(()=>{if(status)status.innerHTML='';},2000);
+      if(status) status.innerHTML='<span style="color:var(--accent3)">✅ Жіберілді!</span>';
+      setTimeout(()=>{if(status) status.innerHTML='';},2000);
       loadMyFeedback();
     }else{
-      if(status)status.innerHTML=`<span style="color:var(--danger)">⚠️ ${esc(d.error||'Қате')}</span>`;
+      if(status) status.innerHTML=`<span style="color:var(--danger)">⚠️ ${esc(d.error||'Қате')}</span>`;
     }
   }catch{
-    if(status)status.innerHTML='<span style="color:var(--danger)">⚠️ Желі қатесі</span>';
+    if(status) status.innerHTML='<span style="color:var(--danger)">⚠️ Желі қатесі</span>';
   }finally{
-    if(btn)btn.disabled=false;
+    if(btn) btn.disabled=false;
   }
 }
 
@@ -1870,7 +2107,7 @@ async function sendFeedback(){
 
 async function loadAdminFeedbacks(){
   const c=document.getElementById('adm-feedback-list');
-  if(!c)return;
+  if(!c) return;
   c.innerHTML='<div class="loading">Жүктелуде</div>';
   try{
     const r=await fetch(`${API_BASE}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'list'})});
@@ -1910,12 +2147,13 @@ async function loadAdminChatUsers(){
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
 }
 
-function openAdminChatWith(partnerId,name,username,avatar){
+function openAdminChatWith(partnerId, name, username, avatar){
+  // Әкімші панелінен чат ашу — мессенджер экранын пайдалану
   const screen=document.getElementById('messengerScreen');
-  if(screen)screen.classList.add('open');
+  if(screen) screen.classList.add('open');
   document.getElementById('messengerHome').style.display='none';
   const win=document.getElementById('chatWindow');
-  if(win)win.style.display='flex';
+  if(win) win.style.display='flex';
   document.getElementById('chatHeaderName').textContent=name;
   document.getElementById('chatHeaderUsername').textContent=username?'@'+username:'';
   document.getElementById('chatPartnerAvatar').textContent=avatar||'🐱';
@@ -1947,18 +2185,16 @@ async function loadProfile(){
         <div class="profile-avatar" id="profileAvatarEl" onclick="openAvatarModal()" title="Аватар өзгерту">${myAvatar}</div>
         <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:8px;letter-spacing:1px">✏️ АВАТАР ӨЗГЕРТУ</div>
         <div class="profile-name">${esc(u.first_name||'Қолданушы')}</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">
-          <div class="profile-username" style="margin-bottom:0">${u.username?'@'+u.username:'ID: '+u.id}</div>
-          ${u.app_username
-            ? `<div style="display:flex;align-items:center;gap:3px">
-                 <span style="font-family:Space Mono,monospace;font-size:11px;color:var(--accent)">· @${esc(u.app_username)}</span>
-                 <button onclick="changeAppUsername()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:0;line-height:1">✏️</button>
-               </div>`
-            : `<button onclick="setAppUsername()" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px">+ @username</button>`
-          }
-        </div>
+        <div class="profile-username">${u.username?'@'+u.username:'ID: '+u.id}</div>
         <div class="title-badge" style="color:${title.color};background:${title.bg};border:1px solid ${title.border}">${title.label}</div><br>
         <div class="profile-rank-pill">🏅 Рейтинг: #${d.rank}</div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+          ${u.app_username
+            ? `<div style="font-family:Space Mono,monospace;font-size:11px;color:var(--accent)">@${esc(u.app_username)}</div>
+               <button onclick="changeAppUsername()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:Space Mono,monospace">✏️</button>`
+            : `<button onclick="setAppUsername()" class="btn btn-ghost btn-sm" style="font-size:10px">+ @username орнату</button>`
+          }
+        </div>
       </div>
       <div class="profile-stats">
         <div class="ps-box"><div class="ps-val">${u.total_games}</div><div class="ps-lbl">ОЙЫН</div></div>
@@ -1986,6 +2222,7 @@ async function loadProfile(){
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Бейін жоқ</div><p style="color:var(--muted);font-size:12px">Алдымен тест ойнаңыз!</p></div>';}
 }
 
+// ══ SOLO PLAY ══
 function startPlay(quizId){
   const quiz=state.quizzes.find(q=>q.id===quizId);if(!quiz)return;
   state.currentPlay=quiz;
@@ -2044,7 +2281,7 @@ function selectAnswer(optIdx){
   document.querySelectorAll('.answer-btn').forEach((btn,i)=>{btn.disabled=true;if(i===q.correct)btn.classList.add('correct');else if(i===optIdx&&!ok)btn.classList.add('wrong');});
   const exp=document.getElementById('explanation');if(exp)exp.classList.add('show');
   if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}else{ps.wrong++;ps.streak=0;}
-  ps.answers.push({ok,chosen:optIdx,correct:q.correct});setTimeout(nextQuestion,1500);
+  ps.answers.push({ok, chosen: optIdx, correct: q.correct});setTimeout(nextQuestion,1500);
 }
 
 function autoAnswer(){
@@ -2061,6 +2298,7 @@ function nextQuestion(){
 
 function endPlay(){
   clearTimeout(state.timer);
+  // Жауапталмаған сұрақтарды қате деп есептеу
   const ps=state.playState;
   const answered=ps.correct+ps.wrong;
   const total=state.currentPlay.questions.length;
@@ -2071,6 +2309,8 @@ function endPlay(){
 async function showResults(){
   const quiz=state.currentPlay,ps=state.playState;
   const total=quiz.questions.length;
+  const answered=ps.correct+ps.wrong;
+  // Score: дұрыс/барлық сұрақ (жауапталмаса 0 деп есептеледі)
   const score=total>0?Math.round((ps.correct/total)*100):0;
   const time=Math.round((Date.now()-ps.startTime)/1000);
   quiz.playCount=(quiz.playCount||0)+1;quiz.bestScore=Math.max(quiz.bestScore||0,score);
@@ -2078,9 +2318,11 @@ async function showResults(){
   localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
   localStorage.setItem('qbit_plays',state.plays);updateHeader();
   const initData=getTgInitData();
-  if(initData){try{await fetch(`${API_BASE}/save-result`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,result:{quizId:quiz.id,quizTitle:quiz.title,score,correct:ps.correct,wrong:ps.wrong,totalQuestions:total,timeSec:time,maxStreak:ps.maxStreak,avatar:getMyAvatar()}})});}catch{}}
+  if(initData){try{await fetch(`${API_BASE}/save-result`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,result:{quizId:quiz.id,quizTitle:quiz.title,score,correct:ps.correct,wrong:ps.wrong,totalQuestions:answered,timeSec:time,maxStreak:ps.maxStreak,avatar:getMyAvatar()}})});}catch{}}
   const rank=score>=90?'MASTER':score>=70?'EXPERT':score>=50?'STUDENT':'ROOKIE';
   const re=score>=90?'🏆':score>=70?'⭐':score>=50?'📚':'🌱';
+  // Жаңа title тексеру (ойыннан кейін)
+  const newTitle=getTitle((state.plays||1), score);
   document.getElementById('playContent').innerHTML=`
     <div class="result-big">
       <div class="rank-badge">${re} ${rank}</div>
@@ -2108,7 +2350,9 @@ async function showResults(){
         const optionsHtml=q.options.map((opt,oi)=>{
           const isCorrect=oi===q.correct;
           const isChosen=oi===chosen;
-          let color='var(--muted)';let icon='○';let bold='';
+          let color='var(--muted)';
+          let icon='○';
+          let bold='';
           if(isCorrect){color='var(--accent3)';icon='✓';bold='font-weight:700';}
           else if(isChosen&&!isOk){color='var(--danger)';icon='✗';bold='font-weight:600';}
           return `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;${bold}">
@@ -2128,6 +2372,8 @@ async function showResults(){
     </div>`;
 }
 
+// ══ LIBRARY ══
+// Белсенді санат фильтрі
 let activeCategory='all';
 
 function getCategoryEmoji(cat){
@@ -2140,6 +2386,8 @@ function renderCategoryFilters(){
   const filtersEl=document.getElementById('categoryFilters');
   const statsEl=document.getElementById('categoryStats');
   if(!filtersEl||!statsEl)return;
+
+  // Санаттарды жинақтау
   const catMap={};
   state.quizzes.forEach(q=>{
     if(!catMap[q.category])catMap[q.category]={count:0,plays:0,best:0};
@@ -2148,23 +2396,29 @@ function renderCategoryFilters(){
     catMap[q.category].best=Math.max(catMap[q.category].best,q.bestScore||0);
   });
   const cats=Object.keys(catMap);
+
+  // Фильтр батырмалары
   filtersEl.innerHTML=`
     <button class="cat-filter-btn ${activeCategory==='all'?'active':''}" onclick="filterCategory('all')">
       🌐 Барлығы <span class="cat-count">${state.quizzes.length}</span>
     </button>
     ${cats.map(cat=>`
-      <button class="cat-filter-btn ${activeCategory===cat?'active':''}" onclick="filterCategory('${esc(cat).replace(/'/g,"\\x27")}')">
+      <button class="cat-filter-btn ${activeCategory===cat?'active':''}" onclick="filterCategory('${esc(cat).replace(/'/g,'\'')}')" >
         ${getCategoryEmoji(cat)} ${esc(cat.replace(/^[^\s]+\s/,''))} <span class="cat-count">${catMap[cat].count}</span>
       </button>`).join('')}`;
+
+  // Санат стат карточкалары (тек "барлығы" режимінде)
   if(activeCategory==='all'&&cats.length>1){
     statsEl.innerHTML=cats.map(cat=>`
-      <div class="cat-stat-card" onclick="filterCategory('${esc(cat).replace(/'/g,"\\x27")}')">
+      <div class="cat-stat-card" onclick="filterCategory('${esc(cat).replace(/'/g,'\'')}')" >
         <div class="cat-stat-emoji">${getCategoryEmoji(cat)}</div>
         <div class="cat-stat-name">${esc(cat.replace(/^[^\s]+\s/,''))}</div>
         <div class="cat-stat-meta">${catMap[cat].count} тест · ${catMap[cat].plays} ойын</div>
         ${catMap[cat].best>0?`<div style="font-family:Orbitron,monospace;font-size:10px;color:var(--accent3);margin-top:3px">⭐ ${catMap[cat].best}%</div>`:''}
       </div>`).join('');
-  }else{statsEl.innerHTML='';}
+  } else {
+    statsEl.innerHTML='';
+  }
 }
 
 function filterCategory(cat){
@@ -2177,14 +2431,18 @@ function renderLibrary(){
   renderCategoryFilters();
   const c=document.getElementById('quizLibrary');
   if(!state.quizzes.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Тест жоқ</div></div>';return;}
+
+  // Іздеу + санат фильтрі
   const search=(document.getElementById('libSearch')?.value||'').toLowerCase().trim();
   let filtered=state.quizzes;
-  if(activeCategory!=='all')filtered=filtered.filter(q=>q.category===activeCategory);
-  if(search)filtered=filtered.filter(q=>q.title.toLowerCase().includes(search)||q.category.toLowerCase().includes(search));
+  if(activeCategory!=='all') filtered=filtered.filter(q=>q.category===activeCategory);
+  if(search) filtered=filtered.filter(q=>q.title.toLowerCase().includes(search)||q.category.toLowerCase().includes(search));
+
   if(!filtered.length){
     c.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Табылмады</div><p style="color:var(--muted);font-size:12px">"${esc(search||activeCategory)}" бойынша нәтиже жоқ</p></div>`;
     return;
   }
+
   c.innerHTML=filtered.map(quiz=>`
     <div class="quiz-list-item" onclick="startPlay('${quiz.id}')">
       <div>
@@ -2212,30 +2470,50 @@ function deleteQuiz(id){
   updateHeader();renderLibrary();updateExportSelect();
 }
 
+// ══ САНАТ БАСҚАРУ ══
 function onCategoryChange(){
   const sel=document.getElementById('quizCategory');
   const wrap=document.getElementById('customCategoryWrap');
   if(!sel||!wrap)return;
   wrap.style.display=sel.value==='__custom__'?'block':'none';
-  if(sel.value==='__custom__')document.getElementById('customCategory')?.focus();
+  if(sel.value==='__custom__'){
+    document.getElementById('customCategory')?.focus();
+  }
 }
 
 function getSelectedCategory(){
   const sel=document.getElementById('quizCategory');
   if(!sel)return '🎯 Өзге';
-  if(sel.value==='__custom__'){const custom=document.getElementById('customCategory')?.value.trim();return custom||'🎯 Өзге';}
+  if(sel.value==='__custom__'){
+    const custom=document.getElementById('customCategory')?.value.trim();
+    return custom||'🎯 Өзге';
+  }
   return sel.value;
 }
 
 function syncCategorySelect(cat){
-  const sel=document.getElementById('quizCategory');if(!sel)return;
+  const sel=document.getElementById('quizCategory');
+  if(!sel)return;
+  // Бар опциялардан іздеу
   let found=false;
-  for(const opt of sel.options){if(opt.value===cat||opt.text===cat){sel.value=opt.value||opt.text;found=true;break;}}
-  if(!found){const customOpt=document.createElement('option');customOpt.value=cat;customOpt.text=cat;sel.insertBefore(customOpt,sel.querySelector('[value="__custom__"]'));sel.value=cat;}
+  for(const opt of sel.options){
+    if(opt.value===cat||opt.text===cat){sel.value=opt.value||opt.text;found=true;break;}
+  }
+  if(!found){
+    // Санаттар тізімінде жоқ — custom қосу
+    const customOpt=document.createElement('option');
+    customOpt.value=cat;customOpt.text=cat;
+    sel.insertBefore(customOpt,sel.querySelector('[value="__custom__"]'));
+    sel.value=cat;
+  }
   onCategoryChange();
 }
 
-const BUILTIN_CATEGORIES=['🧠 Жалпы білім','📖 Тарих','🔬 Ғылым','💻 Технология','🌍 География','🎭 Мәдениет','🔢 Математика','📚 Әдебиет','⚽ Спорт','🎯 Өзге'];
+// ══ САНАТ ЖҮЙЕСІ ══
+const BUILTIN_CATEGORIES=[
+  '🧠 Жалпы білім','📖 Тарих','🔬 Ғылым','💻 Технология',
+  '🌍 География','🎭 Мәдениет','🔢 Математика','📚 Әдебиет','⚽ Спорт','🎯 Өзге'
+];
 function getCustomCategories(){return JSON.parse(localStorage.getItem('qbit_custom_cats')||'[]');}
 function saveCustomCategories(cats){localStorage.setItem('qbit_custom_cats',JSON.stringify(cats));}
 function getAllCategories(){return [...BUILTIN_CATEGORIES,...getCustomCategories()];}
@@ -2244,11 +2522,14 @@ function addCustomCategory(){
   const inp=document.getElementById('newCatInput');if(!inp)return;
   const val=inp.value.trim();
   if(!val){showToast('⚠️ Атауды жазыңыз');return;}
-  const cats=getCustomCategories();const all=getAllCategories();
+  const cats=getCustomCategories();
+  const all=getAllCategories();
   if(all.some(c=>c.toLowerCase()===val.toLowerCase())||all.some(c=>c.replace(/^[^\s]+\s/,'').toLowerCase()===val.toLowerCase())){showToast('⚠️ Бұл санат бар');return;}
   const hasEmoji=/\p{Emoji_Presentation}/u.test(val[0]);
   const withEmoji=hasEmoji?val:'📂 '+val;
-  cats.push(withEmoji);saveCustomCategories(cats);inp.value='';
+  cats.push(withEmoji);
+  saveCustomCategories(cats);
+  inp.value='';
   refreshCategorySelect();
   const el=document.getElementById('adm-categories-list');
   if(el)el.innerHTML=renderAdminCategoryManager();
@@ -2258,7 +2539,8 @@ function addCustomCategory(){
 function deleteCustomCategory(cat){
   if(!confirm('"'+cat+'" санатын жою?'))return;
   const cats=getCustomCategories().filter(c=>c!==cat);
-  saveCustomCategories(cats);refreshCategorySelect();
+  saveCustomCategories(cats);
+  refreshCategorySelect();
   const el=document.getElementById('adm-categories-list');
   if(el)el.innerHTML=renderAdminCategoryManager();
   showToast('🗑 "'+cat+'" жойылды');
@@ -2266,7 +2548,8 @@ function deleteCustomCategory(cat){
 
 function refreshCategorySelect(){
   const sel=document.getElementById('quizCategory');if(!sel)return;
-  const cur=sel.value;const all=getAllCategories();
+  const cur=sel.value;
+  const all=getAllCategories();
   sel.innerHTML=all.map(c=>'<option>'+c+'</option>').join('')+'<option value="__custom__">✏️ Өзге атау...</option>';
   if(all.includes(cur))sel.value=cur;
 }
@@ -2275,39 +2558,69 @@ function renderAdminCategoryManager(){
   const catMap={};
   state.quizzes.forEach(q=>{
     if(!catMap[q.category])catMap[q.category]={count:0,plays:0,best:0};
-    catMap[q.category].count++;catMap[q.category].plays+=(q.playCount||0);catMap[q.category].best=Math.max(catMap[q.category].best,q.bestScore||0);
+    catMap[q.category].count++;
+    catMap[q.category].plays+=(q.playCount||0);
+    catMap[q.category].best=Math.max(catMap[q.category].best,q.bestScore||0);
   });
-  const customCats=getCustomCategories();const allCats=getAllCategories();
+  const customCats=getCustomCategories();
+  const allCats=getAllCategories();
   const rows=allCats.map(cat=>{
-    const d=catMap[cat]||{count:0,plays:0,best:0};const isCustom=customCats.includes(cat);const catSafe=cat.replace(/'/g,"\\x27");
+    const d=catMap[cat]||{count:0,plays:0,best:0};
+    const isCustom=customCats.includes(cat);
+    const catSafe=cat.replace(/'/g,"\\x27");
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'
       +'<div style="font-size:22px">'+getCategoryEmoji(cat)+'</div>'
-      +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(cat)+'</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">'+d.count+' тест · '+d.plays+' ойын'+(d.best>0?' · ⭐'+d.best+'%':'')+'</div></div>'
-      +'<div style="display:flex;gap:5px;flex-shrink:0">'+(d.count>0?'<button class="btn btn-sm btn-ghost" onclick="filterCategory(\''+catSafe+'\');switchTab(\'library\')" style="font-size:11px">👁</button>':'<div style="width:37px"></div>')+(isCustom?'<button class="btn btn-sm btn-danger" onclick="deleteCustomCategory(\''+catSafe+'\')" style="font-size:11px">🗑</button>':'<div style="width:37px"></div>')+'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(cat)+'</div>'
+        +'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">'+d.count+' тест · '+d.plays+' ойын'+(d.best>0?' · ⭐'+d.best+'%':'')+'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:5px;flex-shrink:0">'
+        +(d.count>0?'<button class="btn btn-sm btn-ghost" onclick="filterCategory(\'' +catSafe+ '\');switchTab(\'library\')" style="font-size:11px">👁</button>':'<div style="width:37px"></div>')
+        +(isCustom?'<button class="btn btn-sm btn-danger" onclick="deleteCustomCategory(\'' +catSafe+ '\')" style="font-size:11px">🗑</button>':'<div style="width:37px"></div>')
+      +'</div>'
     +'</div>';
   }).join('');
-  return '<div style="margin-bottom:14px"><div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:8px">➕ ЖАҢА САНАТ ҚОСУ</div><div style="display:flex;gap:8px"><input type="text" id="newCatInput" placeholder="🧪 Химия немесе Химия" style="margin-bottom:0;flex:1" onkeydown="if(event.key===\'Enter\')addCustomCategory()"/><button class="btn btn-cyan" onclick="addCustomCategory()" style="flex-shrink:0">➕ Қосу</button></div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-top:5px">Emoji болмаса 📂 автоматты қосылады</div></div>'
+  return '<div style="margin-bottom:14px">'
+    +'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:8px">➕ ЖАҢА САНАТ ҚОСУ</div>'
+    +'<div style="display:flex;gap:8px">'
+      +'<input type="text" id="newCatInput" placeholder="🧪 Химия немесе Химия" style="margin-bottom:0;flex:1" onkeydown="if(event.key===\'Enter\')addCustomCategory()"/>'
+      +'<button class="btn btn-cyan" onclick="addCustomCategory()" style="flex-shrink:0">➕ Қосу</button>'
+    +'</div>'
+    +'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-top:5px">Emoji болмаса 📂 автоматты қосылады</div>'
+  +'</div>'
   +'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">📋 БАРЛЫҚ САНАТТАР ('+allCats.length+')</div>'
   +(rows||'<div class="empty-state" style="padding:20px 0"><div style="font-size:28px">📂</div><div>Санат жоқ</div></div>');
 }
 
+// ══ ТЕСТ ӨҢДЕУ ══
 function editQuiz(id){
   if(!isAdmin())return;
   const quiz=state.quizzes.find(q=>q.id===id);if(!quiz)return;
   editingQuizId=id;
+
+  // Форманы толтыру
   document.getElementById('quizTitle').value=quiz.title;
   syncCategorySelect(quiz.category);
   document.getElementById('quizTimer').value=String(quiz.timer);
   document.getElementById('quizDifficulty').value=quiz.difficulty;
+
+  // Сұрақтарды жүктеу
   questions=quiz.questions.map(q=>({...q,options:[...q.options]}));
   renderQuestions();
+
+  // Өңдеу баннерін көрсету
   document.getElementById('editModeBanner').style.display='flex';
   document.getElementById('editModeTitle').textContent=quiz.title;
+
+  // Сақтау батырмасын өзгерту
   document.getElementById('saveButtonArea').innerHTML=`
     <button class="btn btn-danger" onclick="clearAll()">🗑 Тазалау</button>
     <button class="btn btn-ghost" onclick="cancelEdit()">✕ Болдырмау</button>
     <button class="btn btn-primary" onclick="saveQuiz()">💾 Өзгерісті сақтау</button>`;
-  switchTab('create');admSection('create',null);
+
+  // Редакторға ауысу
+  switchTab('create');
+  admSection('create',null);
   document.querySelectorAll('.adm-nav').forEach(b=>b.classList.remove('active'));
   document.querySelector('.adm-nav')?.classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
@@ -2323,10 +2636,12 @@ function cancelEdit(){
   questions=[];addQuestion();
   document.getElementById('quizTitle').value='';
   refreshCategorySelect();document.getElementById('quizCategory').value=getAllCategories()[0]||'🧠 Жалпы білім';document.getElementById('customCategoryWrap').style.display='none';
-  document.getElementById('quizTimer').value='20';document.getElementById('quizDifficulty').value='medium';
+  document.getElementById('quizTimer').value='20';
+  document.getElementById('quizDifficulty').value='medium';
   showToast('↩️ Өңдеу тоқтатылды');
 }
 
+// ══ QUIZ CRUD ══
 function updateExportSelect(){
   const sel=document.getElementById('exportSelect');if(!sel)return;
   sel.innerHTML='<option value="">— Тест таңдаңыз —</option>';
@@ -2359,6 +2674,7 @@ function renderStats(){
   panel.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;padding:6px 0"><div><div class="r-stat-val cyan" style="font-size:26px">${state.quizzes.length}</div><div class="r-stat-lbl">тест</div></div><div><div class="r-stat-val green" style="font-size:26px">${total}</div><div class="r-stat-lbl">ойын</div></div><div><div class="r-stat-val" style="font-size:26px;color:var(--accent2)">${avg}%</div><div class="r-stat-lbl">үздік</div></div></div>`;
 }
 
+// ══ QUESTION BUILDER ══
 function addQuestion(q=null){
   state.questionCounter++;
   const id='q_'+Date.now()+'_'+state.questionCounter;
@@ -2402,6 +2718,7 @@ function clearAll(){
   if(confirm('Тазалайсыз ба?')){
     questions=[];addQuestion();
     document.getElementById('quizTitle').value='';
+    // Өңдеу режимі болса — тазалаумен қатар болдырмау
     if(editingQuizId)cancelEdit();
   }
 }
@@ -2412,24 +2729,49 @@ function saveQuiz(){
   if(!title)return showToast('⚠️ Тест атауын енгізіңіз!');
   const validQs=questions.filter(q=>q.text.trim()&&q.options.some(o=>o.trim()));
   if(validQs.length<2)return showToast('⚠️ Кем дегенде 2 сұрақ!');
-  const quizData={title,category:getSelectedCategory(),timer:parseInt(document.getElementById('quizTimer').value),difficulty:document.getElementById('quizDifficulty').value,questions:validQs.map(q=>({...q,options:q.options.filter(o=>o.trim())}))};
+
+  const quizData={
+    title,
+    category:getSelectedCategory(),
+    timer:parseInt(document.getElementById('quizTimer').value),
+    difficulty:document.getElementById('quizDifficulty').value,
+    questions:validQs.map(q=>({...q,options:q.options.filter(o=>o.trim())})),
+  };
+
   if(editingQuizId){
+    // ── ӨҢДЕУ: бар тестті жаңарту ──
     const idx=state.quizzes.findIndex(q=>q.id===editingQuizId);
-    if(idx!==-1){state.quizzes[idx]={...state.quizzes[idx],...quizData};showToast(`✅ "${title}" жаңартылды!`);}
+    if(idx!==-1){
+      state.quizzes[idx]={...state.quizzes[idx],...quizData};
+      showToast(`✅ "${title}" жаңартылды!`);
+    }
+    // Өңдеу режимін аяқтау
     editingQuizId=null;
     document.getElementById('editModeBanner').style.display='none';
-    document.getElementById('saveButtonArea').innerHTML=`<button class="btn btn-danger" onclick="clearAll()">🗑 Тазалау</button><button class="btn btn-primary" onclick="saveQuiz()">💾 Сақтау</button>`;
-  }else{
-    state.quizzes.unshift({id:'quiz_'+Date.now(),...quizData,created:fmtDate(new Date()),playCount:0,bestScore:0});
+    document.getElementById('saveButtonArea').innerHTML=`
+      <button class="btn btn-danger" onclick="clearAll()">🗑 Тазалау</button>
+      <button class="btn btn-primary" onclick="saveQuiz()">💾 Сақтау</button>`;
+  } else {
+    // ── ЖАҢА ТЕСТ ──
+    state.quizzes.unshift({
+      id:'quiz_'+Date.now(),
+      ...quizData,
+      created:fmtDate(new Date()),
+      playCount:0,bestScore:0,
+    });
     showToast(`✅ "${title}" сақталды!`);
   }
+
   localStorage.setItem('qbit_quizzes',JSON.stringify(state.quizzes));
   updateHeader();updateExportSelect();updateGameQuizSelect();
+
+  // Форманы тазалау
   questions=[];addQuestion();
   document.getElementById('quizTitle').value='';
   switchTab('library');
 }
 
+// ══ UTILS ══
 function esc(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function showToast(msg){
