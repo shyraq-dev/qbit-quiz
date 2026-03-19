@@ -1184,8 +1184,9 @@ function initApp(){
   refreshCategorySelect();updateHeader();renderLibrary();updateExportSelect();
   if(!questions.length)addQuestion();
   renderStats();
-  // Тесттерді Supabase-тен жүктеу
+  // Тесттер мен санаттарды Supabase-тен жүктеу
   loadQuizzesFromDB();
+  loadCategoriesFromDB();
   // Хабарландырулар
   const _u = getTgUser();
   if (_u) {
@@ -2728,23 +2729,34 @@ const BUILTIN_CATEGORIES=[
   '🧠 Жалпы білім','📖 Тарих','🔬 Ғылым','💻 Технология',
   '🌍 География','🎭 Мәдениет','🔢 Математика','📚 Әдебиет','⚽ Спорт','🎯 Өзге'
 ];
-let _customCats = null;
+let _customCats = JSON.parse(localStorage.getItem('qbit_custom_cats')||'[]');
 
-async function getCustomCategories(){
-  if (_customCats !== null) return _customCats;
-  if (!supabaseClient) return JSON.parse(localStorage.getItem('qbit_custom_cats')||'[]');
+// DB-тен санаттарды жүктеу (фон режимінде)
+async function loadCategoriesFromDB(){
+  if (!supabaseClient) return;
   try{
     const {data} = await supabaseClient.from('categories').select('name').order('name');
-    _customCats = (data||[]).map(c=>c.name);
-    return _customCats;
-  }catch(e){
-    return JSON.parse(localStorage.getItem('qbit_custom_cats')||'[]');
-  }
+    if (data && data.length) {
+      _customCats = data.map(c=>c.name);
+      localStorage.setItem('qbit_custom_cats', JSON.stringify(_customCats));
+      refreshCategorySelect();
+    }
+  }catch(e){ console.error('loadCategoriesFromDB:', e); }
 }
 
-async function saveCustomCategories(cats){
+function getCustomCategories(){
+  return _customCats;
+}
+
+function saveCustomCategories(cats){
   _customCats = cats;
-  localStorage.setItem('qbit_custom_cats', JSON.stringify(cats)); // fallback
+  localStorage.setItem('qbit_custom_cats', JSON.stringify(cats));
+  // DB-ке сақтау (фон режимінде)
+  if (supabaseClient) {
+    supabaseClient.from('categories').delete().neq('name','').then(()=>{
+      if (cats.length) supabaseClient.from('categories').insert(cats.map(name=>({name}))).then(()=>{});
+    });
+  }
 }
 function getAllCategories(){return [...BUILTIN_CATEGORIES,...getCustomCategories()];}
 
