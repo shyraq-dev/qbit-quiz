@@ -381,11 +381,7 @@
       <span id="editModeText" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)"></span>
       <span onclick="cancelEditMode()" style="cursor:pointer;font-size:18px;line-height:1">✕</span>
     </div>
-    <div class="reply-preview" id="replyPreview">
-      <span>↩️</span>
-      <div class="reply-preview-text" id="replyPreviewText"></div>
-      <span class="reply-preview-close" onclick="cancelReply()">✕</span>
-    </div>
+
     <div class="chat-input-wrap">
       <textarea class="chat-input" id="chatInput" placeholder="Хабарлама..." rows="1"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"
@@ -2399,9 +2395,7 @@ function handleBubbleTouchEnd(event, msgId, isMine, text) {
   const hint = document.getElementById('hint_' + msgId);
   if (_swipeEl) { _swipeEl.style.transform = ''; _swipeEl.style.transition = 'transform 0.2s'; setTimeout(() => { if (_swipeEl) _swipeEl.style.transition = ''; }, 200); }
   if (hint) hint.style.opacity = 0;
-  if (_swipeTriggered) {
-    startReply(msgId, text);
-  }
+
   _swipeEl = null; _swipeTriggered = false;
 }
 
@@ -2475,7 +2469,7 @@ function showChatCtxMenu(event, msgId, isMine, text) {
   const menu = document.createElement('div');
   menu.className = 'chat-ctx-menu'; menu.id = 'chatCtxMenu';
   let html = '';
-  html += `<div class="chat-ctx-item" onclick="startReply(${msgId},'${safeText}');closeChatCtxMenu()">↩️ Жауап беру</div>`;
+
   html += `<div class="chat-ctx-item" onclick="navigator.clipboard?.writeText(decodeURIComponent('${encodeURIComponent(text||'')}'));showToast('📋 Көшірілді');closeChatCtxMenu()">📋 Көшіру</div>`;
   html += `<div class="chat-ctx-item" onclick="forwardMessage(${msgId},'${safeText}');closeChatCtxMenu()">↪️ Жөнелту</div>`;
   html += `<div class="chat-ctx-item" onclick="togglePinMessage(${msgId});closeChatCtxMenu()">${isPinned?'📌 Бекітуді шешу':'📌 Бекіту'}</div>`;
