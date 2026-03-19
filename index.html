@@ -410,7 +410,7 @@
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('recent',event)">📜 Ойындар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('categories',event)">📂 Санаттар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('feedback',event)">💬 Чаттар</button>
-        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('feedbacks',event)">📝 Пікірлер</button>
+        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('reviews',event)">📝 Пікірлер</button>
       </div>
 
       <!-- Тест жасау / өңдеу -->
@@ -532,7 +532,7 @@
       <div id="adm-section-recent" style="display:none">
         <div class="card"><div class="card-title">📜 соңғы ойындар</div><div id="adm-recent-list"><div class="loading">Жүктелуде</div></div></div>
       </div>
-      <div id="adm-section-feedbacks" style="display:none">
+      <div id="adm-section-reviews" style="display:none">
         <div class="card"><div class="card-title">📝 кері байланыс пікірлері</div><div id="adm-feedback-list"><div class="loading">Жүктелуде</div></div></div>
       </div>
       <div id="adm-section-feedback" style="display:none">
@@ -1200,7 +1200,7 @@ function switchTab(tab){
 }
 
 function admSection(name,e){
-  ['create','games','quizzes','users','recent','categories','feedback','feedbacks'].forEach(s=>{
+  ['create','games','quizzes','users','recent','categories','feedback','reviews'].forEach(s=>{
     const el=document.getElementById('adm-section-'+s);if(el)el.style.display='none';
   });
   document.getElementById('adm-section-'+name).style.display='block';
@@ -1210,7 +1210,7 @@ function admSection(name,e){
   if(name==='users')loadAdminUsers();
   if(name==='recent')loadAdminRecent();
   if(name==='feedback')loadAdminChatUsers();
-  if(name==='feedbacks')loadAdminFeedbacks();
+  if(name==='reviews')loadAdminFeedbacks();
   if(name==='games')updateGameQuizSelect();
   if(name==='categories'){const el=document.getElementById('adm-categories-list');if(el)el.innerHTML=renderAdminCategoryManager();}
 }
@@ -1913,14 +1913,14 @@ function renderChatMessages(messages) {
     el.innerHTML = '<div style="text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;margin-top:40px">Хабарлама жоқ.<br>Алғашқы хабарламаны жіберіңіз!</div>';
     return;
   }
-  const adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
   el.innerHTML = messages.map(m => {
-    const isMine = parseInt(m.from_user_id) === parseInt(myId);
-    const isFromAdmin = adminId && parseInt(m.from_user_id) === adminId;
-    return `<div class="chat-bubble ${isMine?'user':'admin'}">
-      ${isFromAdmin&&!isMine?'<div style="font-family:Space Mono,monospace;font-size:8px;color:var(--accent);margin-bottom:3px">⚡ ӘКІМШІ</div>':''}
-      ${esc(m.text)}
-      <div class="chat-bubble-time">${fmtDateTime(m.created_at)}${m.is_read&&isMine?' ✓✓':''}</div>
+    // Серіктес жазған болса сол жақ, мен жазсам оң жақ
+    const isMine = parseInt(m.from_user_id) !== parseInt(_chatPartnerId);
+    return `<div style="display:flex;justify-content:${isMine?'flex-end':'flex-start'};margin-bottom:4px">
+      <div class="chat-bubble ${isMine?'user':'admin'}">
+        ${esc(m.text)}
+        <div class="chat-bubble-time">${fmtDateTime(m.created_at)}${m.is_read&&isMine?' ✓✓':''}</div>
+      </div>
     </div>`;
   }).join('');
   el.scrollTop = el.scrollHeight;
