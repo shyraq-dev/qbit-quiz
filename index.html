@@ -2167,7 +2167,7 @@ let _typingTimeout = null;
 let _isTyping = false;
 let _typingChannel = null;
 
-function startTypingPresence(partnerId) {
+async function startTypingPresence(partnerId) {
   if (!supabaseClient) return;
   if (_typingChannel) { _typingChannel.unsubscribe(); }
   const myId = getTgUser()?.id;
@@ -2847,7 +2847,7 @@ function renderLibrary(){
     </div>`).join('');
 }
 
-function deleteQuiz(id){
+async function deleteQuiz(id){
   if(!isAdmin())return;if(!confirm('Жоюға сенімдісіз бе?'))return;
   try{
     await supabaseClient.from('quizzes').delete().eq('id',id);
@@ -2916,7 +2916,8 @@ async function loadCategoriesFromDB(){
 }
 
 function getCustomCategories(){
-  return _customCats;
+  if (_customCats !== null) return _customCats;
+  return JSON.parse(localStorage.getItem('qbit_custom_cats')||'[]');
 }
 
 function saveCustomCategories(cats){
