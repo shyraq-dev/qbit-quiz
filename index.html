@@ -3156,11 +3156,7 @@ async function saveQuiz(){
     if(editingQuizId){
       // ── ӨҢДЕУ ──
       const {error}=await supabaseClient.from('quizzes').update({
-        title:quizData.title,
-        category:quizData.category,
-        timer:quizData.timer,
-        difficulty:quizData.difficulty,
-        questions:quizData.questions,
+        data: quizData,
       }).eq('id',editingQuizId);
       if(error)throw error;
       showToast(`✅ "${title}" жаңартылды!`);
@@ -3173,8 +3169,7 @@ async function saveQuiz(){
       // ── ЖАҢА ТЕСТ ──
       const user=getTgUser();
       const {error}=await supabaseClient.from('quizzes').insert({
-        ...quizData,
-        created_by:user?.id||null,
+        data: { ...quizData, created_by: user?.id||null },
       });
       if(error)throw error;
       showToast(`✅ "${title}" сақталды!`);
@@ -3205,18 +3200,22 @@ async function loadQuizzesFromDB(){
   try{
     const {data,error}=await supabaseClient.from('quizzes').select('*').order('created_at',{ascending:false});
     if(error)throw error;
-    state.quizzes=(data||[]).map(q=>({
-      id:q.id,
-      title:q.title,
-      category:q.category||'📂 Жалпы',
-      timer:q.timer||20,
-      difficulty:q.difficulty||'medium',
-      questions:q.questions||[],
-      created:q.created_at?fmtDate(q.created_at):'',
-      playCount:q.play_count||0,
-      bestScore:q.best_score||0,
-      created_by:q.created_by,
-    }));
+    state.quizzes=(data||[]).map(q=>{
+      // data JSON өрісінен немесе тікелей өрістерден оқу
+      const d = q.data || q;
+      return {
+        id: q.id,
+        title: d.title || q.title || '',
+        category: d.category || q.category || '📂 Жалпы',
+        timer: d.timer || q.timer || 20,
+        difficulty: d.difficulty || q.difficulty || 'medium',
+        questions: d.questions || q.questions || [],
+        created: q.created_at ? fmtDate(q.created_at) : '',
+        playCount: d.play_count || q.play_count || 0,
+        bestScore: d.best_score || q.best_score || 0,
+        created_by: d.created_by || q.created_by,
+      };
+    });
     updateHeader();renderLibrary();updateExportSelect();updateGameQuizSelect();
   }catch(e){console.error('loadQuizzesFromDB:',e);}
 }
