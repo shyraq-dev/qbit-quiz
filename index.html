@@ -2978,22 +2978,12 @@ function formatBirthday(iso) {
   return `${day} ${month} ${year}`;
 }
 
-function editBirthday(current) {
+function editBirthday(day, month, year) {
   document.getElementById('birthdayModal')?.remove();
-
-  // Бар мәнді parse жасау
-  let curDay = '', curMonth = '', curYear = '';
-  if (current) {
-    const d = new Date(current);
-    curDay = d.getUTCDate();
-    curMonth = d.getUTCMonth() + 1;
-    curYear = d.getUTCFullYear();
-  }
-
+  const hasExisting = day && month;
   const monthOptions = KZ_MONTHS_FULL.map((m, i) =>
-    `<option value="${i+1}" ${curMonth===i+1?'selected':''}>${m}</option>`
+    `<option value="${i+1}" ${month==i+1?'selected':''}>${m}</option>`
   ).join('');
-
   const modal = document.createElement('div');
   modal.id = 'birthdayModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center';
@@ -3002,12 +2992,12 @@ function editBirthday(current) {
       <div style="font-family:Orbitron,monospace;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:16px">🎂 ТУҒАН КҮН</div>
       <div style="display:grid;grid-template-columns:80px 1fr 90px;gap:8px;margin-bottom:16px">
         <div>
-          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:4px">КҮН</div>
-          <input id="bdDay" type="number" min="1" max="31" value="${curDay}" placeholder="1-31"
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:4px">КҮН *</div>
+          <input id="bdDay" type="number" min="1" max="31" value="${day||''}" placeholder="1-31"
             style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:16px;padding:8px;outline:none;text-align:center;box-sizing:border-box">
         </div>
         <div>
-          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:4px">АЙ</div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:4px">АЙ *</div>
           <select id="bdMonth" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:14px;padding:8px;outline:none;box-sizing:border-box">
             <option value="">— Ай —</option>
             ${monthOptions}
@@ -3015,14 +3005,18 @@ function editBirthday(current) {
         </div>
         <div>
           <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:4px">ЖЫЛ</div>
-          <input id="bdYear" type="number" min="1900" max="2026" value="${curYear}" placeholder="жыл"
+          <input id="bdYear" type="number" min="1900" max="2026" value="${year||''}" placeholder="—"
             style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:16px;padding:8px;outline:none;text-align:center;box-sizing:border-box">
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:${current?'1fr 1fr 1fr':'1fr 1fr'};gap:8px">
+      <div style="display:grid;grid-template-columns:${hasExisting?'1fr 1fr 1fr':'1fr 1fr'};gap:8px">
         <button class="btn btn-ghost" onclick="document.getElementById('birthdayModal').remove()" style="justify-content:center">← Артқа</button>
-        ${current?`<button class="btn btn-danger" onclick="saveBirthday(null)" style="justify-content:center">🗑 Өшіру</button>`:''}
-        <button class="btn btn-cyan" onclick="saveBirthday()" style="justify-content:center">✅ Сақтау</button>
+        ${hasExisting?`<button class="btn btn-danger" onclick="confirmSaveBirthday(null,null,null)" style="justify-content:center">🗑 Өшіру</button>`:''}
+        <button class="btn btn-cyan" onclick="confirmSaveBirthday(
+          parseInt(document.getElementById('bdDay').value)||null,
+          parseInt(document.getElementById('bdMonth').value)||null,
+          parseInt(document.getElementById('bdYear').value)||null
+        )" style="justify-content:center">✅ Сақтау</button>
       </div>
     </div>`;
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
@@ -3030,7 +3024,11 @@ function editBirthday(current) {
 }
 
 
-async function saveBirthday(day, month, year) {
+async function confirmSaveBirthday(day, month, year) {
+  if (day !== null && (!day || !month)) {
+    showToast('⚠️ Күн мен айды толтырыңыз!');
+    return;
+  }
   document.getElementById('birthdayModal')?.remove();
   try {
     await fetch(`${API_BASE}/profile`, {
