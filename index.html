@@ -1991,6 +1991,8 @@ function openChatWith(partnerId, name, username, avatar) {
   document.getElementById('chatPartnerAvatar').textContent = avatar || '🐱';
   document.getElementById('searchResults').innerHTML = '';
   document.getElementById('messengerSearch').value = '';
+  // Бекітілген хатты жүктеу
+  _pinnedMsgId = localStorage.getItem('qbit_pinned_' + partnerId) || null;
   loadChatMessages();
   subscribeChatRealtime(partnerId);
   startTypingPresence(partnerId);
@@ -2054,6 +2056,8 @@ function renderChatMessages(messages) {
     </div>`;
   }).join('');
   el.scrollTop = el.scrollHeight;
+  // Бекітілген хатты көрсету
+  if (_pinnedMsgId) restorePinnedMsg(_pinnedMsgId);
 }
 
 async function sendChatMessage() {
@@ -2344,7 +2348,7 @@ async function onChatInputTyping() {
 
 let _longPressTimer = null;
 let _blockedUsers = JSON.parse(localStorage.getItem('qbit_blocked')||'[]');
-let _pinnedMsgId = null;
+let _pinnedMsgId = localStorage.getItem('qbit_pinned_' + (_chatPartnerId||'')) || null;
 
 function startLongPress(event, msgId, isMine) {
   cancelLongPress();
@@ -2667,22 +2671,16 @@ function togglePinMessage(msgId) {
   closeChatCtxMenu();
   if (_pinnedMsgId === msgId) {
     _pinnedMsgId = null;
+    localStorage.removeItem('qbit_pinned_' + _chatPartnerId);
     document.getElementById('pinnedMsg')?.remove();
     showToast('📌 Бекіту шешілді');
   } else {
     _pinnedMsgId = msgId;
+    localStorage.setItem('qbit_pinned_' + _chatPartnerId, msgId);
     // Бекітілген хабарламаны header астына қос
     const bubble = document.querySelector(`[data-msg-id="${msgId}"]`);
     const text = bubble ? bubble.childNodes[0]?.textContent?.trim() : '';
-    document.getElementById('pinnedMsg')?.remove();
-    const pin = document.createElement('div');
-    pin.id = 'pinnedMsg';
-    pin.onclick = () => scrollToMsg(msgId);
-    pin.style.cssText = 'padding:6px 12px;background:rgba(0,245,255,0.08);border-left:3px solid var(--accent);font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
-    pin.innerHTML = `📌 <span style="color:var(--accent)">Бекітілген:</span> ${esc(text)}`;
-    const chatWin = document.getElementById('chatWindow');
-    const header = chatWin?.querySelector('.chat-header');
-    header?.insertAdjacentElement('afterend', pin);
+    restorePinnedMsg(msgId);
     showToast('📌 Хабарлама бекітілді');
   }
 }
@@ -2690,6 +2688,26 @@ function togglePinMessage(msgId) {
 // sendChatMessage-те бұғатталған пайдаланушыны тексеру
 function isChatPartnerBlocked() {
   return _blockedUsers.includes(parseInt(_chatPartnerId));
+}
+
+function restorePinnedMsg(msgId) {
+  if (!msgId) return;
+  document.getElementById('pinnedMsg')?.remove();
+  // Bubble мәтінін алу
+  const bubble = document.querySelector(`[data-msg-id="${msgId}"]`);
+  const text = bubble ? (() => {
+    const clone = bubble.cloneNode(true);
+    clone.querySelectorAll('.reply-bubble,.chat-bubble-time,.read-tooltip,.bubble-edited,.msg-status').forEach(e=>e.remove());
+    return clone.textContent.trim();
+  })() : '...';
+  const pin = document.createElement('div');
+  pin.id = 'pinnedMsg';
+  pin.onclick = () => scrollToMsg(msgId);
+  pin.style.cssText = 'padding:6px 12px;background:rgba(0,245,255,0.08);border-left:3px solid var(--accent);font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+  pin.innerHTML = `📌 <span style="color:var(--accent)">Бекітілген:</span> ${esc(text)}`;
+  const chatWin = document.getElementById('chatWindow');
+  const header = chatWin?.querySelector('.chat-header');
+  header?.insertAdjacentElement('afterend', pin);
 }
 
 function scrollToMsg(msgId) {
