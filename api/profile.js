@@ -34,8 +34,13 @@ module.exports = async (req, res) => {
     if (!verifyTelegramData(initData)) return res.status(401).json({ error: 'Unauthorized' });
     const params = new URLSearchParams(initData);
     const user = JSON.parse(params.get('user'));
-    const { birthday } = req.body;
-    await supabase.from('users').update({ birthday: birthday || null }).eq('id', user.id);
+    const { day, month, year } = req.body;
+    const d = day ? parseInt(day) : null;
+    const m = month ? parseInt(month) : null;
+    const y = year ? parseInt(year) : null;
+    await supabase.from('users').update({
+      birthday_day: d, birthday_month: m, birthday_year: y
+    }).eq('id', user.id);
     return res.status(200).json({ ok: true });
   }
 
