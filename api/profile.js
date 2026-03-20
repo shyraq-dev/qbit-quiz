@@ -63,7 +63,7 @@ module.exports = async (req, res) => {
   try {
     // Пайдаланушы деректері
     const { data: userData } = await supabase
-      .from('users').select('*, bio, birthday').eq('id', user.id).single();
+      .from('users').select('*, bio, birthday_day, birthday_month, birthday_year').eq('id', user.id).single();
 
     // Соңғы 10 ойын
     const { data: recentResults } = await supabase
