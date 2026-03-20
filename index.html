@@ -2700,13 +2700,21 @@ function scrollToMsg(msgId) {
   const el = document.getElementById(`wrap_${msgId}`);
   if (!el) return;
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  // Жыпылықтау эффектісі
   const bubble = el.querySelector('.chat-bubble');
-  if (bubble) {
-    bubble.style.transition = 'background 0.3s';
-    bubble.style.background = 'rgba(0,245,255,0.2)';
-    setTimeout(() => { bubble.style.background = ''; }, 800);
-  }
+  if (!bubble) return;
+  // Алдымен transition өшіру — бірден жарқ етсін
+  bubble.style.transition = 'none';
+  bubble.style.background = 'rgba(0,245,255,0.35)';
+  bubble.style.boxShadow = '0 0 16px rgba(0,245,255,0.4)';
+  // Кішкене кідіріс — браузер рендерлесін
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      // Плавный fade — 1.2 секундта өшеді
+      bubble.style.transition = 'background 1.2s ease, box-shadow 1.2s ease';
+      bubble.style.background = '';
+      bubble.style.boxShadow = '';
+    });
+  });
 }
 
 function showReadTooltip(el, time) {
@@ -2908,7 +2916,7 @@ async function editBio(current) {
   modal.innerHTML = `
     <div style="background:var(--surface);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:480px">
       <div style="font-family:Orbitron,monospace;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px">✏️ ӨЗІ ЖАЙЛЫ</div>
-      <textarea id="bioInput" maxlength="200" placeholder="Өзіңіз жайлы жазыңыз..." style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:14px;padding:10px;resize:none;outline:none;transition:border 0.2s;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">${esc(current||'')}</textarea>
+      <textarea id="bioInput" placeholder="Өзіңіз жайлы жазыңыз..." style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:14px;padding:10px;resize:none;outline:none;transition:border 0.2s;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">${esc(current||'')}</textarea>
       <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);text-align:right;margin-top:4px"><span id="bioCount">${(current||'').length}</span>/200</div>
       <div style="display:grid;grid-template-columns:${current?'1fr 1fr 1fr':'1fr 1fr'};gap:8px;margin-top:12px">
         <button class="btn btn-ghost" onclick="document.getElementById('bioModal').remove()" style="justify-content:center">← Артқа</button>
@@ -2917,7 +2925,11 @@ async function editBio(current) {
       </div>
     </div>`;
   modal.querySelector('#bioInput').addEventListener('input', function() {
-    document.getElementById('bioCount').textContent = this.value.length;
+    const count = document.getElementById('bioCount');
+    if (count) {
+      count.textContent = this.value.length;
+      count.style.color = this.value.length > 200 ? 'var(--danger)' : 'var(--muted)';
+    }
   });
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
   document.body.appendChild(modal);
@@ -2925,6 +2937,7 @@ async function editBio(current) {
 }
 
 async function saveBio(bioText) {
+  if (bioText && bioText.length > 200) { showToast('⚠️ Максимум 200 таңба!'); return; }
   document.getElementById('bioModal')?.remove();
   try {
     await fetch(`${API_BASE}/profile`, {
