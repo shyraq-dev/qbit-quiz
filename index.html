@@ -3207,12 +3207,6 @@ async function loadProfile(){
         <div class="title-badge" style="color:${title.color};background:${title.bg};border:1px solid ${title.border};margin-bottom:8px">${title.label}</div>
         <div class="profile-rank-pill">🏅 Рейтинг: #${d.rank}</div>
         <div id="profileBirthdayBlock" style="margin-top:8px;width:100%;text-align:center">
-          ${u.birthday
-            ? `<div style="font-size:12px;color:var(--muted);cursor:pointer" onclick="editBirthday('${esc(u.birthday||'')}')">🎂 ${formatBirthday(u.birthday)}</div>`
-            : `<button onclick="editBirthday('')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:9px;color:var(--muted);cursor:pointer">+ туған күн қосу</button>`
-          }
-        </div>
-        <div id="profileBirthdayBlock" style="margin-top:8px;width:100%;text-align:center">
           ${(u.birthday_day && u.birthday_month)
             ? `<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer" onclick="editBirthday(${u.birthday_day||'null'},${u.birthday_month||'null'},${u.birthday_year||'null'})">
                 🎂 ${u.birthday_day} ${['қаңтар','ақпан','наурыз','сәуір','мамыр','маусым','шілде','тамыз','қыркүйек','қазан','қараша','желтоқсан'][u.birthday_month-1]}${u.birthday_year?' '+u.birthday_year:''}
@@ -3225,16 +3219,9 @@ async function loadProfile(){
           ${u.bio
             ? `<div style="font-size:13px;color:var(--muted);line-height:1.5;padding:0 16px;cursor:pointer" onclick="editBio('${esc(u.bio||'').replace(/'/g,"\\'")}')">${esc(u.bio)}</div>
                <button onclick="editBio('${esc(u.bio||'').replace(/'/g,"\\'")}')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:9px;color:var(--accent);cursor:pointer;margin-top:4px">✏️ өңдеу</button>`
-            : `<button onclick="editBio('')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer;border:1px dashed var(--border);border-radius:8px;padding:6px 14px">+ өзіңіз жайлы жазыңыз</button>`
+            : `<button onclick="editBio('')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer;border:1px dashed var(--border);border-radius:8px;padding:6px 14px">✎ өзіңіз жайлы жазыңыз</button>`
           }
         </div>
-      </div>
-      <div id="profileBirthdayBlock" style="margin-top:8px;width:100%;text-align:center">
-        ${u.birthday
-          ? `<div style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted);cursor:pointer" onclick="editBirthday('${esc(u.birthday)}')">🎂 ${formatBirthday(u.birthday)}</div>`
-          : `<button onclick="editBirthday('')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer">🎂 туған күн қосу</button>`
-        }
-      </div>
       <div class="profile-stats">
         <div class="ps-box"><div class="ps-val">${u.total_games}</div><div class="ps-lbl">ОЙЫН</div></div>
         <div class="ps-box"><div class="ps-val" style="color:var(--accent3)">${pct}%</div><div class="ps-lbl">ОРТАША</div></div>
