@@ -3215,13 +3215,14 @@ async function loadProfile(){
             : `<button onclick="editBirthday(null,null,null)" style="background:none;border:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer;border:1px dashed var(--border);border-radius:8px;padding:4px 12px">🎂 туған күн қосу</button>`
           }
         </div>
-        <div id="profileBioBlock"' style="margin-top:12px;width:100%;text-align:center">
+        <div id="profileBioBlock" style="margin-top:12px;width:100%;text-align:center">
           ${u.bio
             ? `<div style="font-size:13px;color:var(--muted);line-height:1.5;padding:0 16px;cursor:pointer" onclick="editBio('${esc(u.bio||'').replace(/'/g,"\\'")}')">${esc(u.bio)}</div>
                <button onclick="editBio('${esc(u.bio||'').replace(/'/g,"\\'")}')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:9px;color:var(--accent);cursor:pointer;margin-top:4px">✏️ өңдеу</button>`
             : `<button onclick="editBio('')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer;border:1px dashed var(--border);border-radius:8px;padding:6px 14px">✎ өзіңіз жайлы жазыңыз</button>`
           }
         </div>
+      </div>
       <div class="profile-stats">
         <div class="ps-box"><div class="ps-val">${u.total_games}</div><div class="ps-lbl">ОЙЫН</div></div>
         <div class="ps-box"><div class="ps-val" style="color:var(--accent3)">${pct}%</div><div class="ps-lbl">ОРТАША</div></div>
