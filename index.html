@@ -2920,6 +2920,61 @@ function openAdminChatWith(partnerId, name, username, avatar){
   subscribeChatRealtime(partnerId);
 }
 
+const KZ_MONTHS_FULL = ['Қаңтар','Ақпан','Наурыз','Сәуір','Мамыр','Маусым','Шілде','Тамыз','Қыркүйек','Қазан','Қараша','Желтоқсан'];
+
+function formatBirthday(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return `${d.getUTCDate()} ${KZ_MONTHS_FULL[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+
+function getAge(dateStr) {
+  if (!dateStr) return null;
+  const birth = new Date(dateStr);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getUTCFullYear();
+  const m = today.getMonth() - birth.getUTCMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getUTCDate())) age--;
+  return age;
+}
+
+async function editBirthday(current) {
+  const existing = document.getElementById('birthdayModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'birthdayModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:480px">
+      <div style="font-family:Orbitron,monospace;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px">🎂 ТУҒАН КҮН</div>
+      <input type="date" id="birthdayInput" value="${current||''}"
+        max="${new Date().toISOString().split('T')[0]}"
+        min="1900-01-01"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:16px;padding:10px 12px;outline:none;box-sizing:border-box;transition:border 0.2s"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      <div style="display:grid;grid-template-columns:${current?'1fr 1fr 1fr':'1fr 1fr'};gap:8px;margin-top:12px">
+        <button class="btn btn-ghost" onclick="document.getElementById('birthdayModal').remove()" style="justify-content:center">← Артқа</button>
+        ${current?`<button class="btn btn-danger" onclick="saveBirthday(null)" style="justify-content:center">🗑 Өшіру</button>`:''}
+        <button class="btn btn-cyan" onclick="saveBirthday(document.getElementById('birthdayInput').value)" style="justify-content:center">✅ Сақтау</button>
+      </div>
+    </div>`;
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+
+async function saveBirthday(birthday) {
+  document.getElementById('birthdayModal')?.remove();
+  try {
+    await fetch(`${API_BASE}/profile`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'update_birthday', birthday: birthday || null })
+    });
+    showToast(birthday ? '✅ Туған күн сақталды' : '✅ Туған күн өшірілді');
+    loadProfile();
+  } catch(e) { showToast('⚠️ Қате'); }
+}
+
 async function editBio(current) {
   // Bio редактор modal
   const existing = document.getElementById('bioModal');
@@ -2949,6 +3004,159 @@ async function editBio(current) {
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
   document.body.appendChild(modal);
   setTimeout(() => modal.querySelector('#bioInput')?.focus(), 100);
+}
+
+
+function formatBirthday(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const day = d.getUTCDate();
+  const month = KZ_MONTHS_FULL[d.getUTCMonth()];
+  const year = d.getUTCFullYear();
+  return `${day} ${month} ${year}`;
+}
+
+function editBirthday(current) {
+  document.getElementById('birthdayModal')?.remove();
+
+  // Бар мәнді parse жасау
+  let curDay = '', curMonth = '', curYear = '';
+  if (current) {
+    const d = new Date(current);
+    curDay = d.getUTCDate();
+    curMonth = d.getUTCMonth() + 1;
+    curYear = d.getUTCFullYear();
+  }
+
+  const monthOptions = KZ_MONTHS_FULL.map((m, i) =>
+    `<option value="${i+1}" ${curMonth===i+1?'selected':''}>${m}</option>`
+  ).join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'birthdayModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:480px">
+      <div style="font-family:Orbitron,monospace;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:16px">🎂 ТУҒАН КҮН</div>
+      <div style="display:grid;grid-template-columns:80px 1fr 90px;gap:8px;margin-bottom:16px">
+        <div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:4px">КҮН</div>
+          <input id="bdDay" type="number" min="1" max="31" value="${curDay}" placeholder="1-31"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:16px;padding:8px;outline:none;text-align:center;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:4px">АЙ</div>
+          <select id="bdMonth" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:14px;padding:8px;outline:none;box-sizing:border-box">
+            <option value="">— Ай —</option>
+            ${monthOptions}
+          </select>
+        </div>
+        <div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:4px">ЖЫЛ</div>
+          <input id="bdYear" type="number" min="1900" max="2026" value="${curYear}" placeholder="жыл"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:16px;padding:8px;outline:none;text-align:center;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:${current?'1fr 1fr 1fr':'1fr 1fr'};gap:8px">
+        <button class="btn btn-ghost" onclick="document.getElementById('birthdayModal').remove()" style="justify-content:center">← Артқа</button>
+        ${current?`<button class="btn btn-danger" onclick="saveBirthday(null)" style="justify-content:center">🗑 Өшіру</button>`:''}
+        <button class="btn btn-cyan" onclick="saveBirthday()" style="justify-content:center">✅ Сақтау</button>
+      </div>
+    </div>`;
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+
+async function saveBirthday(clear) {
+  if (clear === null) {
+    document.getElementById('birthdayModal')?.remove();
+    await fetch(`${API_BASE}/profile`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'update_birthday', birthday: null })
+    });
+    showToast('✅ Туған күн өшірілді');
+    loadProfile();
+    return;
+  }
+
+  const day = parseInt(document.getElementById('bdDay')?.value);
+  const month = parseInt(document.getElementById('bdMonth')?.value);
+  const year = parseInt(document.getElementById('bdYear')?.value);
+
+  if (!day || day < 1 || day > 31) { showToast('⚠️ Күнді дұрыс енгізіңіз (1-31)'); return; }
+  if (!month || month < 1 || month > 12) { showToast('⚠️ Айды таңдаңыз'); return; }
+  if (!year || year < 1900 || year > 2026) { showToast('⚠️ Жылды дұрыс енгізіңіз (1900-2026)'); return; }
+
+  // Күнді тексеру (мысалы 31 ақпан болмасын)
+  const testDate = new Date(Date.UTC(year, month-1, day));
+  if (testDate.getUTCDate() !== day || testDate.getUTCMonth() !== month-1) {
+    showToast('⚠️ Мұндай күн жоқ'); return;
+  }
+
+  const iso = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  document.getElementById('birthdayModal')?.remove();
+
+  try {
+    await fetch(`${API_BASE}/profile`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'update_birthday', birthday: iso })
+    });
+    showToast('✅ Туған күн сақталды');
+    loadProfile();
+  } catch(e) { showToast('⚠️ Қате'); }
+}
+
+function editBirthday(day, month, year) {
+  document.getElementById('birthdayModal')?.remove();
+  const months = KZ_MONTHS_FULL;
+  const modal = document.createElement('div');
+  modal.id = 'birthdayModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:480px">
+      <div style="font-family:Orbitron,monospace;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:16px">🎂 ТУҒАН КҮН</div>
+      <div style="display:grid;grid-template-columns:1fr 2fr 1.5fr;gap:8px;margin-bottom:16px">
+        <div>
+          <label style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);display:block;margin-bottom:4px">КҮН</label>
+          <select id="bdDay" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px;font-size:14px;outline:none">
+            ${Array.from({length:31},(_,i)=>`<option value="${i+1}" ${day==i+1?'selected':''}>${i+1}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);display:block;margin-bottom:4px">АЙ</label>
+          <select id="bdMonth" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px;font-size:14px;outline:none">
+            ${months.map((m,i)=>`<option value="${i+1}" ${month==i+1?'selected':''}>${m}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);display:block;margin-bottom:4px">ЖЫЛ</label>
+          <select id="bdYear" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px;font-size:14px;outline:none">
+            <option value="">—</option>
+            ${Array.from({length:127},(_,i)=>2026-i).map(y=>`<option value="${y}" ${year==y?'selected':''}>${y}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:${(day&&month)?'1fr 1fr 1fr':'1fr 1fr'};gap:8px">
+        <button class="btn btn-ghost" onclick="document.getElementById('birthdayModal').remove()" style="justify-content:center">← Артқа</button>
+        ${(day&&month)?`<button class="btn btn-danger" onclick="saveBirthday(null,null,null)" style="justify-content:center">🗑 Өшіру</button>`:''}
+        <button class="btn btn-cyan" onclick="saveBirthday(document.getElementById('bdDay').value,document.getElementById('bdMonth').value,document.getElementById('bdYear').value||null)" style="justify-content:center">✅ Сақтау</button>
+      </div>
+    </div>`;
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+
+async function saveBirthday(day, month, year) {
+  document.getElementById('birthdayModal')?.remove();
+  try {
+    await fetch(`${API_BASE}/profile`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'update_birthday',
+        day: day||null, month: month||null, year: year||null })
+    });
+    showToast(day ? '✅ Туған күн сақталды' : '✅ Туған күн өшірілді');
+    loadProfile();
+  } catch(e) { showToast('⚠️ Қате'); }
 }
 
 async function saveBio(bioText) {
@@ -2998,13 +3206,34 @@ async function loadProfile(){
         </div>
         <div class="title-badge" style="color:${title.color};background:${title.bg};border:1px solid ${title.border};margin-bottom:8px">${title.label}</div>
         <div class="profile-rank-pill">🏅 Рейтинг: #${d.rank}</div>
-        <div id="profileBioBlock" style="margin-top:12px;width:100%;text-align:center">
+        <div id="profileBirthdayBlock" style="margin-top:8px;width:100%;text-align:center">
+          ${u.birthday
+            ? `<div style="font-size:12px;color:var(--muted);cursor:pointer" onclick="editBirthday('${esc(u.birthday||'')}')">🎂 ${formatBirthday(u.birthday)}</div>`
+            : `<button onclick="editBirthday('')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:9px;color:var(--muted);cursor:pointer">+ туған күн қосу</button>`
+          }
+        </div>
+        <div id="profileBirthdayBlock" style="margin-top:8px;width:100%;text-align:center">
+          ${(u.birthday_day && u.birthday_month)
+            ? `<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer" onclick="editBirthday(${u.birthday_day||'null'},${u.birthday_month||'null'},${u.birthday_year||'null'})">
+                🎂 ${u.birthday_day} ${['қаңтар','ақпан','наурыз','сәуір','мамыр','маусым','шілде','тамыз','қыркүйек','қазан','қараша','желтоқсан'][u.birthday_month-1]}${u.birthday_year?' '+u.birthday_year:''}
+                <span style="color:var(--accent);margin-left:4px">✏️</span>
+              </div>`
+            : `<button onclick="editBirthday(null,null,null)" style="background:none;border:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer;border:1px dashed var(--border);border-radius:8px;padding:4px 12px">🎂 туған күн қосу</button>`
+          }
+        </div>
+        <div id="profileBioBlock"' style="margin-top:12px;width:100%;text-align:center">
           ${u.bio
             ? `<div style="font-size:13px;color:var(--muted);line-height:1.5;padding:0 16px;cursor:pointer" onclick="editBio('${esc(u.bio||'').replace(/'/g,"\\'")}')">${esc(u.bio)}</div>
                <button onclick="editBio('${esc(u.bio||'').replace(/'/g,"\\'")}')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:9px;color:var(--accent);cursor:pointer;margin-top:4px">✏️ өңдеу</button>`
             : `<button onclick="editBio('')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer;border:1px dashed var(--border);border-radius:8px;padding:6px 14px">+ өзіңіз жайлы жазыңыз</button>`
           }
         </div>
+      </div>
+      <div id="profileBirthdayBlock" style="margin-top:8px;width:100%;text-align:center">
+        ${u.birthday
+          ? `<div style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted);cursor:pointer" onclick="editBirthday('${esc(u.birthday)}')">🎂 ${formatBirthday(u.birthday)}</div>`
+          : `<button onclick="editBirthday('')" style="background:none;border:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);cursor:pointer">🎂 туған күн қосу</button>`
+        }
       </div>
       <div class="profile-stats">
         <div class="ps-box"><div class="ps-val">${u.total_games}</div><div class="ps-lbl">ОЙЫН</div></div>
