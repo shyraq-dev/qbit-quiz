@@ -2978,11 +2978,9 @@ function formatBirthday(iso) {
   return `${day} ${month} ${year}`;
 }
 
-function getBdMaxDay(month, year) {
+function getBdMaxDay(month) {
   if (!month) return 31;
-  let feb = 28;
-  if (year && year%4===0 && (year%100!==0 || year%400===0)) feb = 29;
-  const days = [31,feb,31,30,31,30,31,31,30,31,30,31];
+  const days = [31,29,31,30,31,30,31,31,30,31,30,31];
   return days[month-1];
 }
 
@@ -3625,8 +3623,13 @@ function cancelEdit(){
 // ══ QUIZ CRUD ══
 function updateExportSelect(){
   const sel=document.getElementById('exportSelect');if(!sel)return;
+  // Select ашық тұрса жаңартпаймыз
+  if(document.activeElement===sel) return;
+  const prev=sel.value;
   sel.innerHTML='<option value="">— Тест таңдаңыз —</option>';
   state.quizzes.forEach(q=>{const opt=document.createElement('option');opt.value=q.id;opt.textContent=q.title;sel.appendChild(opt);});
+  // Бұрынғы таңдауды сақтау
+  if(prev) sel.value=prev;
 }
 
 function generateExport(){
@@ -3736,7 +3739,13 @@ async function saveQuiz(){
       // ── ЖАҢА ТЕСТ ──
       const user=getTgUser();
       const {error}=await supabaseClient.from('quizzes').insert({
-        data: { ...quizData, created_by: user?.id||null },
+        id: 'quiz_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+        title: quizData.title,
+        category: quizData.category,
+        timer: quizData.timer,
+        difficulty: quizData.difficulty,
+        questions: quizData.questions,
+        created_by: user?.id||null,
       });
       if(error)throw error;
       showToast(`✅ "${title}" сақталды!`);
