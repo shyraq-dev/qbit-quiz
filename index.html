@@ -298,6 +298,16 @@
 .messenger-btn:active{transform:scale(0.9)}
 .messenger-btn-badge{position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;font-family:Space Mono,monospace;font-size:8px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px}
 
+/* ══ QUESTION TYPES ══ */
+.q-type-select{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.q-type-btn{padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:Space Mono,monospace;font-size:9px;cursor:pointer;transition:all 0.2s}
+.q-type-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,245,255,0.08)}
+.media-block{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px}
+.media-preview img{width:100%;max-height:160px;object-fit:contain;border-radius:6px;margin-top:6px}
+.match-pair{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-bottom:6px}
+.multi-correct-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:Space Mono,monospace;font-size:9px;cursor:pointer}
+.multi-correct-btn.selected{border-color:var(--accent3);color:var(--accent3);background:rgba(16,185,129,0.1)}
+
 /* ══ CHAT REPLY / EDIT / SWIPE ══ */
 .reply-preview{display:none;padding:8px 12px;background:rgba(0,245,255,0.08);border-left:3px solid var(--accent);margin:0 12px 4px;border-radius:0 8px 8px 0;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);position:relative}
 .reply-preview.show{display:flex;align-items:center;gap:8px}
@@ -1746,6 +1756,7 @@ function handleSessionUpdate(session,isHost){
       if(overlay)overlay.remove();
       gameState.currentQ=session.current_question;
       const q=session.quiz_data.questions[session.current_question];
+      window._currentGameQ=q;
       showGameQuestion(q,session.current_question,session.quiz_data.questions.length,session.quiz_data.timer);
       if(isHost){
         const panel=document.getElementById('hostQuestionPanel');
@@ -1813,25 +1824,121 @@ function showGameQuestion(q,idx,total,timerSecs){
   showGameScreen('play');
   gameState.answerStartTime=Date.now();
   clearInterval(gameState.gameTimer);
+  if(!q.type)q.type='single';
+  if(!q.correctMulti)q.correctMulti=[];
   document.getElementById('gameQCounter').textContent=`${idx+1}/${total}`;
-  document.getElementById('gameQText').textContent=q.text;
   document.getElementById('myGameScore').textContent=gameState.myScore+' ⭐';
   const shapes=['▲','●','■','⬟'];
+
+  // Сұрақ мәтіні + медиа
+  const qTextEl = document.getElementById('gameQText');
+  if(qTextEl){
+    qTextEl.innerHTML = '';
+    // Мәнмәтін / медиа
+    if(q.context||q.mediaUrl){
+      const mediaDiv = document.createElement('div');
+      mediaDiv.style.cssText='background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.15);border-radius:10px;padding:10px;margin-bottom:10px';
+      if(q.context) mediaDiv.innerHTML+=`<div style="font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap;margin-bottom:${q.mediaUrl?'8px':'0'}">${esc(q.context)}</div>`;
+      if(q.mediaUrl) mediaDiv.innerHTML+=`<img src="${esc(q.mediaUrl)}" style="width:100%;max-height:180px;object-fit:contain;border-radius:6px" onerror="this.style.display='none'"/>`;
+      qTextEl.appendChild(mediaDiv);
+    }
+    const textDiv = document.createElement('div');
+    textDiv.textContent = q.text;
+    qTextEl.appendChild(textDiv);
+  }
+
   if(gameState.isHost){
-    // Хост жауап бермейді — тек бақылайды
     document.getElementById('gameAnswers').innerHTML=`
       <div style="text-align:center;padding:20px;color:var(--muted);font-family:Space Mono,monospace;font-size:11px">
         <div style="font-size:32px;margin-bottom:8px">🎮</div>
         <div>Жүргізуші режимі</div>
         <div style="margin-top:4px;font-size:10px">Қолданушылар жауап беруде...</div>
       </div>`;
+  } else if(q.type==='multi'){
+    window._gameMultiSelected=[];
+    document.getElementById('gameAnswers').innerHTML=q.options.map((opt,i)=>`
+      <button class="game-ans-btn" onclick="toggleGameMulti(${i})" id="gab_${i}" style="justify-content:space-between">
+        <span><span style="font-size:18px">${shapes[i]}</span> ${esc(opt)}</span>
+        <span id="gmc_${i}">☐</span>
+      </button>`).join('')+
+      `<button class="btn btn-cyan" onclick="submitGameMulti()" style="width:100%;justify-content:center;margin-top:8px">✅ Растау</button>`;
+  } else if(q.type==='match'){
+    const pairs=q.pairs||[];
+    const rights=[...pairs.map(p=>p.right)].sort(()=>Math.random()-0.5);
+    document.getElementById('gameAnswers').innerHTML=
+      pairs.map((p,pi)=>`
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-bottom:6px">
+          <div style="padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px">${esc(p.left)}</div>
+          <span style="color:var(--accent)">↔</span>
+          <select id="gmatch_${pi}" style="padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none">
+            <option value="">— таңда —</option>
+            ${rights.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}
+          </select>
+        </div>`).join('')+
+      `<button class="btn btn-cyan" onclick="submitGameMatch()" style="width:100%;justify-content:center;margin-top:6px">✅ Растау</button>`;
   } else {
+    // single / context
     document.getElementById('gameAnswers').innerHTML=q.options.map((opt,i)=>`
       <button class="game-ans-btn" onclick="submitGameAnswer(${i})" id="gab_${i}">
         <span style="font-size:20px">${shapes[i]}</span> ${esc(opt)}
       </button>`).join('');
   }
   if(timerSecs>0)startGameTimer(timerSecs);
+}
+
+function toggleGameMulti(i){
+  if(!window._gameMultiSelected)window._gameMultiSelected=[];
+  const idx=window._gameMultiSelected.indexOf(i);
+  const btn=document.getElementById('gab_'+i);
+  const mark=document.getElementById('gmc_'+i);
+  if(idx===-1){
+    window._gameMultiSelected.push(i);
+    if(btn)btn.style.borderColor='var(--accent)';
+    if(mark)mark.textContent='☑';
+  }else{
+    window._gameMultiSelected.splice(idx,1);
+    if(btn)btn.style.borderColor='';
+    if(mark)mark.textContent='☐';
+  }
+}
+
+async function submitGameMulti(){
+  clearInterval(gameState.gameTimer);
+  const q=window._currentGameQ;
+  const selected=(window._gameMultiSelected||[]).sort();
+  const correct=(q?.correctMulti||[]).sort();
+  const ok=JSON.stringify(selected)===JSON.stringify(correct);
+  document.querySelectorAll('.game-ans-btn').forEach((b,i)=>{
+    b.disabled=true;
+    if((q?.correctMulti||[]).includes(i))b.classList.add('correct');
+    else if(selected.includes(i))b.classList.add('wrong');
+  });
+  const timeMs=Date.now()-(gameState.answerStartTime||Date.now());
+  try{
+    const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'answer',payload:{code:gameState.code,questionIdx:gameState.currentQ,answerIdx:selected[0]??0,timeMs,isCorrect:ok}})});
+    const d=await r.json();
+    if(ok){gameState.myScore+=d.points||10;document.getElementById('myGameScore').textContent=gameState.myScore+' ⭐';showPointsPopup('+'+(d.points||10));}
+  }catch(e){}
+}
+
+async function submitGameMatch(){
+  clearInterval(gameState.gameTimer);
+  const q=window._currentGameQ;
+  const pairs=q?.pairs||[];
+  let correct=0;
+  pairs.forEach((p,pi)=>{
+    const val=document.getElementById('gmatch_'+pi)?.value;
+    const sel=document.getElementById('gmatch_'+pi);
+    if(val===p.right){correct++;if(sel)sel.style.borderColor='var(--accent3)';}
+    else{if(sel)sel.style.borderColor='var(--danger)';}
+  });
+  const ok=correct===pairs.length;
+  const timeMs=Date.now()-(gameState.answerStartTime||Date.now());
+  try{
+    const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'answer',payload:{code:gameState.code,questionIdx:gameState.currentQ,answerIdx:0,timeMs,isCorrect:ok}})});
+    const d=await r.json();
+    if(ok){gameState.myScore+=d.points||10;document.getElementById('myGameScore').textContent=gameState.myScore+' ⭐';showPointsPopup('+'+(d.points||10));}
+  }catch(e){}
 }
 
 function startGameTimer(secs){
@@ -3310,8 +3417,47 @@ function startPlay(quizId){
 
 function renderQuestion(){
   const quiz=state.currentPlay,ps=state.playState;const q=quiz.questions[ps.idx];
+  if(!q.type)q.type='single';
+  if(!q.correctMulti)q.correctMulti=[];
   const pct=Math.round((ps.idx/quiz.questions.length)*100);
   clearTimeout(state.timer);
+
+  // Медиа / мәнмәтін блогы
+  const mediaHtml=(q.context||q.mediaUrl)?`
+    <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.15);border-radius:10px;padding:12px;margin-bottom:12px">
+      ${q.context?`<div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;margin-bottom:${q.mediaUrl?'8px':'0'}">${esc(q.context)}</div>`:''}
+      ${q.mediaUrl?`<img src="${esc(q.mediaUrl)}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px" onerror="this.style.display='none'"/>`:'' }
+    </div>`:'' ;
+
+  // Жауап нұсқалары
+  let answersHtml='';
+  if(q.type==='single'||q.type==='context'){
+    answersHtml=`<div class="answers-grid">
+      ${q.options.map((opt,i)=>`<button class="answer-btn" id="ab_${i}" onclick="selectAnswer(${i})"><div class="ans-letter">${'ABCD'[i]}</div>${esc(opt)}</button>`).join('')}
+    </div>`;
+  } else if(q.type==='multi'){
+    answersHtml=`<div class="answers-grid" id="multiAnswers">
+      ${q.options.map((opt,i)=>`<button class="answer-btn" id="ab_${i}" onclick="toggleMultiAnswer(${i})" style="justify-content:space-between"><span><div class="ans-letter" style="display:inline-flex">${'ABCD'[i]}</div> ${esc(opt)}</span><span id="mc_${i}" style="font-size:16px">☐</span></button>`).join('')}
+    </div>
+    <button class="btn btn-cyan" onclick="submitMultiAnswer()" style="width:100%;justify-content:center;margin-top:10px">✅ Растау</button>`;
+  } else if(q.type==='match'){
+    const pairs=q.pairs||[];
+    const rights=[...pairs.map(p=>p.right)].sort(()=>Math.random()-0.5);
+    answersHtml=`<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:8px">Сол жақтағыны оң жақтағымен сәйкестендіріңіз:</div>
+    <div id="matchArea">
+      ${pairs.map((p,pi)=>`
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:8px">
+          <div style="padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px">${esc(p.left)}</div>
+          <span style="color:var(--accent)">↔</span>
+          <select id="match_${pi}" style="padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none">
+            <option value="">— таңда —</option>
+            ${rights.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}
+          </select>
+        </div>`).join('')}
+    </div>
+    <button class="btn btn-cyan" onclick="submitMatchAnswer()" style="width:100%;justify-content:center;margin-top:8px">✅ Растау</button>`;
+  }
+
   document.getElementById('playContent').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
       <div><div style="font-family:Orbitron,monospace;font-size:20px;font-weight:700;color:var(--accent)">${esc(quiz.title)}</div><div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace">${quiz.category}</div></div>
@@ -3323,11 +3469,10 @@ function renderQuestion(){
     <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
     <div class="q-card">
       <div class="q-counter">СҰРАҚ ${ps.idx+1} / ${quiz.questions.length}</div>
+      ${mediaHtml}
       <div class="q-text">${esc(q.text)}</div>
-      <div class="answers-grid">
-        ${q.options.map((opt,i)=>`<button class="answer-btn" id="ab_${i}" onclick="selectAnswer(${i})"><div class="ans-letter">${'ABCD'[i]}</div>${esc(opt)}</button>`).join('')}
-      </div>
-      <div class="explanation" id="explanation"><strong>💡 Түсіндірме:</strong> ${esc(q.explanation||'Дұрыс жауап — '+'ABCD'[q.correct]+' нұсқасы.')}</div>
+      ${answersHtml}
+      <div class="explanation" id="explanation"><strong>💡 Түсіндірме:</strong> ${esc(q.explanation||'')}</div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center">
       <div style="display:flex;gap:8px">
@@ -3337,6 +3482,66 @@ function renderQuestion(){
       <button class="btn btn-danger btn-sm" onclick="endPlay()">⏹ Тоқтату</button>
     </div>`;
   if(quiz.timer>0)startTimer(quiz.timer);
+  // Multi үшін state
+  if(q.type==='multi') window._multiSelected=[];
+}
+
+function toggleMultiAnswer(i){
+  if(!window._multiSelected)window._multiSelected=[];
+  const idx=window._multiSelected.indexOf(i);
+  const btn=document.getElementById('ab_'+i);
+  const mark=document.getElementById('mc_'+i);
+  if(idx===-1){
+    window._multiSelected.push(i);
+    if(btn)btn.style.borderColor='var(--accent)';
+    if(mark)mark.textContent='☑';
+  }else{
+    window._multiSelected.splice(idx,1);
+    if(btn)btn.style.borderColor='';
+    if(mark)mark.textContent='☐';
+  }
+}
+
+function submitMultiAnswer(){
+  const q=state.currentPlay.questions[state.playState.idx];
+  const selected=(window._multiSelected||[]).sort();
+  const correct=(q.correctMulti||[]).sort();
+  const ok=JSON.stringify(selected)===JSON.stringify(correct);
+  // Дұрыс/қате белгілеу
+  document.querySelectorAll('.answer-btn').forEach((btn,i)=>{
+    btn.disabled=true;
+    if((q.correctMulti||[]).includes(i))btn.classList.add('correct');
+    else if(selected.includes(i))btn.classList.add('wrong');
+  });
+  document.querySelector('.btn-cyan[onclick*="submitMultiAnswer"]') && (document.querySelector('.btn-cyan[onclick*="submitMultiAnswer"]').disabled=true);
+  const exp=document.getElementById('explanation');if(exp)exp.classList.add('show');
+  const ps=state.playState;
+  if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}else{ps.wrong++;ps.streak=0;}
+  ps.answers.push({ok,chosen:selected,correct:q.correctMulti});
+  setTimeout(nextQuestion,1800);
+}
+
+function submitMatchAnswer(){
+  const q=state.currentPlay.questions[state.playState.idx];
+  const pairs=q.pairs||[];
+  let correct=0;
+  pairs.forEach((p,pi)=>{
+    const sel=document.getElementById('match_'+pi)?.value;
+    const selEl=document.getElementById('match_'+pi);
+    if(sel===p.right){
+      correct++;
+      if(selEl){selEl.style.borderColor='var(--accent3)';selEl.style.color='var(--accent3)';}
+    }else{
+      if(selEl){selEl.style.borderColor='var(--danger)';selEl.style.color='var(--danger)';}
+    }
+  });
+  const ok=correct===pairs.length;
+  document.querySelector('.btn-cyan[onclick*="submitMatchAnswer"]') && (document.querySelector('.btn-cyan[onclick*="submitMatchAnswer"]').disabled=true);
+  const exp=document.getElementById('explanation');if(exp)exp.classList.add('show');
+  const ps=state.playState;
+  if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}else{ps.wrong++;ps.streak=0;}
+  ps.answers.push({ok,chosen:correct+'/'+pairs.length,correct:pairs.length});
+  setTimeout(nextQuestion,2000);
 }
 
 function startTimer(secs){
@@ -3790,14 +3995,86 @@ function renderStats(){
 function addQuestion(q=null){
   state.questionCounter++;
   const id='q_'+Date.now()+'_'+state.questionCounter;
-  const question=q||{id,text:'',options:['','','',''],correct:0,explanation:''};
-  if(!q)question.id=id;questions.push(question);renderQuestions();
+  const question=q||{
+    id, text:'', type:'single',
+    options:['','','',''],
+    correct:0, correctMulti:[],
+    pairs:[{left:'',right:''},{left:'',right:''}],
+    context:'', mediaUrl:'',
+    explanation:''
+  };
+  if(!q){
+    question.id=id;
+    if(!question.type) question.type='single';
+    if(!question.correctMulti) question.correctMulti=[];
+    if(!question.pairs) question.pairs=[{left:'',right:''},{left:'',right:''}];
+  }
+  questions.push(question);
+  renderQuestions();
 }
 
 function renderQuestions(){
   const list=document.getElementById('questionsList');list.innerHTML='';
   questions.forEach((q,idx)=>{
+    if(!q.type) q.type='single';
+    if(!q.correctMulti) q.correctMulti=[];
+    if(!q.pairs) q.pairs=[{left:'',right:''},{left:'',right:''}];
     const div=document.createElement('div');div.className='question-item';
+    const types=[
+      {key:'single',label:'☑ Бір дұрыс'},
+      {key:'multi',label:'☑☑ Бірнеше'},
+      {key:'context',label:'📄 Мәнмәтін'},
+      {key:'match',label:'🔗 Сәйкестік'},
+    ];
+    // Мәнмәтін / медиа блогы
+    const mediaHtml=`
+      <div class="media-block">
+        <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:6px">📎 МӘНМӘТІН / МЕДИА</div>
+        <textarea placeholder="Мәнмәтін (текст)..." style="width:100%;min-height:50px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px;resize:vertical;outline:none;box-sizing:border-box;margin-bottom:6px" oninput="questions[${idx}].context=this.value">${esc(q.context||'')}</textarea>
+        <input type="url" id="mediaUrl_${idx}" placeholder="Сурет URL-і (https://...)" value="${esc(q.mediaUrl||'')}" style="font-size:12px;margin-bottom:4px" oninput="questions[${idx}].mediaUrl=this.value"/>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <label style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">немесе</label>
+          <input type="file" accept="image/*" style="font-size:11px;flex:1" onchange="uploadQImage(event,${idx})"/>
+        </div>
+        ${q.mediaUrl?`<div class="media-preview"><img src="${esc(q.mediaUrl)}" alt="media" onerror="this.style.display='none'"/></div>`:''}
+      </div>`;
+
+    // Жауап нұсқалары
+    let answersHtml='';
+    if(q.type==='single'||q.type==='context'){
+      answersHtml=`
+        <label>Жауап нұсқалары</label>
+        <div class="options-grid">
+          ${['A','B','C','D'].map((l,oi)=>`<div class="option-input"><div class="option-label">${l}</div><input type="text" value="${esc(q.options[oi]||'')}" placeholder="${l}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
+        </div>
+        <label>Дұрыс жауап</label>
+        <div class="correct-selector">
+          ${['A','B','C','D'].map((l,oi)=>`<button class="correct-btn ${q.correct===oi?'selected':''}" onclick="setCorrect(${idx},${oi})">✓ ${l}</button>`).join('')}
+        </div>`;
+    } else if(q.type==='multi'){
+      answersHtml=`
+        <label>Жауап нұсқалары (бірнеше дұрыс болуы мүмкін)</label>
+        <div class="options-grid">
+          ${['A','B','C','D'].map((l,oi)=>`<div class="option-input"><div class="option-label">${l}</div><input type="text" value="${esc(q.options[oi]||'')}" placeholder="${l}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
+        </div>
+        <label>Дұрыс жауаптар (бірнешеуін таңда)</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${['A','B','C','D'].map((l,oi)=>`<button class="multi-correct-btn ${(q.correctMulti||[]).includes(oi)?'selected':''}" onclick="toggleMultiCorrect(${idx},${oi})">✓ ${l}</button>`).join('')}
+        </div>`;
+    } else if(q.type==='match'){
+      answersHtml=`
+        <label>Сәйкестік жұптары</label>
+        <div id="pairs_${idx}">
+          ${(q.pairs||[]).map((p,pi)=>`
+          <div class="match-pair">
+            <input type="text" value="${esc(p.left||'')}" placeholder="Сол жақ ${pi+1}" style="font-size:12px;margin-bottom:0" oninput="questions[${idx}].pairs[${pi}].left=this.value"/>
+            <span style="color:var(--accent);font-weight:700">↔</span>
+            <input type="text" value="${esc(p.right||'')}" placeholder="Оң жақ ${pi+1}" style="font-size:12px;margin-bottom:0" oninput="questions[${idx}].pairs[${pi}].right=this.value"/>
+          </div>`).join('')}
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="addPair(${idx})" style="margin-top:6px">+ Жұп қосу</button>`;
+    }
+
     div.innerHTML=`
       <div class="q-header">
         <div class="q-num">СҰРАҚ ${idx+1}</div>
@@ -3807,20 +4084,43 @@ function renderQuestions(){
           <button class="btn btn-sm btn-danger" onclick="removeQuestion(${idx})">✕</button>
         </div>
       </div>
+      <div class="q-type-select">
+        ${types.map(t=>`<button class="q-type-btn ${q.type===t.key?'active':''}" onclick="setQType(${idx},'${t.key}')">${t.label}</button>`).join('')}
+      </div>
+      ${mediaHtml}
       <label>Сұрақ мәтіні</label>
       <input type="text" value="${esc(q.text)}" placeholder="Сұрақты жазыңыз..." oninput="questions[${idx}].text=this.value"/>
-      <label>Жауап нұсқалары</label>
-      <div class="options-grid">
-        ${['A','B','C','D'].map((l,oi)=>`<div class="option-input"><div class="option-label">${l}</div><input type="text" value="${esc(q.options[oi]||'')}" placeholder="${l}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
-      </div>
-      <label>Дұрыс жауап</label>
-      <div class="correct-selector">
-        ${['A','B','C','D'].map((l,oi)=>`<button class="correct-btn ${q.correct===oi?'selected':''}" onclick="setCorrect(${idx},${oi})">✓ ${l}</button>`).join('')}
-      </div>
+      ${answersHtml}
       <label>Түсіндірме (міндетті емес)</label>
       <input type="text" value="${esc(q.explanation||'')}" placeholder="Түсіндірме..." oninput="questions[${idx}].explanation=this.value"/>`;
     list.appendChild(div);
   });
+}
+
+function uploadQImage(event, idx) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('⚠️ Сурет 2MB-тан аспауы керек'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    questions[idx].mediaUrl = e.target.result; // base64
+    renderQuestions();
+  };
+  reader.readAsDataURL(file);
+}
+
+function setQType(idx,type){questions[idx].type=type;renderQuestions();}
+function toggleMultiCorrect(idx,oi){
+  const q=questions[idx];
+  if(!q.correctMulti)q.correctMulti=[];
+  const i=q.correctMulti.indexOf(oi);
+  if(i===-1)q.correctMulti.push(oi);else q.correctMulti.splice(i,1);
+  renderQuestions();
+}
+function addPair(idx){
+  if(!questions[idx].pairs)questions[idx].pairs=[];
+  questions[idx].pairs.push({left:'',right:''});
+  renderQuestions();
 }
 
 function setCorrect(qi,oi){questions[qi].correct=oi;renderQuestions();}
