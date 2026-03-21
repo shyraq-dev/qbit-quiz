@@ -64,12 +64,7 @@ module.exports = async (req, res) => {
         .select().single();
       if (error) throw error;
 
-      await supabase.from('game_players').insert({
-        session_id: code,
-        user_id: user.id,
-        username: user.username || null,
-        first_name: user.first_name || 'Хост',
-      });
+      // Хост ойыншылар тізіміне қосылмайды — тек жүргізуші
 
       // Барлық пайдаланушыларға хабарлама: жаңа ойын жасалды
       const quizTitle = quizData?.title || 'Жаңа ойын';
