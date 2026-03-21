@@ -1487,7 +1487,7 @@ async function createGame(){
     const r=await fetch(`${API_BASE}/game`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'create',payload:{quizData:quiz,avatar:getMyAvatar()}})});
     const d=await r.json();
     if(!d.ok)return showToast('⚠️ '+d.error);
-    gameState.code=d.code;gameState.isHost=true;gameState.session=d.session;gameState.currentQ=-1;
+    gameState.code=d.code;gameState.isHost=true;gameState.session=d.session;gameState.currentQ=-1;gameState.myScore=0;
     document.getElementById('activeGameCode').textContent=d.code;
     document.getElementById('activeGamePanel').style.display='block';
     document.getElementById('hostQuestionPanel').style.display='none';
@@ -1828,10 +1828,20 @@ function showGameQuestion(q,idx,total,timerSecs){
   document.getElementById('gameQText').textContent=q.text;
   document.getElementById('myGameScore').textContent=gameState.myScore+' ⭐';
   const shapes=['▲','●','■','⬟'];
-  document.getElementById('gameAnswers').innerHTML=q.options.map((opt,i)=>`
-    <button class="game-ans-btn" onclick="submitGameAnswer(${i})" id="gab_${i}">
-      <span style="font-size:20px">${shapes[i]}</span> ${esc(opt)}
-    </button>`).join('');
+  if(gameState.isHost){
+    // Хост жауап бермейді — тек бақылайды
+    document.getElementById('gameAnswers').innerHTML=`
+      <div style="text-align:center;padding:20px;color:var(--muted);font-family:Space Mono,monospace;font-size:11px">
+        <div style="font-size:32px;margin-bottom:8px">🎮</div>
+        <div>Жүргізуші режимі</div>
+        <div style="margin-top:4px;font-size:10px">Қолданушылар жауап беруде...</div>
+      </div>`;
+  } else {
+    document.getElementById('gameAnswers').innerHTML=q.options.map((opt,i)=>`
+      <button class="game-ans-btn" onclick="submitGameAnswer(${i})" id="gab_${i}">
+        <span style="font-size:20px">${shapes[i]}</span> ${esc(opt)}
+      </button>`).join('');
+  }
   if(timerSecs>0)startGameTimer(timerSecs);
 }
 
@@ -1852,6 +1862,7 @@ function startGameTimer(secs){
 }
 
 async function submitGameAnswer(optIdx){
+  if(gameState.isHost) return; // Хост жауап бермейді
   clearInterval(gameState.gameTimer);
   const timeMs=Date.now()-(gameState.answerStartTime||Date.now());
   document.querySelectorAll('.game-ans-btn').forEach(b=>b.disabled=true);
@@ -1863,7 +1874,10 @@ async function submitGameAnswer(optIdx){
   }catch(e){console.error(e);}
 }
 
-function autoGameAnswer(){document.querySelectorAll('.game-ans-btn').forEach(b=>b.disabled=true);}
+function autoGameAnswer(){
+  if(gameState.isHost) return; // Хост автоматты жауап бермейді
+  document.querySelectorAll('.game-ans-btn').forEach(b=>b.disabled=true);
+}
 
 function revealAnswers(correctIdx){
   document.querySelectorAll('.game-ans-btn').forEach((b,i)=>{
@@ -1892,7 +1906,8 @@ async function showGameScoreboard(){
     });
     document.getElementById('gameScoreboard').innerHTML=d.players.map((p,i)=>{
       const n=i+1;const icon=n===1?'🥇':n===2?'🥈':n===3?'🥉':'#'+n;const isMe=p.user_id==myId;
-      const sbAv=isMe?getMyAvatar():(p.avatar||getPlayerAvatar(p.user_id));
+      if(gameState.isHost&&p.user_id==getTgUser()?.id) return ''; // Хост скорбордта жоқ
+  const sbAv=isMe?getMyAvatar():(p.avatar||getPlayerAvatar(p.user_id));
       return `<div class="scoreboard-row ${isMe?'highlight':''}"><div style="font-family:Orbitron,monospace;font-size:16px;width:32px">${icon}</div><div class="lb-avatar">${sbAv}</div><div style="flex:1"><div class="lb-name">${esc(p.first_name||'Ойыншы')}${isMe?' 👈':''}</div><div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">✓${p.correct??'-'} ✗${p.wrong??'-'} · ${p.accuracy??0}%</div></div><div style="font-family:Orbitron,monospace;font-size:16px;color:var(--accent)">${p.score} ⭐</div></div>`;
     }).join('');
     showGameScreen('score');
