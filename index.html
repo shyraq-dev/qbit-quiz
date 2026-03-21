@@ -2536,7 +2536,11 @@ function showConvCtxMenu(event, partnerId, name) {
     <div class="chat-ctx-divider"></div>
     <div class="chat-ctx-item danger" onclick="deleteConversation(${partnerId})">🗑 Жою</div>`;
   const x = Math.min(event.clientX || 20, window.innerWidth - 220);
-  const y = Math.min(event.clientY || 100, window.innerHeight - 250);
+  const itemCount = menu.querySelectorAll('.chat-ctx-item').length;
+  const menuH = itemCount * 46 + 20;
+  // Басылған жердің үстінде шықсын
+  let y = (event.clientY || 200) - menuH - 10;
+  if (y < 10) y = Math.min(event.clientY || 100, window.innerHeight - menuH - 10);
   menu.style.cssText = `left:${x}px;top:${y}px`;
   document.body.appendChild(overlay);
   document.body.appendChild(menu);
@@ -2601,7 +2605,10 @@ function showChatCtxMenu(event, msgId, isMine, text) {
   }
   menu.innerHTML = html;
   const x = Math.min(event.clientX||20, window.innerWidth-220);
-  const y = Math.min(event.clientY||100, window.innerHeight-300);
+  const itemCount2 = menu.querySelectorAll('.chat-ctx-item').length;
+  const menuH2 = itemCount2 * 46 + 20;
+  let y = (event.clientY||200) - menuH2 - 10;
+  if (y < 10) y = Math.min(event.clientY||100, window.innerHeight - menuH2 - 10);
   menu.style.cssText = `left:${x}px;top:${y}px`;
   document.body.appendChild(overlay);
   document.body.appendChild(menu);
