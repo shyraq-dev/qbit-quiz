@@ -4174,6 +4174,7 @@ async function saveQuiz(){
         difficulty: quizData.difficulty,
         questions: quizData.questions,
         created_by: user?.id||null,
+        data: {},
       });
       if(error)throw error;
       showToast(`✅ "${title}" сақталды!`);
