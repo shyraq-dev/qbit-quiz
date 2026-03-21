@@ -1156,7 +1156,7 @@ async function loadNotifications() {
     renderNotifList(d.notifications);
   } catch (e) {
     console.error('loadNotifications error:', e);
-    if (el) el.innerHTML = '<div class="notif-empty">⚠️<br><br>Желі қатесі</div>';
+    if (el) el.innerHTML = `<div class="notif-empty">⚠️<br><br>${e?.message||e?.toString()||'Белгісіз қате'}</div>`;
   }
 }
 
