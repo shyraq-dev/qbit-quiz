@@ -1163,15 +1163,20 @@ function renderNotifList(notifications) {
     el.innerHTML = '<div class="notif-empty">🔕<br><br>Хабарландыру жоқ</div>';
     return;
   }
+  // Деректерді жаһандық объектте сақтау
+  window._notifData = {};
+  notifications.forEach(n => { window._notifData[n.id] = n; });
   el.innerHTML = notifications.map(n => `
-    <div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="openNotifDetail(${n.id},'${esc(n.title).replace(/'/g,"\\'")}','${esc(n.body).replace(/'/g,"\\'")}','${n.type}','${n.created_at}',${n.is_read})">
+    <div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="openNotifDetail(${n.id})">
       <div class="notif-item-title">${getNotifIcon(n.type)} ${esc(n.title)}</div>
       <div class="notif-item-body">${esc(n.body)}</div>
       <div class="notif-item-time">${formatNotifTime(n.created_at)}</div>
     </div>`).join('');
 }
 
-async function openNotifDetail(id, title, body, type, createdAt, isRead) {
+async function openNotifDetail(id) {
+  const n = window._notifData?.[id]; if (!n) return;
+  const { title, body, type, created_at: createdAt, is_read: isRead } = n;
   if (!isRead) {
     const el = document.querySelector(`.notif-item[onclick*="${id}"]`);
     if (el) el.classList.remove('unread');
@@ -1197,6 +1202,19 @@ async function openNotifDetail(id, title, body, type, createdAt, isRead) {
     </div>`;
   modal.onclick = (e) => { if(e.target===modal) modal.remove(); };
   document.body.appendChild(modal);
+}
+
+async function openNotifPanel() {
+  const panel = document.getElementById('notifPanel');
+  if (panel) panel.classList.add('open');
+  _notifOpen = true;
+  await loadNotifications();
+}
+
+function closeNotifPanel() {
+  const panel = document.getElementById('notifPanel');
+  if (panel) panel.classList.remove('open');
+  _notifOpen = false;
 }
 
 async function readNotif(id, el) {
