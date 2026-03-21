@@ -1171,6 +1171,18 @@ function updateNotifBadge(count) {
   }
 }
 
+function formatNotifTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'Жаңа ғана';
+  if (diff < 3600) return `${Math.floor(diff/60)} мин бұрын`;
+  if (diff < 86400) return `${Math.floor(diff/3600)} сағ бұрын`;
+  const kz = toKZDate(iso);
+  return `${pad(kz.getUTCDate())}.${pad(kz.getUTCMonth()+1)}.${kz.getUTCFullYear()}`;
+}
+
 function getNotifIcon(type){
   const icons={'broadcast':'📢','chat_message':'💬','feedback':'📝','feedback_reply':'💬','game_start':'🎮','new_game':'🎮','weekly_ranking':'🏆'};
   return icons[type]||'🔔';
