@@ -2348,7 +2348,7 @@ async function onChatInputTyping() {
 
 let _longPressTimer = null;
 let _blockedUsers = JSON.parse(localStorage.getItem('qbit_blocked')||'[]');
-let _pinnedMsgId = localStorage.getItem('qbit_pinned_' + (_chatPartnerId||'')) || null;
+let _pinnedMsgId = null;
 
 function startLongPress(event, msgId, isMine) {
   cancelLongPress();
@@ -2678,7 +2678,7 @@ function togglePinMessage(msgId) {
     _pinnedMsgId = msgId;
     localStorage.setItem('qbit_pinned_' + _chatPartnerId, msgId);
     // Бекітілген хабарламаны header астына қос
-    const bubble = document.querySelector(`[data-msg-id="${msgId}"]`);
+    const bubble = document.querySelector(`[data-msg-id="${String(msgId)}"]`);
     const text = bubble ? bubble.childNodes[0]?.textContent?.trim() : '';
     restorePinnedMsg(msgId);
     showToast('📌 Хабарлама бекітілді');
