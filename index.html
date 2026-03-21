@@ -1133,14 +1133,23 @@ async function loadNotifications() {
   }
   if (el) el.innerHTML = '<div class="notif-empty">Жүктелуде...</div>';
   try {
+    const initD = getTgInitData();
+    if (!initD) {
+      if (el) el.innerHTML = '<div class="notif-empty">⚠️<br><br>initData жоқ</div>';
+      return;
+    }
     const r = await fetch(`${API_BASE}/notifications`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData: getTgInitData(), action: 'list' })
+      body: JSON.stringify({ initData: initD, action: 'list' })
     });
+    if (!r.ok) {
+      if (el) el.innerHTML = `<div class="notif-empty">⚠️<br><br>HTTP ${r.status}</div>`;
+      return;
+    }
     const d = await r.json();
     if (!d.ok) {
-      if (el) el.innerHTML = '<div class="notif-empty">⚠️<br><br>Қате шықты</div>';
+      if (el) el.innerHTML = `<div class="notif-empty">⚠️<br><br>${d.error||'Қате'}</div>`;
       return;
     }
     updateNotifBadge(d.unread);
