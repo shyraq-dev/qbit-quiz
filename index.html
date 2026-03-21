@@ -1164,60 +1164,57 @@ function renderNotifList(notifications) {
     return;
   }
   el.innerHTML = notifications.map(n => `
-    <div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="readNotif(${n.id}, this)">
+    <div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="openNotifDetail(${n.id},'${esc(n.title).replace(/'/g,"\\'")}','${esc(n.body).replace(/'/g,"\\'")}','${n.type}','${n.created_at}',${n.is_read})">
       <div class="notif-item-title">${getNotifIcon(n.type)} ${esc(n.title)}</div>
       <div class="notif-item-body">${esc(n.body)}</div>
       <div class="notif-item-time">${formatNotifTime(n.created_at)}</div>
     </div>`).join('');
 }
 
-function formatNotifTime(iso) {
-  const d = new Date(iso);
-  const now = new Date();
-  const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return 'Жаңа ғана';
-  if (diff < 3600) return `${Math.floor(diff/60)} мин бұрын`;
-  if (diff < 86400) return `${Math.floor(diff/3600)} сағ бұрын`;
-  const kz = toKZDate(iso); return `${pad(kz.getUTCDate())}.${pad(kz.getUTCMonth()+1)}.${kz.getUTCFullYear()}`;
-}
-
-async function openNotifPanel() {
-  const panel = document.getElementById('notifPanel');
-  if (panel) panel.classList.add('open');
-  _notifOpen = true;
-  await loadNotifications();
-}
-
-function closeNotifPanel() {
-  const panel = document.getElementById('notifPanel');
-  if (panel) panel.classList.remove('open');
-  _notifOpen = false;
+async function openNotifDetail(id, title, body, type, createdAt, isRead) {
+  if (!isRead) {
+    const el = document.querySelector(`.notif-item[onclick*="${id}"]`);
+    if (el) el.classList.remove('unread');
+    fetch(`${API_BASE}/notifications`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({initData:getTgInitData(),action:'read',id})}).catch(()=>{});
+    const badge = document.getElementById('notifBadge');
+    if (badge) { const cur=parseInt(badge.textContent)||0; updateNotifBadge(Math.max(0,cur-1)); }
+  }
+  const icons={'broadcast':'📢','chat_message':'💬','chat':'💬','feedback':'📝','feedback_reply':'💬','game_start':'🎮','new_game':'🎮','weekly_ranking':'🏆'};
+  const modal = document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center';
+  modal.innerHTML=`
+    <div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div style="font-size:28px">${icons[type]||'🔔'}</div>
+        <div>
+          <div style="font-family:Orbitron,monospace;font-size:14px;font-weight:700;color:var(--accent)">${esc(title)}</div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${formatNotifTime(createdAt)}</div>
+        </div>
+      </div>
+      <div style="font-size:14px;color:var(--text);line-height:1.6;white-space:pre-wrap;word-break:break-word">${esc(body)}</div>
+      <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:20px">← Жабу</button>
+    </div>`;
+  modal.onclick = (e) => { if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
 }
 
 async function readNotif(id, el) {
-  el.classList.remove('unread');
-  fetch(`${API_BASE}/notifications`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ initData: getTgInitData(), action: 'read', id })
-  }).catch(() => {});
-  // Badge жаңарту
+  if (el) el.classList.remove('unread');
+  fetch(`${API_BASE}/notifications`,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData:getTgInitData(),action:'read',id})}).catch(()=>{});
   const badge = document.getElementById('notifBadge');
-  if (badge && badge.style.display !== 'none') {
-    const cur = parseInt(badge.textContent) || 0;
-    updateNotifBadge(Math.max(0, cur - 1));
-  }
+  if (badge) { const cur=parseInt(badge.textContent)||0; updateNotifBadge(Math.max(0,cur-1)); }
 }
 
 async function markAllRead() {
-  await fetch(`${API_BASE}/notifications`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ initData: getTgInitData(), action: 'read_all' })
-  });
+  await fetch(`${API_BASE}/notifications`,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData:getTgInitData(),action:'read_all'})});
   updateNotifBadge(0);
-  document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+  document.querySelectorAll('.notif-item.unread').forEach(el=>el.classList.remove('unread'));
+  showToast('✅ Барлығы оқылды');
 }
+
 
 // Realtime — жаңа хабарлама келгенде badge жаңарту
 function subscribeNotifRealtime(userId) {
@@ -2048,7 +2045,7 @@ function renderChatMessages(messages) {
       else if (m.is_delivered) statusIcon = '<span class="msg-status" style="color:var(--muted)">✔✔</span>';
       else statusIcon = '<span class="msg-status" style="color:var(--muted)">✔</span>';
     }
-    const readTime = (isMine && m.is_read && m.updated_at) ? smartTime(m.updated_at) : '';
+    const readTime = (isMine && m.is_read) ? (m.updated_at ? smartTime(m.updated_at) : smartTime(m.created_at)) : '';
     const safeText = (m.text||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const replyHtml = m.reply_to_text ? `
       <div class="reply-bubble" onclick="scrollToMsg(${m.reply_to_id})">
@@ -2060,10 +2057,7 @@ function renderChatMessages(messages) {
       <div class="chat-bubble ${isMine?'user':'admin'}" style="position:relative;user-select:none;touch-action:pan-y"
         data-msg-id="${m.id}" data-is-mine="${isMine}"
         oncontextmenu="event.preventDefault();showChatCtxMenu(event,${m.id},${isMine},'${safeText}')"
-        ontouchstart="handleBubbleTouchStart(event,${m.id},${isMine},'${safeText}')"
-        ontouchend="handleBubbleTouchEnd(event,${m.id},${isMine},'${safeText}')"
-        ontouchmove="handleBubbleTouchMove(event,${m.id})"
-        onclick="${isMine&&m.is_read?`showReadTooltip(this,'${readTime}')`:''}" >
+        onclick="showChatCtxMenu(event,${m.id},${isMine},'${safeText}')" >
         ${replyHtml}
         ${esc(m.text)}${editedHtml}
         <div class="chat-bubble-time">${fmtDateTime(m.created_at)}${statusIcon}</div>
@@ -2184,9 +2178,7 @@ function subscribeChatRealtime(partnerId) {
       div.setAttribute('data-text', m.text);
       div.style.cssText = 'position:relative;user-select:none';
       div.setAttribute('oncontextmenu', `event.preventDefault();showChatCtxMenu(event,${m.id},${isMine},'${(m.text||'').replace(/'/g,"\\'")}' )`);
-      div.setAttribute('ontouchstart', `handleBubbleTouchStart(event,${m.id},${isMine},'${(m.text||'').replace(/'/g,"\\'")}' )`);
-      div.setAttribute('ontouchend', `handleBubbleTouchEnd(event,${m.id},${isMine},'${(m.text||'').replace(/'/g,"\\'")}' )`);
-      div.setAttribute('ontouchmove', `handleBubbleTouchMove(event,${m.id})`);
+      div.setAttribute('onclick', `showChatCtxMenu(event,${m.id},${isMine},'${(m.text||'').replace(/'/g,"\\'")}' )`);
       div.innerHTML = replyHtml + esc(m.text) + `<div class="chat-bubble-time">${fmtDateTime(m.created_at)}</div>`;
       wrapper.appendChild(div);
       el.appendChild(wrapper); el.scrollTop = el.scrollHeight;
@@ -2931,9 +2923,30 @@ async function loadAdminFeedbacks(){
           <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(f.first_name||'Белгісіз')}${f.username?' <span style="color:var(--muted);font-size:10px">@'+esc(f.username)+'</span>':''}</div>
           <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">${fmtDateTime(f.created_at)}</div>
         </div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5">${esc(f.message)}</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px">${esc(f.message)}</div>
+        ${f.reply?`<div style="background:rgba(0,245,255,0.06);border-left:2px solid var(--accent);padding:6px 10px;border-radius:4px;font-size:11px;color:var(--accent);margin-bottom:8px">↩ ${esc(f.reply)}</div>`:''}
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="reply_${f.id}" placeholder="Жауап жазыңыз..." style="flex:1;padding:6px 10px;font-size:12px;margin-bottom:0">
+          <button class="btn btn-cyan btn-sm" onclick="sendFeedbackReply('${f.id}','reply_${f.id}')">↩ Жіберу</button>
+        </div>
       </div>`).join('');
   }catch{c.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Қате</div></div>';}
+}
+
+async function sendFeedbackReply(feedbackId, inputId) {
+  const input = document.getElementById(inputId);
+  const reply = input?.value?.trim();
+  if (!reply) return;
+  input.disabled = true;
+  try {
+    const r = await fetch(`${API_BASE}/feedback`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action:'reply', id: feedbackId, reply })
+    });
+    const d = await r.json();
+    if (d.ok) { showToast('✅ Жауап жіберілді'); loadAdminFeedbacks(); }
+    else { showToast('⚠️ ' + (d.error||'Қате')); input.disabled = false; }
+  } catch { showToast('⚠️ Желі қатесі'); input.disabled = false; }
 }
 
 async function loadAdminChatUsers(){
