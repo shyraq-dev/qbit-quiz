@@ -471,6 +471,7 @@
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('users',event)">👥 Қолданушылар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('recent',event)">📜 Ойындар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('categories',event)">📂 Санаттар</button>
+        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('broadcast',event)">📢 Хабарлама</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('feedback',event)">💬 Чаттар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('reviews',event)">📝 Пікірлер</button>
       </div>
@@ -593,6 +594,16 @@
       </div>
       <div id="adm-section-recent" style="display:none">
         <div class="card"><div class="card-title">📜 соңғы ойындар</div><div id="adm-recent-list"><div class="loading">Жүктелуде</div></div></div>
+      </div>
+      <div id="adm-section-broadcast" style="display:none">
+        <div class="card">
+          <div class="card-title">📢 барлық қолданушыларға хабарлама</div>
+          <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:12px">Барлық қолданушылардың 🔔 хабарландыру бөлімінде көрінеді</div>
+          <input type="text" id="broadcastTitle" placeholder="Тақырып..." style="margin-bottom:8px">
+          <textarea id="broadcastBody" placeholder="Хабарлама мәтіні..." style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:14px;padding:10px;resize:vertical;outline:none;margin-bottom:12px;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+          <button class="btn btn-cyan" onclick="sendBroadcast()" style="width:100%;justify-content:center">📢 Жіберу</button>
+          <div id="broadcastStatus" style="font-family:Space Mono,monospace;font-size:11px;text-align:center;margin-top:8px;min-height:16px"></div>
+        </div>
       </div>
       <div id="adm-section-reviews" style="display:none">
         <div class="card"><div class="card-title">📝 кері байланыс пікірлері</div><div id="adm-feedback-list"><div class="loading">Жүктелуде</div></div></div>
@@ -2123,6 +2134,15 @@ async function sendChatMessage() {
         reply_to_text: replyText || undefined,
       })
     });
+    // Серіктеске notification
+    const myName = getTgUser()?.first_name || 'Қолданушы';
+    fetch(`${API_BASE}/notify`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({initData:getTgInitData(),action:'notify_user',
+        toUserId:_chatPartnerId,
+        title:`💬 ${myName}`,
+        body:text.slice(0,100)
+      })
+    }).catch(()=>{});
   } catch(e) { console.error(e); }
 }
 
@@ -2825,6 +2845,8 @@ async function sendAdminChat(){
     if(d.ok){
       textarea.value='';
       if(status) status.innerHTML='<span style="color:var(--accent3)">✅ Жіберілді!</span>';
+      // Әкімшіге notification
+      fetch(`${API_BASE}/notify`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getTgInitData(),action:'notify_admin',title:'📝 Жаңа кері байланыс',body:msg.slice(0,100)})}).catch(()=>{});
       setTimeout(()=>{if(status) status.innerHTML='';},2000);
       loadMyFeedback();
     }else{
@@ -2860,6 +2882,31 @@ async function sendFeedback(){
     if(status)status.innerHTML='<span style="color:var(--danger)">⚠️ Желі қатесі</span>';
   }finally{
     if(btn){btn.disabled=false;btn.textContent='📨 Жіберу';}
+  }
+}
+
+async function sendBroadcast() {
+  if (!isAdmin()) return;
+  const title = document.getElementById('broadcastTitle')?.value?.trim();
+  const body = document.getElementById('broadcastBody')?.value?.trim();
+  const status = document.getElementById('broadcastStatus');
+  if (!title || !body) { showToast('⚠️ Тақырып пен мәтін толтырыңыз!'); return; }
+  if (status) status.innerHTML = '<span style="color:var(--muted)">Жіберілуде...</span>';
+  try {
+    const r = await fetch(`${API_BASE}/notify`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: getTgInitData(), action: 'broadcast', title, body })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      if (status) status.innerHTML = '<span style="color:var(--accent3)">✅ Жіберілді!</span>';
+      document.getElementById('broadcastTitle').value = '';
+      document.getElementById('broadcastBody').value = '';
+    } else {
+      if (status) status.innerHTML = `<span style="color:var(--danger)">⚠️ ${esc(d.error||'Қате')}</span>`;
+    }
+  } catch(e) {
+    if (status) status.innerHTML = '<span style="color:var(--danger)">⚠️ Желі қатесі</span>';
   }
 }
 
