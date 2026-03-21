@@ -23,24 +23,21 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
-  if (!req.body) return res.status(400).json({ ok: false, error: 'No body' });
 
-  const { initData, action, id } = req.body;
-  if (!initData || !verifyTelegramData(initData)) return res.status(401).json({ ok: false });
+  const { initData, action, id } = req.body || {};
+  if (!verifyTelegramData(initData)) return res.status(401).json({ ok: false });
 
   const params = new URLSearchParams(initData);
   const user = JSON.parse(params.get('user'));
 
   try {
     if (action === 'list') {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(30);
-      if (error) throw error;
       const unread = (data || []).filter(n => !n.is_read).length;
       return res.json({ ok: true, notifications: data || [], unread });
     }
@@ -54,7 +51,6 @@ module.exports = async (req, res) => {
     }
 
     if (action === 'read') {
-      if (!id) return res.json({ ok: false, error: 'id керек' });
       await supabase.from('notifications')
         .update({ is_read: true })
         .eq('id', id)
@@ -64,7 +60,7 @@ module.exports = async (req, res) => {
 
     return res.status(400).json({ ok: false, error: 'Unknown action' });
   } catch (e) {
-    console.error('notifications error:', e);
+    console.error(e);
     return res.status(500).json({ ok: false, error: e.message });
   }
 };
