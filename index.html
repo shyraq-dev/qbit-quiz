@@ -478,16 +478,6 @@
       </div>
 
       <!-- Тест жасау / өңдеу -->
-      <div id="adm-section-broadcast" style="display:none">
-        <div class="card">
-          <div class="card-title">📢 барлық қолданушыларға хат</div>
-          <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:12px">Барлық қолданушылардың 🔔 хабарландыруына жіберіледі</div>
-          <input type="text" id="broadcastTitle" placeholder="Тақырып..." maxlength="60" style="margin-bottom:10px">
-          <textarea id="broadcastBody" placeholder="Хабарлама мәтіні..." style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:14px;padding:10px;resize:vertical;outline:none;transition:border 0.2s;box-sizing:border-box" maxlength="300"></textarea>
-          <button class="btn btn-cyan" onclick="sendBroadcast()" style="width:100%;justify-content:center;margin-top:10px">📢 Жіберу</button>
-          <div id="broadcastStatus" style="font-family:Space Mono,monospace;font-size:11px;text-align:center;margin-top:8px;min-height:16px"></div>
-        </div>
-      </div>
       <div id="adm-section-create" style="display:none">
         <!-- Edit mode banner (жасырылған) -->
         <div id="editModeBanner" class="edit-mode-banner" style="display:none">
@@ -617,6 +607,16 @@
           <div class="card-title">📂 санаттар</div>
           <div id="adm-categories-list"><div class="loading">Жүктелуде</div></div>
           <button class="btn btn-cyan btn-sm" onclick="filterCategory('all');switchTab('library')" style="margin-top:12px;width:100%;justify-content:center">📦 Кітапханаға өту</button>
+        </div>
+      </div>
+      <div id="adm-section-broadcast" style="display:none">
+        <div class="card">
+          <div class="card-title">📢 барлық қолданушыларға хат</div>
+          <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:12px">Барлық қолданушылардың 🔔 хабарландыруына жіберіледі</div>
+          <input type="text" id="broadcastTitle" placeholder="Тақырып..." maxlength="60" style="margin-bottom:10px">
+          <textarea id="broadcastBody" placeholder="Хабарлама мәтіні..." style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:14px;padding:10px;resize:vertical;outline:none;transition:border 0.2s;box-sizing:border-box" maxlength="300"></textarea>
+          <button class="btn btn-cyan" onclick="sendBroadcast()" style="width:100%;justify-content:center;margin-top:10px">📢 Жіберу</button>
+          <div id="broadcastStatus" style="font-family:Space Mono,monospace;font-size:11px;text-align:center;margin-top:8px;min-height:16px"></div>
         </div>
       </div>
     </div>
