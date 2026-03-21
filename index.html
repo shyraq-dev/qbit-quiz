@@ -1126,7 +1126,12 @@ function shareInvite() {
 
 async function loadNotifications() {
   const user = getTgUser();
-  if (!user) return;
+  const el = document.getElementById('notifList');
+  if (!user) {
+    if (el) el.innerHTML = '<div class="notif-empty">🔕<br><br>Хабарландыру жоқ</div>';
+    return;
+  }
+  if (el) el.innerHTML = '<div class="notif-empty">Жүктелуде...</div>';
   try {
     const r = await fetch(`${API_BASE}/notifications`, {
       method: 'POST',
@@ -1134,10 +1139,16 @@ async function loadNotifications() {
       body: JSON.stringify({ initData: getTgInitData(), action: 'list' })
     });
     const d = await r.json();
-    if (!d.ok) return;
+    if (!d.ok) {
+      if (el) el.innerHTML = '<div class="notif-empty">⚠️<br><br>Қате шықты</div>';
+      return;
+    }
     updateNotifBadge(d.unread);
     renderNotifList(d.notifications);
-  } catch (e) { console.error(e); }
+  } catch (e) {
+    console.error('loadNotifications error:', e);
+    if (el) el.innerHTML = '<div class="notif-empty">⚠️<br><br>Желі қатесі</div>';
+  }
 }
 
 function updateNotifBadge(count) {
