@@ -3642,11 +3642,18 @@ async function showResults(){
             <span style="font-size:11px;color:${color};line-height:1.4">${letters[oi]}. ${esc(opt)}</span>
           </div>`;
         }).join('');
+        // Мәнмәтін / медиа
+        const mediaHtml=(q.context||q.mediaUrl)?`
+          <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);border-radius:8px;padding:10px;margin-bottom:8px;margin-left:22px">
+            ${q.context?`<div style="font-size:11px;color:var(--muted);line-height:1.5;white-space:pre-wrap;margin-bottom:${q.mediaUrl?'6px':'0'}">${esc(q.context)}</div>`:''}
+            ${q.mediaUrl?`<img src="${esc(q.mediaUrl)}" style="width:100%;max-height:150px;object-fit:contain;border-radius:6px" onerror="this.style.display='none'"/>`:'' }
+          </div>`:'';
         return `<div style="padding:14px 0;border-bottom:1px solid var(--border)">
-          <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px">
+          <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">
             <span style="font-size:13px;flex-shrink:0">${isOk?'✅':'❌'}</span>
             <div style="font-size:13px;color:var(--text);font-weight:600;line-height:1.4">${esc(q.text)}</div>
           </div>
+          ${mediaHtml}
           <div style="margin-left:22px">${optionsHtml}</div>
           ${q.explanation?`<div style="margin-left:22px;margin-top:8px;padding:8px 10px;background:rgba(0,245,255,0.06);border-left:2px solid var(--accent);border-radius:4px;font-size:11px;color:var(--muted);line-height:1.5"><b style="color:var(--accent)">💡 Түсіндірме:</b> ${esc(q.explanation)}</div>`:''}
         </div>`;
