@@ -536,54 +536,7 @@
           <button class="btn btn-primary btn-lg" onclick="createGame()" style="width:100%;justify-content:center">🚀 Ойын жасау</button>
         </div>
 
-        <div id="activeGamePanel" style="display:none">
-          <div class="game-code-display">
-            <div class="game-code-label">ОЙЫН КОДЫ</div>
-            <div class="game-code" id="activeGameCode">——</div>
-            <div class="game-code-label">Қатысушыларға осы кодты беріңіз</div>
-          </div>
-          <div class="card" id="lobbyCard">
-            <div class="card-title">👥 қатысушылар · <span id="playerCount">0</span></div>
-            <div id="lobbyPlayers" class="player-grid"></div>
-            <div style="display:flex;gap:10px;margin-top:12px">
-              <button class="btn btn-primary" onclick="startGame()" style="flex:1;justify-content:center">▶ Ойынды бастау</button>
-              <button class="btn btn-danger btn-sm" onclick="cancelGame()">✕ Бітіру</button>
-            </div>
-          </div>
-          <div id="hostQuestionPanel" style="display:none">
-            <div class="card">
-              <div class="card-title">🎯 хост басқармасы</div>
-              <!-- Сұрақ мәтіні + прогресс -->
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-                <div class="tag tag-purple" id="hostQCounter">1/1</div>
-                <div id="pauseBadge" style="display:none;padding:4px 12px;border-radius:20px;background:rgba(245,158,11,0.2);border:1px solid var(--warn);font-family:Space Mono,monospace;font-size:10px;color:var(--warn);letter-spacing:1px">⏸ PAUSE</div>
-              </div>
-              <div id="hostQText" style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:16px;line-height:1.4"></div>
-              <div id="hostAnswerStats" style="margin-bottom:16px"></div>
-              <!-- Негізгі батырмалар -->
-              <div style="display:flex;gap:8px;margin-bottom:10px">
-                <button class="btn btn-cyan" onclick="showAnswers()" id="btnShowAnswers" style="flex:1;justify-content:center">👁 Жауаптарды көрсет</button>
-                <button class="btn btn-primary" onclick="hostNextQuestion()" id="btnNext" style="flex:1;justify-content:center;display:none">➡ Келесі</button>
-              </div>
-              <!-- Хост extra controls -->
-              <div style="display:flex;gap:8px">
-                <button class="btn btn-ghost btn-sm" onclick="togglePause()" id="btnPause" style="flex:1;justify-content:center">⏸ Пауза</button>
-                <button class="btn btn-ghost btn-sm" onclick="skipQuestion()" id="btnSkip" style="flex:1;justify-content:center">⏭ Скип</button>
-                <button class="btn btn-danger btn-sm" onclick="cancelGame()" style="justify-content:center">✕</button>
-              </div>
-            </div>
-            <div class="live-monitor">
-              <div class="live-header">
-                <div style="display:flex;align-items:center">
-                  <div class="live-dot"></div>
-                  <span class="live-title">LIVE РЕЙТИНГ</span>
-                </div>
-                <button class="btn btn-ghost btn-sm" onclick="refreshLiveStats()">🔄 Жаңарту</button>
-              </div>
-              <div id="livePlayerList"></div>
-            </div>
-          </div>
-        </div>
+
       </div>
 
       <div id="adm-section-quizzes" style="display:none">
@@ -672,21 +625,55 @@
             <div style="font-family:Space Mono,monospace;font-size:12px;color:var(--muted);letter-spacing:1px">ХОСТ БАСТАУЫН КҮТІҢІЗ</div>
           </div>
         </div>
-        <div class="card" id="lobbyInviteCard">
-          <div class="card-title">📨 достарды шақыру</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button class="btn btn-ghost" onclick="copyGameCode()" style="justify-content:center;gap:8px">
-              📋 Кодты көшіру — <span id="lobbyCodeInvite" style="font-family:Orbitron,monospace;color:var(--accent);font-weight:700"></span>
-            </button>
-            <button class="btn btn-ghost" onclick="copyInviteLink()" style="justify-content:center;gap:8px">
-              🔗 Сілтемені көшіру
-            </button>
-            <button class="btn btn-cyan" onclick="shareInvite()" style="justify-content:center;gap:8px">
-              📤 Telegram-да бөлісу
-            </button>
+
+      </div>
+      <!-- Хост панелі — ойын жасалғанда Ойын tabында көрінеді -->
+      <div id="activeGamePanel" style="display:none">
+        <div class="game-code-display">
+          <div class="game-code-label">ОЙЫН КОДЫ</div>
+          <div class="game-code" id="activeGameCode">——</div>
+          <div class="game-code-label">Қатысушыларға осы кодты беріңіз</div>
+        </div>
+        <div class="card" id="lobbyCard">
+          <div class="card-title">👥 қатысушылар · <span id="playerCount">0</span></div>
+          <div id="lobbyPlayers" class="player-grid"></div>
+          <div style="display:flex;gap:10px;margin-top:12px">
+            <button class="btn btn-primary" onclick="startGame()" style="flex:1;justify-content:center">▶ Ойынды бастау</button>
+            <button class="btn btn-danger btn-sm" onclick="cancelGame()">✕ Бітіру</button>
+          </div>
+        </div>
+        <div id="hostQuestionPanel" style="display:none">
+          <div class="card">
+            <div class="card-title">🎯 хост басқармасы</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div class="tag tag-purple" id="hostQCounter">1/1</div>
+              <div id="pauseBadge" style="display:none;padding:4px 12px;border-radius:20px;background:rgba(245,158,11,0.2);border:1px solid var(--warn);font-family:Space Mono,monospace;font-size:10px;color:var(--warn);letter-spacing:1px">⏸ PAUSE</div>
+            </div>
+            <div id="hostQText" style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:16px;line-height:1.4"></div>
+            <div id="hostAnswerStats" style="margin-bottom:16px"></div>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+              <button class="btn btn-cyan" onclick="showAnswers()" id="btnShowAnswers" style="flex:1;justify-content:center">👁 Жауаптарды көрсет</button>
+              <button class="btn btn-primary" onclick="hostNextQuestion()" id="btnNext" style="flex:1;justify-content:center;display:none">➡ Келесі</button>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" onclick="togglePause()" id="btnPause" style="flex:1;justify-content:center">⏸ Пауза</button>
+              <button class="btn btn-ghost btn-sm" onclick="skipQuestion()" id="btnSkip" style="flex:1;justify-content:center">⏭ Скип</button>
+              <button class="btn btn-danger btn-sm" onclick="cancelGame()" style="justify-content:center">✕</button>
+            </div>
+          </div>
+          <div class="live-monitor">
+            <div class="live-header">
+              <div style="display:flex;align-items:center">
+                <div class="live-dot"></div>
+                <span class="live-title">LIVE РЕЙТИНГ</span>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="refreshLiveStats()">🔄 Жаңарту</button>
+            </div>
+            <div id="livePlayerList"></div>
           </div>
         </div>
       </div>
+
       <div id="gamePlayScreen" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
           <div class="tag tag-purple" id="gameQCounter">1/1</div>
@@ -1493,6 +1480,8 @@ async function createGame(){
     document.getElementById('hostQuestionPanel').style.display='none';
     subscribeToGame(d.code,true);
     showToast(`✅ Ойын жасалды: ${d.code}`);
+    // Хостты Ойын tabына өткіз
+    switchTab('game');
   }catch(e){console.error(e);showToast('⚠️ Қате');}
 }
 
