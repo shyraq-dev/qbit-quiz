@@ -4037,7 +4037,7 @@ function renderQuestions(){
     const mediaHtml=`
       <div class="media-block">
         <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:6px">📎 МӘНМӘТІН / МЕДИА</div>
-        <textarea placeholder="Мәнмәтін (текст)..." style="width:100%;min-height:50px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px;resize:vertical;outline:none;box-sizing:border-box;margin-bottom:6px" oninput="questions[${idx}].context=this.value">${esc(q.context||'')}</textarea>
+        <textarea id="ctx_${idx}" placeholder="Мәнмәтін (текст)..." style="width:100%;min-height:50px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px;resize:vertical;outline:none;box-sizing:border-box;margin-bottom:6px" oninput="questions[${idx}].context=this.value"></textarea>
         <input type="url" id="mediaUrl_${idx}" placeholder="Сурет URL-і (https://...)" value="${esc(q.mediaUrl||'')}" style="font-size:12px;margin-bottom:4px" oninput="questions[${idx}].mediaUrl=this.value"/>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <label style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted)">немесе</label>
@@ -4101,6 +4101,9 @@ function renderQuestions(){
       <label>Түсіндірме (міндетті емес)</label>
       <input type="text" value="${esc(q.explanation||'')}" placeholder="Түсіндірме..." oninput="questions[${idx}].explanation=this.value"/>`;
     list.appendChild(div);
+    // textarea value-ін JS арқылы орнату (innerHTML арқылы жұмыс істемейді)
+    const ta = div.querySelector('#ctx_'+idx);
+    if(ta) ta.value = q.context||'';
   });
 }
 
