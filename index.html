@@ -81,11 +81,11 @@
   .correct-btn.selected{background:rgba(16,185,129,0.2);border-color:var(--accent3);color:var(--accent3);}
   .progress-bar{height:3px;background:var(--surface2);border-radius:2px;margin-bottom:22px;overflow:hidden;}
   .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:2px;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);box-shadow:0 0 6px var(--accent);}
-  .q-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:16px;text-align:center;overflow:hidden;}
+  .q-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:16px;text-align:center;overflow:visible;}
   .q-counter{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:16px;}
   .q-text{font-size:20px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:22px;word-break:break-word;overflow-wrap:break-word;}
   .answers-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  .answer-btn{padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all 0.2s;text-align:left;display:flex;align-items:center;gap:9px;}
+  .answer-btn{padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all 0.2s;text-align:left;display:flex;align-items:center;gap:9px;word-break:break-word;overflow-wrap:break-word;}
   .answer-btn:hover:not(:disabled){border-color:rgba(0,245,255,0.4);background:rgba(0,245,255,0.05);transform:translateY(-2px);}
   .answer-btn.correct{border-color:var(--accent3);background:rgba(16,185,129,0.15);color:var(--accent3);}
   .answer-btn.wrong{border-color:var(--danger);background:rgba(239,68,68,0.1);color:var(--danger);}
@@ -174,7 +174,7 @@
   .player-chip-score{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent);margin-top:2px;}
   .game-q-text{font-size:22px;font-weight:700;color:var(--text);line-height:1.3;word-break:break-word;overflow-wrap:break-word;}
   .game-answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;}
-  .game-ans-btn{padding:18px 14px;border-radius:14px;border:none;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;transition:all 0.15s;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;min-height:70px;}
+  .game-ans-btn{padding:18px 14px;border-radius:14px;border:none;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;transition:all 0.15s;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;min-height:70px;;word-break:break-word;overflow-wrap:break-word;}
   .game-ans-btn:nth-child(1){background:linear-gradient(135deg,#e74c3c,#c0392b);}
   .game-ans-btn:nth-child(2){background:linear-gradient(135deg,#3498db,#2980b9);}
   .game-ans-btn:nth-child(3){background:linear-gradient(135deg,#f39c12,#d68910);}
