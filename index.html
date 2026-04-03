@@ -4135,7 +4135,11 @@ async function saveQuiz(){
   if(!isAdmin())return;
   const title=document.getElementById('quizTitle').value.trim();
   if(!title)return showToast('⚠️ Тест атауын енгізіңіз!');
-  const validQs=questions.filter(q=>q.text.trim()&&q.options.some(o=>o.trim()));
+  const validQs=questions.filter(q=>{
+    if(!q.text.trim()) return false;
+    if(q.type==='match') return (q.pairs||[]).some(p=>p.left.trim()&&p.right.trim());
+    return q.options.some(o=>o.trim());
+  });
   if(validQs.length<2)return showToast('⚠️ Кем дегенде 2 сұрақ!');
 
   const quizData={
@@ -4143,7 +4147,10 @@ async function saveQuiz(){
     category:getSelectedCategory(),
     timer:parseInt(document.getElementById('quizTimer').value),
     difficulty:document.getElementById('quizDifficulty').value,
-    questions:validQs.map(q=>({...q,options:q.options.filter(o=>o.trim())})),
+    questions:validQs.map(q=>{
+      if(q.type==='match') return {...q};
+      return {...q, options:q.options.filter(o=>o.trim())};
+    }),
   };
 
   try{
