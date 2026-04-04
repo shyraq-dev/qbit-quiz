@@ -304,7 +304,7 @@
 .q-type-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,245,255,0.08)}
 .media-block{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px}
 .media-preview img{width:100%;max-height:160px;object-fit:contain;border-radius:6px;margin-top:6px}
-.match-pair{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-bottom:6px}
+.match-pair{display:flex;gap:6px;align-items:stretch;margin-bottom:6px}
 .multi-correct-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:Space Mono,monospace;font-size:9px;cursor:pointer}
 .multi-correct-btn.selected{border-color:var(--accent3);color:var(--accent3);background:rgba(16,185,129,0.1)}
 
@@ -511,17 +511,24 @@
           <div id="customCategoryWrap" style="display:none;margin-bottom:12px">
             <input type="text" id="customCategory" placeholder="Санат атауын жазыңыз..." style="margin-bottom:0"/>
           </div>
-          <div style="display:flex;gap:12px">
-            <div style="flex:1"><label>Уақыт (сек/сұрақ)</label>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><label>Уақыт (сек/сұрақ)</label>
               <select id="quizTimer">
                 <option value="0">⏸ Таймерсіз</option><option value="10">⚡ 10с</option>
                 <option value="15">🔥 15с</option><option value="20" selected>🎯 20с</option>
                 <option value="30">💡 30с</option><option value="60">🐢 60с</option>
               </select>
             </div>
-            <div style="flex:1"><label>Қиындық</label>
+            <div style="flex:1;min-width:120px"><label>Қиындық</label>
               <select id="quizDifficulty">
                 <option value="easy">🟢 Оңай</option><option value="medium" selected>🟡 Орта</option><option value="hard">🔴 Қиын</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:120px"><label>Жауап саны</label>
+              <select id="quizAnswerCount">
+                <option value="4" selected>4 жауап (әдепкі)</option>
+                <option value="5">5 жауап</option>
+                <option value="6">6 жауап</option>
               </select>
             </div>
           </div>
@@ -3434,13 +3441,13 @@ function renderQuestion(){
   } else if(q.type==='match'){
     const pairs=q.pairs||[];
     const rights=[...pairs.map(p=>p.right)].sort(()=>Math.random()-0.5);
-    answersHtml=`<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:8px">Сол жақтағыны оң жақтағымен сәйкестендіріңіз:</div>
+    answersHtml=`<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px">Сол жақтағыны оң жақтағымен сәйкестендіріңіз:</div>
     <div id="matchArea">
       ${pairs.map((p,pi)=>`
-        <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
-          <div style="flex:1;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;min-width:0;word-break:break-word">${esc(p.left)}</div>
-          <span style="color:var(--accent);flex-shrink:0">↔</span>
-          <select id="match_${pi}" style="flex:1;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;min-width:0">
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:8px">
+          <div style="padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;word-break:break-word">${esc(p.left)}</div>
+          <span style="color:var(--accent)">↔</span>
+          <select id="match_${pi}" style="padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;width:100%">
             <option value="">— таңда —</option>
             ${rights.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}
           </select>
@@ -3513,12 +3520,17 @@ function submitMultiAnswer(){
 }
 
 function submitMatchAnswer(){
+  clearTimeout(state.timer);
+  clearInterval(state.timer);
+  state.timer = null;
   const q=state.currentPlay.questions[state.playState.idx];
   const pairs=q.pairs||[];
   let correct=0;
+  const chosenMap={};
   pairs.forEach((p,pi)=>{
     const sel=document.getElementById('match_'+pi)?.value;
     const selEl=document.getElementById('match_'+pi);
+    chosenMap[pi]=sel||'';
     if(sel===p.right){
       correct++;
       if(selEl){selEl.style.borderColor='var(--accent3)';selEl.style.color='var(--accent3)';}
@@ -3527,11 +3539,12 @@ function submitMatchAnswer(){
     }
   });
   const ok=correct===pairs.length;
-  document.querySelector('.btn-cyan[onclick*="submitMatchAnswer"]') && (document.querySelector('.btn-cyan[onclick*="submitMatchAnswer"]').disabled=true);
+  const submitBtn=document.querySelector('.btn-cyan[onclick*="submitMatchAnswer"]');
+  if(submitBtn)submitBtn.disabled=true;
   const exp=document.getElementById('explanation');if(exp)exp.classList.add('show');
   const ps=state.playState;
   if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}else{ps.wrong++;ps.streak=0;}
-  ps.answers.push({ok,chosen:correct+'/'+pairs.length,correct:pairs.length});
+  ps.answers.push({ok,chosen:correct+'/'+pairs.length,correct:pairs.length,chosenMap});
   setTimeout(nextQuestion,2000);
 }
 
@@ -3543,7 +3556,11 @@ function startTimer(secs){
     circle.style.strokeDashoffset=C*(1-rem/secs);
     circle.style.stroke=rem<=5?'#ef4444':rem<=10?'#f59e0b':'var(--accent)';
     text.textContent=rem;text.style.color=rem<=5?'#ef4444':'var(--accent)';
-    if(rem<=0){autoAnswer();return;}
+    if(rem<=0){
+      const q=state.currentPlay?.questions[state.playState?.idx];
+      if(q?.type!=='match') autoAnswer();
+      return;
+    }
     rem--;state.timer=setTimeout(tick,1000);
   }
   tick();
@@ -3622,14 +3639,22 @@ async function showResults(){
         const letters='ABCD';
         let optionsHtml='';
         if(q.type==='match'){
-          // Сәйкестік талдауы — дұрыс жұптарды көрсет
-          optionsHtml=(q.pairs||[]).map(p=>`
-            <div style="display:flex;gap:6px;align-items:center;padding:4px 0">
-              <span style="color:var(--accent3);font-size:11px;flex-shrink:0">✓</span>
-              <div style="font-size:11px;color:var(--accent3)">
-                <b>${esc(p.left)}</b> ↔ <b>${esc(p.right)}</b>
+          // chosen = {pi: selectedValue} немесе null
+          const chosenMap = (a&&typeof a.chosenMap==='object') ? a.chosenMap : {};
+          optionsHtml=(q.pairs||[]).map((p,pi)=>{
+            const selected = chosenMap[pi]||'';
+            const correct = p.right;
+            const isRight = selected===correct;
+            return `<div style="display:flex;gap:6px;align-items:flex-start;padding:5px 0">
+              <span style="font-size:11px;flex-shrink:0;color:${isRight?'var(--accent3)':'var(--danger)'}">${isRight?'✓':'✗'}</span>
+              <div style="font-size:11px;line-height:1.4">
+                <span style="color:var(--text);font-weight:600">${esc(p.left)}</span>
+                <span style="color:var(--muted)"> ↔ </span>
+                ${!isRight&&selected?`<span style="color:var(--danger)">${esc(selected)}</span> <span style="color:var(--muted)">→</span> `:''}
+                <span style="color:var(--accent3)">${esc(correct)}</span>
               </div>
-            </div>`).join('');
+            </div>`;
+          }).join('');
         } else {
           optionsHtml=q.options.map((opt,oi)=>{
             const isCorrect = q.type==='multi' ? (q.correctMulti||[]).includes(oi) : oi===q.correct;
@@ -4050,7 +4075,7 @@ function renderQuestions(){
       answersHtml=`
         <label>Жауап нұсқалары</label>
         <div class="options-grid">
-          ${['A','B','C','D'].map((l,oi)=>`<div class="option-input"><div class="option-label">${l}</div><input type="text" value="${esc(q.options[oi]||'')}" placeholder="${l}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
+          ${Array.from({length:q.answerCount||4},(_,oi)=>`<div class="option-input"><div class="option-label">${'ABCD EFGH'[oi]}</div><input type="text" value="${esc((q.options||[])[oi]||'')}" placeholder="${'ABCD EFGH'[oi]}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
         </div>
         <label>Дұрыс жауап</label>
         <div class="correct-selector">
@@ -4060,11 +4085,11 @@ function renderQuestions(){
       answersHtml=`
         <label>Жауап нұсқалары (бірнеше дұрыс болуы мүмкін)</label>
         <div class="options-grid">
-          ${['A','B','C','D'].map((l,oi)=>`<div class="option-input"><div class="option-label">${l}</div><input type="text" value="${esc(q.options[oi]||'')}" placeholder="${l}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
+          ${Array.from({length:q.answerCount||4},(_,oi)=>`<div class="option-input"><div class="option-label">${'ABCD EFGH'[oi]}</div><input type="text" value="${esc((q.options||[])[oi]||'')}" placeholder="${'ABCD EFGH'[oi]}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
         </div>
         <label>Дұрыс жауаптар (бірнешеуін таңда)</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${['A','B','C','D'].map((l,oi)=>`<button class="multi-correct-btn ${(q.correctMulti||[]).includes(oi)?'selected':''}" onclick="toggleMultiCorrect(${idx},${oi})">✓ ${l}</button>`).join('')}
+          ${Array.from({length:q.answerCount||4},(_,oi)=>`<button class="multi-correct-btn ${(q.correctMulti||[]).includes(oi)?'selected':''}" onclick="toggleMultiCorrect(${idx},${oi})">✓ ${'ABCD EFGH'[oi]}</button>`).join('')}
         </div>`;
     } else if(q.type==='match'){
       answersHtml=`
@@ -4072,9 +4097,9 @@ function renderQuestions(){
         <div id="pairs_${idx}">
           ${(q.pairs||[]).map((p,pi)=>`
           <div class="match-pair">
-            <input type="text" value="${esc(p.left||'')}" placeholder="Сол жақ ${pi+1}" style="font-size:12px;margin-bottom:0" oninput="questions[${idx}].pairs[${pi}].left=this.value"/>
-            <span style="color:var(--accent);font-weight:700">↔</span>
-            <input type="text" value="${esc(p.right||'')}" placeholder="Оң жақ ${pi+1}" style="font-size:12px;margin-bottom:0" oninput="questions[${idx}].pairs[${pi}].right=this.value"/>
+            <input type="text" value="${esc(p.left||'')}" placeholder="Сол жақ ${pi+1}" style="font-size:12px;margin-bottom:0;flex:1;min-width:0" oninput="questions[${idx}].pairs[${pi}].left=this.value"/>
+            <span style="color:var(--accent);font-weight:700;flex-shrink:0;align-self:center">↔</span>
+            <input type="text" value="${esc(p.right||'')}" placeholder="Оң жақ ${pi+1}" style="font-size:12px;margin-bottom:0;flex:1;min-width:0" oninput="questions[${idx}].pairs[${pi}].right=this.value"/>
           </div>`).join('')}
         </div>
         <button class="btn btn-ghost btn-sm" onclick="addPair(${idx})" style="margin-top:6px">+ Жұп қосу</button>`;
@@ -4159,6 +4184,7 @@ async function saveQuiz(){
     category:getSelectedCategory(),
     timer:parseInt(document.getElementById('quizTimer').value),
     difficulty:document.getElementById('quizDifficulty').value,
+    answerCount:parseInt(document.getElementById('quizAnswerCount')?.value||'4'),
     questions:validQs.map(q=>{
       if(q.type==='match') return {...q};
       return {...q, options:q.options.filter(o=>o.trim())};
