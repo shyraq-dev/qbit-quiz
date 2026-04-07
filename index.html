@@ -525,7 +525,7 @@
               </select>
             </div>
             <div style="flex:1;min-width:120px"><label>Жауап саны</label>
-              <select id="quizAnswerCount">
+              <select id="quizAnswerCount" onchange="renderQuestions()">
                 <option value="4" selected>4 жауап (әдепкі)</option>
                 <option value="5">5 жауап</option>
                 <option value="6">6 жауап</option>
@@ -4027,7 +4027,7 @@ function addQuestion(q=null){
   const id='q_'+Date.now()+'_'+state.questionCounter;
   const question=q||{
     id, text:'', type:'single',
-    options:['','','',''],
+    options:Array.from({length:parseInt(document.getElementById('quizAnswerCount')?.value||'4')},()=>''),
     correct:0, correctMulti:[],
     pairs:[{left:'',right:''},{left:'',right:''}],
     context:'', mediaUrl:'',
@@ -4045,6 +4045,7 @@ function addQuestion(q=null){
 
 function renderQuestions(){
   const list=document.getElementById('questionsList');list.innerHTML='';
+  const quizAnswerCount=parseInt(document.getElementById('quizAnswerCount')?.value||'4');
   questions.forEach((q,idx)=>{
     if(!q.type) q.type='single';
     if(!q.correctMulti) q.correctMulti=[];
@@ -4075,7 +4076,7 @@ function renderQuestions(){
       answersHtml=`
         <label>Жауап нұсқалары</label>
         <div class="options-grid">
-          ${Array.from({length:q.answerCount||4},(_,oi)=>`<div class="option-input"><div class="option-label">${'ABCD EFGH'[oi]}</div><input type="text" value="${esc((q.options||[])[oi]||'')}" placeholder="${'ABCD EFGH'[oi]}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
+          ${Array.from({length:getAnswerCount()},(_,oi)=>`<div class="option-input"><div class="option-label">${'ABCD EFGH'[oi]}</div><input type="text" value="${esc((q.options||[])[oi]||'')}" placeholder="${'ABCD EFGH'[oi]}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
         </div>
         <label>Дұрыс жауап</label>
         <div class="correct-selector">
@@ -4085,11 +4086,11 @@ function renderQuestions(){
       answersHtml=`
         <label>Жауап нұсқалары (бірнеше дұрыс болуы мүмкін)</label>
         <div class="options-grid">
-          ${Array.from({length:q.answerCount||4},(_,oi)=>`<div class="option-input"><div class="option-label">${'ABCD EFGH'[oi]}</div><input type="text" value="${esc((q.options||[])[oi]||'')}" placeholder="${'ABCD EFGH'[oi]}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
+          ${Array.from({length:getAnswerCount()},(_,oi)=>`<div class="option-input"><div class="option-label">${'ABCD EFGH'[oi]}</div><input type="text" value="${esc((q.options||[])[oi]||'')}" placeholder="${'ABCD EFGH'[oi]}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
         </div>
         <label>Дұрыс жауаптар (бірнешеуін таңда)</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${Array.from({length:q.answerCount||4},(_,oi)=>`<button class="multi-correct-btn ${(q.correctMulti||[]).includes(oi)?'selected':''}" onclick="toggleMultiCorrect(${idx},${oi})">✓ ${'ABCD EFGH'[oi]}</button>`).join('')}
+          ${Array.from({length:getAnswerCount()},(_,oi)=>`<button class="multi-correct-btn ${(q.correctMulti||[]).includes(oi)?'selected':''}" onclick="toggleMultiCorrect(${idx},${oi})">✓ ${'ABCD EFGH'[oi]}</button>`).join('')}
         </div>`;
     } else if(q.type==='match'){
       answersHtml=`
@@ -4140,6 +4141,10 @@ function uploadQImage(event, idx) {
     renderQuestions();
   };
   reader.readAsDataURL(file);
+}
+
+function getAnswerCount(){
+  return parseInt(document.getElementById('quizAnswerCount')?.value||'4');
 }
 
 function setQType(idx,type){questions[idx].type=type;renderQuestions();}
