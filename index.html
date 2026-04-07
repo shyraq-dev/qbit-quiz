@@ -1813,7 +1813,7 @@ async function loadAnswerStats(sessionId,qIdx,q){
           <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
             <span style="font-family:Orbitron,monospace;font-size:12px;font-weight:700;color:${i===q.correct?'var(--accent3)':'var(--text)'}">${c}</span>
             <div style="width:100%;height:${Math.round(c/maxCount*50)+4}px;background:${colors[i]};border-radius:4px 4px 0 0;border:${i===q.correct?'2px solid var(--accent3)':'none'};transition:height 0.5s;opacity:${i===q.correct?1:0.7}"></div>
-            <span style="font-family:Orbitron,monospace;font-size:10px;color:${i===q.correct?'var(--accent3)':'var(--muted)'}">${'ABCD'[i]}</span>
+            <span style="font-family:Orbitron,monospace;font-size:10px;color:${i===q.correct?'var(--accent3)':'var(--muted)'}">${'ABCDEF'[i]}</span>
           </div>`).join('')}
       </div>
     </div>`;
@@ -1835,7 +1835,7 @@ function showGameQuestion(q,idx,total,timerSecs){
   if(!q.correctMulti)q.correctMulti=[];
   document.getElementById('gameQCounter').textContent=`${idx+1}/${total}`;
   document.getElementById('myGameScore').textContent=gameState.myScore+' ⭐';
-  const shapes=['▲','●','■','⬟'];
+  const shapes=['▲','●','■','⬟','★','◆'];
 
   // Сұрақ мәтіні + медиа
   const qTextEl = document.getElementById('gameQText');
@@ -3431,11 +3431,11 @@ function renderQuestion(){
   let answersHtml='';
   if(q.type==='single'||q.type==='context'){
     answersHtml=`<div class="answers-grid">
-      ${q.options.map((opt,i)=>`<button class="answer-btn" id="ab_${i}" onclick="selectAnswer(${i})"><div class="ans-letter">${'ABCD'[i]}</div>${esc(opt)}</button>`).join('')}
+      ${q.options.map((opt,i)=>`<button class="answer-btn" id="ab_${i}" onclick="selectAnswer(${i})"><div class="ans-letter">${'ABCDEF'[i]}</div>${esc(opt)}</button>`).join('')}
     </div>`;
   } else if(q.type==='multi'){
     answersHtml=`<div class="answers-grid" id="multiAnswers">
-      ${q.options.map((opt,i)=>`<button class="answer-btn" id="ab_${i}" onclick="toggleMultiAnswer(${i})" style="justify-content:space-between"><span><div class="ans-letter" style="display:inline-flex">${'ABCD'[i]}</div> ${esc(opt)}</span><span id="mc_${i}" style="font-size:16px">☐</span></button>`).join('')}
+      ${q.options.map((opt,i)=>`<button class="answer-btn" id="ab_${i}" onclick="toggleMultiAnswer(${i})" style="justify-content:space-between"><span><div class="ans-letter" style="display:inline-flex">${'ABCDEF'[i]}</div> ${esc(opt)}</span><span id="mc_${i}" style="font-size:16px">☐</span></button>`).join('')}
     </div>
     <button class="btn btn-cyan" onclick="submitMultiAnswer()" style="width:100%;justify-content:center;margin-top:10px">✅ Растау</button>`;
   } else if(q.type==='match'){
@@ -3636,7 +3636,7 @@ async function showResults(){
         const a=ps.answers[i];
         const isOk=a&&a.ok;
         const chosen=a?a.chosen:null;
-        const letters='ABCD';
+        const letters='ABCDEF';
         let optionsHtml='';
         if(q.type==='match'){
           // chosen = {pi: selectedValue} немесе null
