@@ -4076,7 +4076,7 @@ function renderQuestions(){
       answersHtml=`
         <label>Жауап нұсқалары</label>
         <div class="options-grid">
-          ${Array.from({length:getAnswerCount()},(_,oi)=>`<div class="option-input"><div class="option-label">${'ABCD EFGH'[oi]}</div><input type="text" value="${esc((q.options||[])[oi]||'')}" placeholder="${'ABCD EFGH'[oi]}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
+          ${Array.from({length:getAnswerCount()},(_,oi)=>`<div class="option-input"><div class="option-label">${'ABCDEF'[oi]}</div><input type="text" value="${esc((q.options||[])[oi]||'')}" placeholder="${'ABCDEF'[oi]}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
         </div>
         <label>Дұрыс жауап</label>
         <div class="correct-selector">
@@ -4086,11 +4086,11 @@ function renderQuestions(){
       answersHtml=`
         <label>Жауап нұсқалары (бірнеше дұрыс болуы мүмкін)</label>
         <div class="options-grid">
-          ${Array.from({length:getAnswerCount()},(_,oi)=>`<div class="option-input"><div class="option-label">${'ABCD EFGH'[oi]}</div><input type="text" value="${esc((q.options||[])[oi]||'')}" placeholder="${'ABCD EFGH'[oi]}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
+          ${Array.from({length:getAnswerCount()},(_,oi)=>`<div class="option-input"><div class="option-label">${'ABCDEF'[oi]}</div><input type="text" value="${esc((q.options||[])[oi]||'')}" placeholder="${'ABCDEF'[oi]}" oninput="questions[${idx}].options[${oi}]=this.value"/></div>`).join('')}
         </div>
         <label>Дұрыс жауаптар (бірнешеуін таңда)</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${Array.from({length:getAnswerCount()},(_,oi)=>`<button class="multi-correct-btn ${(q.correctMulti||[]).includes(oi)?'selected':''}" onclick="toggleMultiCorrect(${idx},${oi})">✓ ${'ABCD EFGH'[oi]}</button>`).join('')}
+          ${Array.from({length:getAnswerCount()},(_,oi)=>`<button class="multi-correct-btn ${(q.correctMulti||[]).includes(oi)?'selected':''}" onclick="toggleMultiCorrect(${idx},${oi})">✓ ${'ABCDEF'[oi]}</button>`).join('')}
         </div>`;
     } else if(q.type==='match'){
       answersHtml=`
