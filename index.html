@@ -3435,11 +3435,11 @@ function renderQuestion(){
   let answersHtml='';
   if(q.type==='single'||q.type==='context'){
     answersHtml=`<div class="answers-grid">
-      ${q.options.map((opt,i)=>`<button class="answer-btn" id="ab_${i}" onclick="selectAnswer(${i})"><div class="ans-letter">${'ABCDEF'[i]}</div>${esc(opt)}</button>`).join('')}
+      ${Array.from({length:ac},(_,i)=>`<button class="answer-btn" id="ab_${i}" onclick="selectAnswer(${i})"><div class="ans-letter">${'ABCDEF'[i]}</div>${esc(q.options[i]||'')}</button>`).join('')}
     </div>`;
   } else if(q.type==='multi'){
     answersHtml=`<div class="answers-grid" id="multiAnswers">
-      ${q.options.map((opt,i)=>`<button class="answer-btn" id="ab_${i}" onclick="toggleMultiAnswer(${i})" style="justify-content:space-between"><span><div class="ans-letter" style="display:inline-flex">${'ABCDEF'[i]}</div> ${esc(opt)}</span><span id="mc_${i}" style="font-size:16px">☐</span></button>`).join('')}
+      ${Array.from({length:ac},(_,i)=>`<button class="answer-btn" id="ab_${i}" onclick="toggleMultiAnswer(${i})" style="justify-content:space-between"><span><div class="ans-letter" style="display:inline-flex">${'ABCDEF'[i]}</div> ${esc(q.options[i]||'')}</span><span id="mc_${i}" style="font-size:16px">☐</span></button>`).join('')}
     </div>
     <button class="btn btn-cyan" onclick="submitMultiAnswer()" style="width:100%;justify-content:center;margin-top:10px">✅ Растау</button>`;
   } else if(q.type==='match'){
@@ -4092,7 +4092,7 @@ function renderQuestions(){
         </div>
         <label>Дұрыс жауап</label>
         <div class="correct-selector">
-          ${['A','B','C','D'].map((l,oi)=>`<button class="correct-btn ${q.correct===oi?'selected':''}" onclick="setCorrect(${idx},${oi})">✓ ${l}</button>`).join('')}
+          ${Array.from({length:quizAnswerCount},(_,oi)=>`<button class="correct-btn ${q.correct===oi?'selected':''}" onclick="setCorrect(${idx},${oi})">✓ ${'ABCDEF'[oi]}</button>`).join('')}
         </div>`;
     } else if(q.type==='multi'){
       answersHtml=`
