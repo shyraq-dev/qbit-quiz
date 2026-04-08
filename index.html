@@ -3520,7 +3520,7 @@ function submitMultiAnswer(){
   const ps=state.playState;
   if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}else{ps.wrong++;ps.streak=0;}
   ps.answers.push({ok,chosen:selected,correct:q.correctMulti});
-  setTimeout(nextQuestion,1800);
+  setTimeout(nextQuestion,10000);
 }
 
 function submitMatchAnswer(){
@@ -3549,7 +3549,7 @@ function submitMatchAnswer(){
   const ps=state.playState;
   if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}else{ps.wrong++;ps.streak=0;}
   ps.answers.push({ok,chosen:correct+'/'+pairs.length,correct:pairs.length,chosenMap});
-  setTimeout(nextQuestion,2000);
+  setTimeout(nextQuestion,10000);
 }
 
 function startTimer(secs){
@@ -3576,14 +3576,14 @@ function selectAnswer(optIdx){
   document.querySelectorAll('.answer-btn').forEach((btn,i)=>{btn.disabled=true;if(i===q.correct)btn.classList.add('correct');else if(i===optIdx&&!ok)btn.classList.add('wrong');});
   const exp=document.getElementById('explanation');if(exp)exp.classList.add('show');
   if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}else{ps.wrong++;ps.streak=0;}
-  ps.answers.push({ok, chosen: optIdx, correct: q.correct});setTimeout(nextQuestion,1500);
+  ps.answers.push({ok, chosen: optIdx, correct: q.correct});setTimeout(nextQuestion,10000);
 }
 
 function autoAnswer(){
   const q=state.currentPlay.questions[state.playState.idx];
   document.querySelectorAll('.answer-btn').forEach((btn,i)=>{btn.disabled=true;if(i===q.correct)btn.classList.add('correct');});
   const exp=document.getElementById('explanation');if(exp)exp.classList.add('show');
-  const _aq=state.currentPlay.questions[state.playState.idx];state.playState.wrong++;state.playState.streak=0;state.playState.answers.push({ok:false,chosen:null,correct:_aq.correct});setTimeout(nextQuestion,1500);
+  const _aq=state.currentPlay.questions[state.playState.idx];state.playState.wrong++;state.playState.streak=0;state.playState.answers.push({ok:false,chosen:null,correct:_aq.correct});setTimeout(nextQuestion,10000);
 }
 
 function nextQuestion(){
