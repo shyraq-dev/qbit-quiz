@@ -4046,7 +4046,15 @@ function addQuestion(q=null){
 function renderQuestions(){
   const list=document.getElementById('questionsList');list.innerHTML='';
   const quizAnswerCount=parseInt(document.getElementById('quizAnswerCount')?.value||'4');
+  // Барлық сұрақтардың options массивін quizAnswerCount-қа дейін кеңейту
+  questions.forEach(q=>{
+    if(!q.options) q.options=[];
+    while(q.options.length < quizAnswerCount) q.options.push('');
+  });
   questions.forEach((q,idx)=>{
+    // options массивін quizAnswerCount-қа дейін кеңейту
+    while((q.options||[]).length < quizAnswerCount) q.options.push('');
+    q.options = q.options.slice(0, quizAnswerCount);
     if(!q.type) q.type='single';
     if(!q.correctMulti) q.correctMulti=[];
     if(!q.pairs) q.pairs=[{left:'',right:''},{left:'',right:''}];
