@@ -3422,6 +3422,10 @@ function renderQuestion(){
   const quiz=state.currentPlay,ps=state.playState;const q=quiz.questions[ps.idx];
   if(!q.type)q.type='single';
   if(!q.correctMulti)q.correctMulti=[];
+  // options массивін answerCount-қа дейін толтыру
+  const ac = quiz.answerCount||q.answerCount||4;
+  if(!q.options) q.options=[];
+  while(q.options.length < ac) q.options.push('');
   const pct=Math.round((ps.idx/quiz.questions.length)*100);
   clearTimeout(state.timer);
 
@@ -4281,6 +4285,7 @@ async function loadQuizzesFromDB(){
         timer: d.timer || q.timer || 20,
         difficulty: d.difficulty || q.difficulty || 'medium',
         questions: d.questions || q.questions || [],
+        answerCount: d.answerCount || q.answerCount || 4,
         created: q.created_at ? fmtDate(q.created_at) : '',
         playCount: d.play_count || q.play_count || 0,
         bestScore: d.best_score || q.best_score || 0,
