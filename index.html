@@ -428,13 +428,45 @@
     <div class="login-sub">// ИНТЕЛЛЕКТ ПЛАТФОРМАСЫ</div>
   </div>
   <div class="login-card">
-    <div class="login-card-title">🔐 КІРУ КЕРЕК</div>
-    <div class="login-card-desc">Ойын ойнау және статистика үшін<br>Telegram арқылы кіріңіз</div>
-    <a href="https://t.me/QBitQuizBot/quiz" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 20px;background:linear-gradient(135deg,#2AABEE,#229ED9);color:#fff;border-radius:10px;text-decoration:none;font-family:Rajdhani,sans-serif;font-size:16px;font-weight:700;letter-spacing:0.5px;box-shadow:0 4px 15px rgba(42,171,238,0.4)">
+    <!-- Tab switcher -->
+    <div style="display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <button id="loginTabBtn" onclick="switchLoginTab('login')" style="flex:1;padding:10px;background:var(--accent);color:#000;border:none;font-family:Rajdhani,sans-serif;font-size:14px;font-weight:700;cursor:pointer">Кіру</button>
+      <button id="registerTabBtn" onclick="switchLoginTab('register')" style="flex:1;padding:10px;background:none;color:var(--muted);border:none;font-family:Rajdhani,sans-serif;font-size:14px;font-weight:600;cursor:pointer">Тіркелу</button>
+    </div>
+
+    <!-- Telegram кіру -->
+    <a href="https://t.me/QBitQuizBot/quiz" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 20px;background:linear-gradient(135deg,#2AABEE,#229ED9);color:#fff;border-radius:10px;text-decoration:none;font-family:Rajdhani,sans-serif;font-size:16px;font-weight:700;letter-spacing:0.5px;box-shadow:0 4px 15px rgba(42,171,238,0.4);margin-bottom:14px">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.61c-.15.67-.54.835-1.084.52l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.37 14.53l-2.948-.924c-.64-.203-.654-.64.136-.948l11.532-4.448c.533-.194 1.001.13.472.038z"/></svg>
       Telegram арқылы кіру
     </a>
-    <div style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted);margin-top:14px;text-align:center">📱 Telegram қосымшасы ашылады</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">немесе</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+
+    <!-- Кіру формасы -->
+    <div id="loginForm">
+      <input type="text" id="loginUsername" placeholder="Пайдаланушы аты" style="margin-bottom:8px"/>
+      <input type="password" id="loginPassword" placeholder="Құпиясөз" style="margin-bottom:12px"/>
+      <div id="loginError" style="font-family:var(--mono);font-size:10px;color:var(--danger);min-height:14px;margin-bottom:8px"></div>
+      <button class="btn btn-cyan" onclick="doBrowserLogin()" style="width:100%;justify-content:center">🔓 Кіру</button>
+    </div>
+
+    <!-- Тіркелу формасы -->
+    <div id="registerForm" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <div style="font-size:28px;width:44px;height:44px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0" onclick="openRegAvatarPicker()" id="regAvatarPreview">🐱</div>
+        <input type="text" id="regFirstName" placeholder="Аты (міндетті)" style="margin-bottom:0;flex:1"/>
+      </div>
+      <input type="text" id="regUsername" placeholder="Пайдаланушы аты (міндетті, кем дегенде 3 таңба)" style="margin-bottom:8px"/>
+      <input type="text" id="regAppUsername" placeholder="@юзернейм (міндетті емес)" style="margin-bottom:8px"/>
+      <input type="password" id="regPassword" placeholder="Құпиясөз (кем дегенде 6 таңба, міндетті)" style="margin-bottom:8px"/>
+      <input type="password" id="regPassword2" placeholder="Құпиясөзді қайталаңыз" style="margin-bottom:8px"/>
+      <textarea id="regBio" placeholder="Өзіңіз жайлы (міндетті емес)" style="width:100%;min-height:50px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:14px;padding:8px;resize:none;outline:none;margin-bottom:8px;box-sizing:border-box"></textarea>
+      <div id="registerError" style="font-family:var(--mono);font-size:10px;color:var(--danger);min-height:14px;margin-bottom:8px"></div>
+      <button class="btn btn-cyan" onclick="doBrowserRegister()" style="width:100%;justify-content:center">✅ Тіркелу</button>
+    </div>
   </div>
 </div>
 <div id="realtimeStatus" class="realtime-status" style="display:none">
@@ -791,6 +823,87 @@ function isBrowser(){return !tg?.initData;}
 
 // ── Telegram Login Widget callback ──
 // Global scope-та болуы міндетті (Widget eval арқылы шақырады)
+// ══ BROWSER AUTH ═════════════════════════════════════════
+const AVATARS_LIST=['🐱','🐶','🦊','🐻','🐼','🐨','🦁','🐯','🐸','🐙','🦋','🦄','🐲','🤖','👻','🎭','🌟','⚡','🔥','💎'];
+let _regAvatar = '🐱';
+
+function switchLoginTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('loginTabBtn').style.background = isLogin ? 'var(--accent)' : 'none';
+  document.getElementById('loginTabBtn').style.color = isLogin ? '#000' : 'var(--muted)';
+  document.getElementById('registerTabBtn').style.background = isLogin ? 'none' : 'var(--accent)';
+  document.getElementById('registerTabBtn').style.color = isLogin ? 'var(--muted)' : '#000';
+}
+
+function openRegAvatarPicker() {
+  const existing = document.getElementById('regAvatarModal');
+  if (existing) { existing.remove(); return; }
+  const modal = document.createElement('div');
+  modal.id = 'regAvatarModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = `<div style="background:var(--surface);border-radius:16px;padding:20px;max-width:320px;width:90%">
+    <div style="font-family:Orbitron,monospace;font-size:13px;color:var(--accent);margin-bottom:14px">АВАТАР ТАҢДА</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px">
+      ${AVATARS_LIST.map(a=>`<div onclick="setRegAvatar('${a}')" style="font-size:28px;width:50px;height:50px;border-radius:50%;background:var(--surface2);border:2px solid ${a===_regAvatar?'var(--accent)':'var(--border)'};display:flex;align-items:center;justify-content:center;cursor:pointer">${a}</div>`).join('')}
+    </div>
+    <button onclick="document.getElementById('regAvatarModal').remove()" class="btn btn-ghost" style="width:100%;justify-content:center">Жабу</button>
+  </div>`;
+  modal.onclick = e => { if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+
+function setRegAvatar(a) {
+  _regAvatar = a;
+  document.getElementById('regAvatarPreview').textContent = a;
+  document.getElementById('regAvatarModal')?.remove();
+}
+
+async function doBrowserLogin() {
+  const username = document.getElementById('loginUsername')?.value?.trim();
+  const password = document.getElementById('loginPassword')?.value;
+  const errEl = document.getElementById('loginError');
+  if (!username || !password) { if(errEl) errEl.textContent='Толтырыңыз'; return; }
+  if(errEl) errEl.textContent='';
+  try {
+    const r = await fetch('/api/browser-auth', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'login', username, password }) });
+    const d = await r.json();
+    if (!d.ok) { if(errEl) errEl.textContent = d.error||'Қате'; return; }
+    _browserSession = { ...d.user, _initData: d.initData };
+    sessionStorage.setItem('qbit_tg_user', JSON.stringify(_browserSession));
+    hideLoginScreen();
+    initApp();
+  } catch(e) { if(errEl) errEl.textContent='Желі қатесі'; }
+}
+
+async function doBrowserRegister() {
+  const firstName = document.getElementById('regFirstName')?.value?.trim();
+  const username = document.getElementById('regUsername')?.value?.trim();
+  const appUsername = document.getElementById('regAppUsername')?.value?.trim().replace('@','');
+  const password = document.getElementById('regPassword')?.value;
+  const password2 = document.getElementById('regPassword2')?.value;
+  const bio = document.getElementById('regBio')?.value?.trim();
+  const errEl = document.getElementById('registerError');
+  if(errEl) errEl.textContent = '';
+  if (!firstName) { if(errEl) errEl.textContent='Атыңызды енгізіңіз'; return; }
+  if (!username || username.length < 3) { if(errEl) errEl.textContent='Пайдаланушы аты кем дегенде 3 таңба'; return; }
+  if (!password || password.length < 6) { if(errEl) errEl.textContent='Құпиясөз кем дегенде 6 таңба'; return; }
+  if (password !== password2) { if(errEl) errEl.textContent='Құпиясөздер сәйкес емес'; return; }
+  try {
+    const r = await fetch('/api/browser-auth', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'register', firstName, username, appUsername: appUsername||null,
+        password, bio: bio||null, avatar: _regAvatar }) });
+    const d = await r.json();
+    if (!d.ok) { if(errEl) errEl.textContent = d.error||'Қате'; return; }
+    _browserSession = { ...d.user, _initData: d.initData };
+    sessionStorage.setItem('qbit_tg_user', JSON.stringify(_browserSession));
+    hideLoginScreen();
+    initApp();
+  } catch(e) { if(errEl) errEl.textContent='Желі қатесі'; }
+}
+
 window.onTelegramAuth=function(userData){
   _processTelegramAuth(userData);
 };
@@ -3520,7 +3633,7 @@ function submitMultiAnswer(){
   const ps=state.playState;
   if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}else{ps.wrong++;ps.streak=0;}
   ps.answers.push({ok,chosen:selected,correct:q.correctMulti});
-  setTimeout(nextQuestion,10000);
+  setTimeout(nextQuestion,5000);
 }
 
 function submitMatchAnswer(){
@@ -3549,7 +3662,7 @@ function submitMatchAnswer(){
   const ps=state.playState;
   if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}else{ps.wrong++;ps.streak=0;}
   ps.answers.push({ok,chosen:correct+'/'+pairs.length,correct:pairs.length,chosenMap});
-  setTimeout(nextQuestion,10000);
+  setTimeout(nextQuestion,5000);
 }
 
 function startTimer(secs){
@@ -3576,14 +3689,14 @@ function selectAnswer(optIdx){
   document.querySelectorAll('.answer-btn').forEach((btn,i)=>{btn.disabled=true;if(i===q.correct)btn.classList.add('correct');else if(i===optIdx&&!ok)btn.classList.add('wrong');});
   const exp=document.getElementById('explanation');if(exp)exp.classList.add('show');
   if(ok){ps.correct++;ps.streak++;ps.maxStreak=Math.max(ps.maxStreak,ps.streak);}else{ps.wrong++;ps.streak=0;}
-  ps.answers.push({ok, chosen: optIdx, correct: q.correct});setTimeout(nextQuestion,10000);
+  ps.answers.push({ok, chosen: optIdx, correct: q.correct});setTimeout(nextQuestion,5000);
 }
 
 function autoAnswer(){
   const q=state.currentPlay.questions[state.playState.idx];
   document.querySelectorAll('.answer-btn').forEach((btn,i)=>{btn.disabled=true;if(i===q.correct)btn.classList.add('correct');});
   const exp=document.getElementById('explanation');if(exp)exp.classList.add('show');
-  const _aq=state.currentPlay.questions[state.playState.idx];state.playState.wrong++;state.playState.streak=0;state.playState.answers.push({ok:false,chosen:null,correct:_aq.correct});setTimeout(nextQuestion,10000);
+  const _aq=state.currentPlay.questions[state.playState.idx];state.playState.wrong++;state.playState.streak=0;state.playState.answers.push({ok:false,chosen:null,correct:_aq.correct});setTimeout(nextQuestion,5000);
 }
 
 function nextQuestion(){
