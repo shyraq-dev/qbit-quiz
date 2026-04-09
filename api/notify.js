@@ -13,6 +13,17 @@ function verifyTelegramData(initData) {
   } catch { return false; }
 }
 
+async function sendTelegram(chatId, text) {
+  if (!chatId || !process.env.BOT_TOKEN) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+    });
+  } catch(e) { console.error('Telegram notify error:', e); }
+}
+
 async function notifyUsers(userIds, { type, title, body, data={} }) {
   if (!userIds?.length) return;
   const rows = userIds.map(uid => ({ user_id: uid, type, title, body, data }));
@@ -27,41 +38,81 @@ async function notifyAll({ type, title, body, data={} }) {
     await supabase.from('notifications').insert(rows.slice(i, i+500));
 }
 
+// ── Апталық cron логикасы ────────────────────────────────
+async function runWeeklyCron() {
+  const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+  const { data: results } = await supabase
+    .from('results').select('user_id, score, users(id, first_name, username, chat_id)')
+    .gte('created_at', weekAgo).order('score', { ascending: false });
+  if (!results?.length) return { sent: 0 };
+  const userMap = {};
+  for (const r of results) {
+    const uid = r.user_id;
+    if (!userMap[uid]) userMap[uid] = { user: r.users, totalScore: 0, games: 0 };
+    userMap[uid].totalScore += r.score || 0;
+    userMap[uid].games += 1;
+  }
+  const ranked = Object.values(userMap).sort((a,b)=>b.totalScore-a.totalScore).slice(0,10);
+  const medals = ['🥇','🥈','🥉'];
+  let rankText = '🏆 <b>Апталық рейтинг!</b>\n\n';
+  ranked.forEach((entry,i) => {
+    const medal = medals[i]||`${i+1}.`;
+    const name = entry.user?.first_name||entry.user?.username||'Ойыншы';
+    rankText += `${medal} ${name} — ${Math.round(entry.totalScore/entry.games)}% орт.\n`;
+  });
+  rankText += `\n📱 t.me/QBitQuizBot/quiz`;
+  const { data: allUsers } = await supabase.from('users').select('chat_id').not('chat_id','is',null);
+  let sent = 0;
+  for (const u of allUsers||[]) {
+    await sendTelegram(u.chat_id, rankText);
+    sent++;
+    await new Promise(r => setTimeout(r, 50));
+  }
+  return { sent };
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin','*');
-  res.setHeader('Access-Control-Allow-Methods','POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers','Content-Type');
+  res.setHeader('Access-Control-Allow-Methods','POST, GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers','Content-Type, Authorization');
   if (req.method==='OPTIONS') return res.status(200).end();
 
-  const { initData, action, title, body, toUserId } = req.body;
+  // ── Cron сұранысы (GET + Authorization header) ──────────
+  if (req.method==='GET') {
+    if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`)
+      return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const result = await runWeeklyCron();
+      return res.json({ ok: true, ...result });
+    } catch(e) {
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+
+  // ── POST сұраныстары ─────────────────────────────────────
+  const { initData, action, title, body, toUserId } = req.body || {};
   if (!verifyTelegramData(initData)) return res.status(401).json({ ok:false });
   const params = new URLSearchParams(initData);
   const user = JSON.parse(params.get('user'));
   const adminId = parseInt(process.env.ADMIN_ID||'0');
 
   try {
-    // Барлық қолданушыларға хабарлама (тек әкімші)
     if (action === 'broadcast') {
       if (user.id !== adminId) return res.status(403).json({ ok:false, error:'Рұқсат жоқ' });
       if (!title || !body) return res.json({ ok:false, error:'Тақырып пен мәтін керек' });
       await notifyAll({ type:'broadcast', title, body });
       return res.json({ ok:true });
     }
-
-    // Әкімшіге notification (кері байланыс жіберілгенде)
     if (action === 'notify_admin') {
       if (!adminId) return res.json({ ok:false });
       await notifyUsers([adminId], { type:'feedback', title, body });
       return res.json({ ok:true });
     }
-
-    // Белгілі бір қолданушыға notification (чат хабарламасы)
     if (action === 'notify_user') {
       if (!toUserId) return res.json({ ok:false });
       await notifyUsers([parseInt(toUserId)], { type:'chat', title, body });
       return res.json({ ok:true });
     }
-
     return res.status(400).json({ ok:false, error:'Unknown action' });
   } catch(e) {
     console.error(e);
@@ -71,3 +122,4 @@ module.exports = async (req, res) => {
 
 module.exports.notifyUsers = notifyUsers;
 module.exports.notifyAll = notifyAll;
+module.exports.sendTelegram = sendTelegram;
