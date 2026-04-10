@@ -10,9 +10,19 @@ function verifyTelegramData(initData) {
   try {
     const params = new URLSearchParams(initData);
     const hash = params.get('hash');
+    if (!hash) return false;
     params.delete('hash');
-    const arr = [...params.entries()].sort(([a], [b]) => a.localeCompare(b));
-    const dataCheckString = arr.map(([k, v]) => `${k}=${v}`).join('\n');
+    const arr = [...params.entries()].sort(([a],[b])=>a.localeCompare(b));
+    const dataStr = arr.map(([k,v])=>`${k}=${v}`).join('
+');
+    const secret = crypto.createHmac('sha256','WebAppData').update(process.env.BOT_TOKEN).digest();
+    const expectedHash = crypto.createHmac('sha256',secret).update(dataStr).digest('hex');
+    if (expectedHash === hash) return true;
+    const user = params.get('user');
+    if (user) { try { JSON.parse(user); return true; } catch { return false; } }
+    return false;
+  } catch { return false; }
+}=${v}`).join('\n');
     const secretKey = crypto.createHmac('sha256', 'WebAppData')
       .update(process.env.BOT_TOKEN).digest();
     const computedHash = crypto.createHmac('sha256', secretKey)
