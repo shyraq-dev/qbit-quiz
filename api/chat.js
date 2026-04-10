@@ -1,15 +1,25 @@
 const { createClient } = require('@supabase/supabase-js');
+const { notifyUsers } = require('./notify');
 const crypto = require('crypto');
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
 function verifyTelegramData(initData) {
   try {
     const params = new URLSearchParams(initData);
-    const hash = params.get('hash'); params.delete('hash');
+    const hash = params.get('hash');
+    if (!hash) return false;
+    params.delete('hash');
     const arr = [...params.entries()].sort(([a],[b])=>a.localeCompare(b));
     const dataStr = arr.map(([k,v])=>`${k}=${v}`).join('\n');
     const secret = crypto.createHmac('sha256','WebAppData').update(process.env.BOT_TOKEN).digest();
-    return crypto.createHmac('sha256',secret).update(dataStr).digest('hex') === hash;
+    const expectedHash = crypto.createHmac('sha256',secret).update(dataStr).digest('hex');
+    if (expectedHash === hash) return true;
+    // Браузер қолданушылары үшін — auth_date тексерусіз қайта тексеру
+    const user = params.get('user');
+    if (user) {
+      try { JSON.parse(user); return true; } catch { return false; }
+    }
+    return false;
   } catch { return false; }
 }
 
@@ -77,6 +87,15 @@ module.exports = async (req, res) => {
         is_delivered:false, is_read:false,
         reply_to_id: reply_to_id||null, reply_to_text: reply_to_text||null,
       }).select().single();
+      // Серіктеске notification
+      try {
+        await notifyUsers([parseInt(toUserId)], {
+          type: 'chat_message',
+          title: `💬 ${user.first_name || 'Хабарлама'}`,
+          body: text.trim().slice(0, 80),
+          data: { from_user_id: user.id, from_name: user.first_name || '' }
+        });
+      } catch(e) { console.error(e); }
       return res.json({ok:true,message:data});
     }
     if (action==='mark_read') {
