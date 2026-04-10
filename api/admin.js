@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const { notifyAll } = require('./notify');
 const crypto = require('crypto');
 
 const supabase = createClient(
@@ -43,15 +44,21 @@ module.exports = async (req, res) => {
         supabase.from('results').select('*', { count: 'exact', head: true })
           .gte('played_at', new Date(Date.now() - 24*60*60*1000).toISOString()),
       ]);
+
+      // Апталық белсенді бірегей пайдаланушылар
+      // Supabase free distinct count жоқ → user_id тізімін алып JS-де санаймыз
       const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
-      const { count: weeklyActive } = await supabase
-        .from('results').select('user_id', { count: 'exact', head: true })
+      const { data: weeklyRows } = await supabase
+        .from('results')
+        .select('user_id')
         .gte('played_at', weekAgo);
+      const weeklyActive = new Set((weeklyRows || []).map(r => r.user_id)).size;
+
       return res.json({ ok: true, data: {
-        totalUsers: usersRes.count || 0,
-        totalGames: resultsRes.count || 0,
-        todayGames: todayRes.count || 0,
-        weeklyActive: weeklyActive || 0,
+        totalUsers:   usersRes.count || 0,
+        totalGames:   resultsRes.count || 0,
+        todayGames:   todayRes.count || 0,
+        weeklyActive,  // бірегей пайдаланушылар саны
       }});
     }
 
@@ -83,6 +90,14 @@ module.exports = async (req, res) => {
     }
 
     return res.status(400).json({ error: 'Unknown action' });
+  // ── Барлық қолданушыларға хат ─────────────────────────
+  if (action === 'broadcast') {
+    const { title, body } = req.body;
+    if (!title || !body) return res.json({ ok: false, error: 'title мен body керек' });
+    await notifyAll({ type: 'broadcast', title: title.trim(), body: body.trim(), data: { from: 'admin' } });
+    return res.json({ ok: true });
+  }
+
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Server error' });
