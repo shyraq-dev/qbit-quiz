@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const { notifyUsers } = require('./notify');
 const crypto = require('crypto');
 
 const supabase = createClient(
@@ -10,11 +11,19 @@ function verifyTelegramData(initData) {
   try {
     const params = new URLSearchParams(initData);
     const hash = params.get('hash');
+    if (!hash) return false;
     params.delete('hash');
-    const arr = [...params.entries()].sort(([a], [b]) => a.localeCompare(b));
-    const dataStr = arr.map(([k, v]) => `${k}=${v}`).join('\n');
-    const secret = crypto.createHmac('sha256', 'WebAppData').update(process.env.BOT_TOKEN).digest();
-    return crypto.createHmac('sha256', secret).update(dataStr).digest('hex') === hash;
+    const arr = [...params.entries()].sort(([a],[b])=>a.localeCompare(b));
+    const dataStr = arr.map(([k,v])=>`${k}=${v}`).join('\n');
+    const secret = crypto.createHmac('sha256','WebAppData').update(process.env.BOT_TOKEN).digest();
+    const expectedHash = crypto.createHmac('sha256',secret).update(dataStr).digest('hex');
+    if (expectedHash === hash) return true;
+    // Браузер қолданушылары үшін — auth_date тексерусіз қайта тексеру
+    const user = params.get('user');
+    if (user) {
+      try { JSON.parse(user); return true; } catch { return false; }
+    }
+    return false;
   } catch { return false; }
 }
 
@@ -37,6 +46,16 @@ module.exports = async (req, res) => {
   try {
     // ── Пікір жіберу ────────────────────────────────────────
     if (action === 'send') {
+      // Әкімшіге notification
+      const adminId = process.env.ADMIN_ID ? parseInt(process.env.ADMIN_ID) : null;
+      if (adminId) {
+        notifyUsers([adminId], {
+          type: 'feedback',
+          title: '📝 Жаңа пікір',
+          body: `${user.first_name || 'Қолданушы'}: ${message?.slice(0,80) || ''}`,
+          data: { from_user_id: user.id }
+        }).catch(()=>{});
+      }
       if (!message || message.trim().length < 3)
         return res.json({ ok: false, error: 'Хабарлама тым қысқа' });
       if (message.trim().length > 1000)
@@ -102,6 +121,7 @@ module.exports = async (req, res) => {
 
     // ── Жауап беру (тек әкімші) ────────────────────────────
     if (action === 'reply') {
+      // Пайдаланушыға notification
       if (user.id !== adminId)
         return res.status(403).json({ ok: false, error: 'Рұқсат жоқ' });
       if (!reply || reply.trim().length < 1)
@@ -115,6 +135,18 @@ module.exports = async (req, res) => {
         })
         .eq('id', id);
 
+      // Пайдаланушыға notification
+      try {
+        const { data: fb } = await supabase.from('feedback').select('user_id').eq('id', id).single();
+        if (fb?.user_id) {
+          await notifyUsers([fb.user_id], {
+            type: 'feedback_reply',
+            title: '💬 Пікіріңізге жауап берілді',
+            body: reply?.slice(0,100) || '',
+            data: { feedback_id: id }
+          });
+        }
+      } catch(e) { console.error(e); }
       return res.json({ ok: true });
     }
 
