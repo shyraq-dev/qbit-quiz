@@ -1147,12 +1147,7 @@ async function init(){
     return;
   }
   // Браузерде, session жоқ → Login экранын көрсет
-  if(botUsername){
-    document.getElementById("loginScreen").style.display="flex";
-  } else {
-    // botUsername жоқ болса (config қатесі) — guest режим (тек library)
-    initApp();
-  }
+  document.getElementById("loginScreen").style.display="flex";
 }
 
 // ══ УАҚЫТ УТИЛИТАСЫ ══════════════════════════════════════
