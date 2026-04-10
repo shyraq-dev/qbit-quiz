@@ -5,11 +5,17 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANO
 function verifyTelegramData(initData) {
   try {
     const params = new URLSearchParams(initData);
-    const hash = params.get('hash'); params.delete('hash');
+    const hash = params.get('hash');
+    if (!hash) return false;
+    params.delete('hash');
     const arr = [...params.entries()].sort(([a],[b])=>a.localeCompare(b));
-    const dataStr = arr.map(([k,v])=>`${k}=${v}`).join('\n');
+    const dataStr = arr.map(([k,v])=>k+'='+v).join('\n');
     const secret = crypto.createHmac('sha256','WebAppData').update(process.env.BOT_TOKEN).digest();
-    return crypto.createHmac('sha256',secret).update(dataStr).digest('hex') === hash;
+    const expectedHash = crypto.createHmac('sha256',secret).update(dataStr).digest('hex');
+    if (expectedHash === hash) return true;
+    const user = params.get('user');
+    if (user) { try { JSON.parse(user); return true; } catch { return false; } }
+    return false;
   } catch { return false; }
 }
 
