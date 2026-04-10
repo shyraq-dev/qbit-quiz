@@ -13,21 +13,13 @@ function verifyTelegramData(initData) {
     if (!hash) return false;
     params.delete('hash');
     const arr = [...params.entries()].sort(([a],[b])=>a.localeCompare(b));
-    const dataStr = arr.map(([k,v])=>`${k}=${v}`).join('
-');
+    const dataStr = arr.map(([k,v])=>k+'='+v).join('\n');
     const secret = crypto.createHmac('sha256','WebAppData').update(process.env.BOT_TOKEN).digest();
     const expectedHash = crypto.createHmac('sha256',secret).update(dataStr).digest('hex');
     if (expectedHash === hash) return true;
     const user = params.get('user');
     if (user) { try { JSON.parse(user); return true; } catch { return false; } }
     return false;
-  } catch { return false; }
-}=${v}`).join('\n');
-    const secretKey = crypto.createHmac('sha256', 'WebAppData')
-      .update(process.env.BOT_TOKEN).digest();
-    const computedHash = crypto.createHmac('sha256', secretKey)
-      .update(dataCheckString).digest('hex');
-    return computedHash === hash;
   } catch { return false; }
 }
 
