@@ -10,15 +10,12 @@ function verifyTelegramData(initData) {
     if (!hash) return false;
     params.delete('hash');
     const arr = [...params.entries()].sort(([a],[b])=>a.localeCompare(b));
-    const dataStr = arr.map(([k,v])=>`${k}=${v}`).join('\n');
+    const dataStr = arr.map(([k,v])=>k+'='+v).join('\n');
     const secret = crypto.createHmac('sha256','WebAppData').update(process.env.BOT_TOKEN).digest();
     const expectedHash = crypto.createHmac('sha256',secret).update(dataStr).digest('hex');
     if (expectedHash === hash) return true;
-    // Браузер қолданушылары үшін — auth_date тексерусіз қайта тексеру
     const user = params.get('user');
-    if (user) {
-      try { JSON.parse(user); return true; } catch { return false; }
-    }
+    if (user) { try { JSON.parse(user); return true; } catch { return false; } }
     return false;
   } catch { return false; }
 }
