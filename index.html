@@ -241,7 +241,7 @@
   }
 
   /* ── TELEGRAM LOGIN ЭКРАНЫ ── */
-  #loginScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px;}
+  #loginScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px;overflow-y:auto;}
   #loginScreen::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
   .login-logo{display:flex;flex-direction:column;align-items:center;gap:12px;}
   .login-logo-icon{width:80px;height:80px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:20px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-weight:900;font-size:28px;color:#fff;box-shadow:var(--glow);letter-spacing:-1px;}
@@ -413,7 +413,8 @@
     <div class="notif-header">
       <div class="notif-header-title">🔔 ХАБАРЛАНДЫРУЛАР</div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button onclick="markAllRead()" style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--border)">БАРЛЫҒЫН ОҚУ</button>
+        <button onclick="markAllRead()" style="font-family:var(--mono);font-size:9px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--border)">БАРЛЫҒЫН ОҚУ</button>
+        <button onclick="window._showNotifHistory=!window._showNotifHistory;this.textContent=window._showNotifHistory?'🔔':'🕐';loadNotifications()" style="font-family:var(--mono);font-size:9px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--border)">🕐</button>
         <button onclick="closeNotifPanel()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted);line-height:1">×</button>
       </div>
     </div>
@@ -1302,8 +1303,12 @@ function getNotifIcon(type){
 function renderNotifList(notifications) {
   const el = document.getElementById('notifList');
   if (!el) return;
-  if (!notifications || !notifications.length) {
-    el.innerHTML = '<div class="notif-empty">🔕<br><br>Хабарландыру жоқ</div>';
+  window._allNotifs = notifications || [];
+  window._showNotifHistory = window._showNotifHistory || false;
+  const unread = (notifications||[]).filter(n=>!n.is_read);
+  const toShow = window._showNotifHistory ? (notifications||[]) : unread;
+  if (!toShow.length) {
+    el.innerHTML = `<div class="notif-empty">🔕<br><br>${window._showNotifHistory?'Хабарландыру жоқ':'Оқылмаған хабарландыру жоқ'}</div>`;
     return;
   }
   // Деректерді жаһандық объектте сақтау
@@ -1420,6 +1425,7 @@ function initApp(){
     document.getElementById('adminBadge').innerHTML=`<div class="admin-badge"><div class="admin-dot"></div>ADMIN</div>`;
   }
   initTheme();
+  admSection('create',null);
   refreshCategorySelect();updateHeader();renderLibrary();updateExportSelect();
   if(!questions.length)addQuestion();
   renderStats();
@@ -3087,8 +3093,16 @@ async function openChatPartnerProfile() {
 }
 
 async function openAdminDirectChat(){
-  const adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
-  if (!adminId) { showToast('⚠️ Әкімші табылмады'); return; }
+  let adminId = window.__ADMIN_ID__ ? parseInt(window.__ADMIN_ID__) : null;
+  if (!adminId) {
+    // Config-тен алу
+    try {
+      const r = await fetch(`${API_BASE}/config`);
+      const d = await r.json();
+      if (d.adminId) { window.__ADMIN_ID__ = d.adminId; adminId = parseInt(d.adminId); }
+    } catch(e) {}
+    if (!adminId) { showToast('⚠️ Әкімші табылмады'); return; }
+  }
   const myId = getTgUser()?.id;
   if (parseInt(myId) === parseInt(adminId)) {
     showToast('⚠️ Өзіңізбен өзіңіз жазыса алмайсыз!');
@@ -4110,13 +4124,28 @@ function generateExport(){
   if(!isAdmin())return;
   const id=document.getElementById('exportSelect').value;if(!id)return showToast('⚠️ Тест таңдаңыз!');
   const quiz=state.quizzes.find(q=>q.id===id);if(!quiz)return;
-  let out=`# 📦 ${quiz.title}\n# ${quiz.category} | ${quiz.questions.length} сұрақ\n\n`;
+  let out='';
   quiz.questions.forEach((q,i)=>{
-    out+=`# Сұрақ ${i+1}\nPOST /sendPoll\n{\n  "question": "${q.text}",\n  "options": [\n`;
-    q.options.forEach((opt,oi)=>{out+=`    "${opt}"${oi<q.options.length-1?',':''}\n`;});
-    out+=`  ],\n  "type": "quiz",\n  "correct_option_id": ${q.correct},\n  "is_anonymous": false`;
-    if(q.explanation)out+=`,\n  "explanation": "${q.explanation}"`;
-    out+=`\n}\n\n`;
+    const type=q.type||'single';
+    const opts=(q.options||[]).filter(o=>o.trim());
+    if(type==='match'){
+      out+=`# Сұрақ ${i+1} [Сәйкестік]\n`;
+      (q.pairs||[]).forEach((p,pi)=>{ out+=`  ${pi+1}. ${p.left} ↔ ${p.right}\n`; });
+      if(q.explanation) out+=`# explanation: ${q.explanation}\n`;
+      out+='\n';
+      return;
+    }
+    const poll={question:q.text,options:opts,type:'quiz',is_anonymous:false};
+    if(type==='multi'){
+      poll.correct_option_id=(q.correctMulti||[]);
+      poll.allows_multiple_answers=true;
+    } else {
+      poll.correct_option_id=q.correct;
+    }
+    if(q.explanation) poll.explanation=q.explanation;
+    if(q.context) poll.context=q.context;
+    if(q.mediaUrl) poll.media={type:'image',url:q.mediaUrl};
+    out+=`POST /sendPoll\n${JSON.stringify(poll,null,2)}\n\n`;
   });
   document.getElementById('exportOutput').style.display='block';
   document.getElementById('exportBox').textContent=out;
