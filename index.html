@@ -31,8 +31,9 @@
   .admin-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,245,255,0.1));border:1px solid rgba(0,245,255,0.35);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:1.5px;color:var(--accent);}
   .admin-dot{width:5px;height:5px;border-radius:50%;background:var(--accent3);box-shadow:0 0 6px var(--accent3);animation:admBlink 2s infinite;}
   @keyframes admBlink{0%,100%{opacity:1}50%{opacity:.3}}
-  .tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(13,17,23,0.97);border-top:1px solid var(--border);backdrop-filter:blur(20px);z-index:1000;padding:0 4px;padding-bottom:env(safe-area-inset-bottom,0px);}
-  .tab{flex:1;padding:10px 2px 8px;background:none;border:none;color:var(--muted);font-family:'Rajdhani',sans-serif;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;min-width:0;}
+  .tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(13,17,23,0.97);border-top:1px solid var(--border);backdrop-filter:blur(20px);z-index:1000;padding:0 2px;padding-bottom:env(safe-area-inset-bottom,0px);overflow-x:auto;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{flex:0 0 auto;min-width:54px;padding:8px 6px;background:none;border:none;color:var(--muted);font-family:'Rajdhani',sans-serif;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;}
   .tab-icon{font-size:22px;line-height:1;transition:all 0.2s;}
   .tab-label{font-size:9px;letter-spacing:0.3px;font-weight:600;white-space:nowrap;}
   .tab.active{color:var(--accent);}
@@ -693,6 +694,7 @@
     </div>
     <div id="playContent" style="display:none;padding:16px"></div>
 
+  </div><!-- panel-play end -->
   <!-- 🎮 ОЙЫН -->
   <!-- 📝 ТЕСТ -->
   <div class="panel" id="panel-test">
@@ -4537,7 +4539,7 @@ function renderLibrary(){
   }
 
   c.innerHTML=filtered.map(quiz=>`
-    <div class="quiz-list-item" onclick="startPlay('${quiz.id}')">
+    <div class="quiz-list-item" onclick="quiz.mode==='test'?startTest('${quiz.id}'):startPlay('${quiz.id}','quiz')">
       <div>
         <div class="qli-name">${esc(quiz.title)}</div>
         <div class="qli-meta">${quiz.category} · ${quiz.questions.length} сұрақ · ${quiz.created}</div>
@@ -4549,12 +4551,12 @@ function renderLibrary(){
         </div>
       </div>
       <div class="qli-actions" onclick="event.stopPropagation()">
-        <span class="tag" style="font-size:9px;${quiz.mode==='test'?'background:rgba(124,58,237,0.15);color:var(--accent2);border-color:var(--accent2)':'background:rgba(0,245,255,0.1);color:var(--accent)'}">${quiz.mode==='test'?'📝 ТЕСТ':'🎯 КУИЗ'}</span>
-        ${quiz.mode==='test'
-          ? `<button class="btn btn-sm btn-primary" onclick="startTest('${quiz.id}')">📝 Тест</button>`
-          : `<button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}','quiz')">▶ Куиз</button><button class="btn btn-sm btn-ghost" onclick="startTest('${quiz.id}')">📋 Тест</button>`
-        }
-        ${isAdmin()?`<button class="btn btn-sm btn-cyan" onclick="editQuiz('${quiz.id}')">✏️</button>`:''}
+      <div class="qli-actions" onclick="event.stopPropagation()">
+        <span class="tag" style="font-size:9px;${quiz.mode==='test'?'background:rgba(124,58,237,0.15);color:var(--accent2);border-color:var(--accent2)':'background:rgba(0,245,255,0.1);color:var(--accent)'}">
+          ${quiz.mode==='test'?'📝':'🎯'}
+        </span>
+        <button class="btn btn-sm btn-cyan" onclick="quiz.mode==='test'?startTest('${quiz.id}'):startPlay('${quiz.id}','quiz')">▶</button>
+
         ${isAdmin()?`<button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">✕</button>`:''}
       </div>
     </div>`).join('');
