@@ -794,6 +794,7 @@
         </div>
         <div id="importPreview" style="margin-top:12px"></div>
       </div>
+    </div><!-- export card end -->
     <div class="card"><div class="card-title">📊 статистика</div><div id="statsPanel" style="color:var(--muted);font-size:13px;text-align:center;padding:16px">Статистика үшін тест ойнаңыз</div></div>
   </div>
 
@@ -852,17 +853,35 @@ function showForgotPassword() {
     <div style="background:var(--surface);border-radius:16px;padding:24px;width:100%;max-width:400px">
       <div style="font-family:Orbitron,monospace;font-size:14px;color:var(--accent);margin-bottom:16px">🔑 ҚҰПИЯСӨЗДІ ҚАЛПЫНА КЕЛТІРУ</div>
       <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px">
-        Құпиясөзді қалпына келтіру үшін Telegram-да <b style="color:var(--accent)">@QBitQuizBot</b>-қа хабарласыңыз:<br><br>
-        1. Ботқа /reset_password командасын жіберіңіз<br>
-        2. Пайдаланушы атыңызды жазыңыз<br>
-        3. Бот жаңа уақытша құпиясөз береді<br>
-        4. Жүйеге кіріп, құпиясөзді өзгертіңіз
+        Пайдаланушы атыңызды енгізіңіз — бар болса жаңа уақытша құпиясөз орнатылады.
       </p>
-      <a href="https://t.me/QBitQuizBot" target="_blank" class="btn btn-cyan" style="display:flex;justify-content:center;text-decoration:none;margin-bottom:10px">📱 Ботқа өту</a>
+      <input type="text" id="forgotUsername" placeholder="Пайдаланушы атыңыз..." style="margin-bottom:8px"/>
+      <input type="password" id="forgotNewPass" placeholder="Жаңа құпиясөз (кем дегенде 6 таңба)" style="margin-bottom:8px"/>
+      <input type="password" id="forgotNewPass2" placeholder="Қайталаңыз" style="margin-bottom:12px"/>
+      <div id="forgotError" style="font-family:var(--mono);font-size:10px;color:var(--danger);min-height:14px;margin-bottom:8px"></div>
+      <button class="btn btn-cyan" onclick="doForgotPassword()" style="width:100%;justify-content:center;margin-bottom:8px">✅ Жаңа құпиясөз орнату</button>
       <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-ghost" style="width:100%;justify-content:center">← Жабу</button>
     </div>`;
   modal.onclick = e => { if(e.target===modal) modal.remove(); };
   document.body.appendChild(modal);
+}
+
+async function doForgotPassword() {
+  const username = document.getElementById('forgotUsername')?.value?.trim();
+  const newPass = document.getElementById('forgotNewPass')?.value;
+  const newPass2 = document.getElementById('forgotNewPass2')?.value;
+  const errEl = document.getElementById('forgotError');
+  if (!username) { if(errEl) errEl.textContent='Пайдаланушы атын енгізіңіз'; return; }
+  if (!newPass || newPass.length < 6) { if(errEl) errEl.textContent='Кем дегенде 6 таңба'; return; }
+  if (newPass !== newPass2) { if(errEl) errEl.textContent='Құпиясөздер сәйкес емес'; return; }
+  try {
+    const r = await fetch('/api/browser-auth', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'reset_password', username, newPassword: newPass }) });
+    const d = await r.json();
+    if (!d.ok) { if(errEl) errEl.textContent = d.error||'Қате'; return; }
+    document.querySelector('div[style*=fixed]')?.remove();
+    showToast('✅ Құпиясөз өзгертілді! Кіруге болады.');
+  } catch(e) { if(errEl) errEl.textContent='Желі қатесі'; }
 }
 
 function switchLoginTab(tab) {
@@ -3511,6 +3530,63 @@ async function _doSaveBirthday(day, month, year) {
   } catch(e) { showToast('⚠️ Қате'); }
 }
 
+function showResultQuizModal(quizId) {
+  const quiz = state.currentPlay;
+  const ps = state.playState;
+  if (!quiz || !ps) return;
+  // Тек қате жауапталған сұрақтар
+  const wrongQs = quiz.questions.filter((q,i) => ps.answers[i] && !ps.answers[i].ok);
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border-radius:16px;padding:24px;width:100%;max-width:420px">
+      <div style="font-family:Orbitron,monospace;font-size:14px;color:var(--accent);margin-bottom:12px">📊 НӘТИЖЕ ТЕСТІ</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5">
+        Бұл тест тек <b style="color:var(--danger)">${wrongQs.length} қате</b> жауапталған сұрақтардан тұрады. 
+        Қателерді жою үшін тест жасалады — тек осы тестті аяқтаған соң ғана көрінеді.
+      </p>
+      ${wrongQs.length===0?'<div style="color:var(--accent3);font-size:14px;text-align:center">🎉 Барлық жауап дұрыс!</div>':''}
+      ${wrongQs.length>0?`
+      <input type="text" id="resultQuizTitle" placeholder="Тест атауы..." value="${esc(quiz.title)} — Қателер" style="margin-bottom:12px"/>
+      <button class="btn btn-cyan" onclick="saveResultQuiz('${quizId}')" style="width:100%;justify-content:center">✅ Жасау</button>`:''}
+      <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px">← Жабу</button>
+    </div>`;
+  modal.onclick = e => { if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+
+async function saveResultQuiz(sourceId) {
+  const quiz = state.currentPlay;
+  const ps = state.playState;
+  if (!quiz || !ps) return;
+  const title = document.getElementById('resultQuizTitle')?.value?.trim() || quiz.title + ' — Қателер';
+  const wrongQs = quiz.questions.filter((q,i) => ps.answers[i] && !ps.answers[i].ok);
+  if (!wrongQs.length) { showToast('⚠️ Қате жоқ!'); return; }
+  const user = getTgUser();
+  const quizData = {
+    id: 'quiz_'+Date.now()+'_result',
+    title, category: quiz.category||'Жалпы',
+    timer: quiz.timer||20, difficulty: quiz.difficulty||'medium',
+    answerCount: quiz.answerCount||4,
+    questions: wrongQs, isResultQuiz: true, sourceQuizId: sourceId,
+    created_by: user?.id||null,
+  };
+  // Supabase-ке сақтау
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('quizzes').insert({
+        id: quizData.id, title: quizData.title, category: quizData.category,
+        timer: quizData.timer, difficulty: quizData.difficulty,
+        questions: quizData.questions, answerCount: quizData.answerCount,
+        created_by: quizData.created_by, data: { isResultQuiz: true },
+      });
+      await loadQuizzesFromDB();
+      showToast('✅ Нәтиже тесті жасалды!');
+      document.querySelector('div[style*=fixed]')?.remove();
+    } catch(e) { showToast('⚠️ Қате: '+e.message); }
+  }
+}
+
 async function createQuizFromResults(quizId) {
   const quiz = state.currentPlay;
   if (!quiz) return;
@@ -3840,6 +3916,7 @@ async function showResults(){
         <button class="btn btn-primary" onclick="startPlay('${quiz.id}')">🔄 Қайта</button>
         <button class="btn btn-ghost" onclick="createQuizFromResults('${quiz.id}')">📝 Тест жаса</button>
         <button class="btn btn-cyan" onclick="switchTab('leaderboard')">🏆 Рейтинг</button>
+        <button class="btn btn-ghost" onclick="showResultQuizModal('${quiz.id}')">📊 Нәтиже тесті</button>
         <button class="btn btn-ghost" onclick="switchTab('library')">📦 Тесттер</button>
       </div>
     </div>
@@ -4651,7 +4728,4 @@ async function loadSample(){
 init();
 </script>
 </body>
-</html>   
-
-
-    
+</html>
