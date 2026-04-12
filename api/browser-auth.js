@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
       if (!password || password.length < 6) return res.json({ ok: false, error: 'Құпиясөз кем дегенде 6 таңба' });
       const { data: existing } = await supabase.from('users').select('id').eq('browser_username', username.trim().toLowerCase()).single();
       if (existing) return res.json({ ok: false, error: 'Бұл пайдаланушы аты бос емес' });
-      const browserId = -(Math.floor(Math.random() * 2000000000) + 1);
+      const browserId = Math.floor(Math.random() * 900000000) + 8000000000; // 8B+ range, Telegram ID-мен қабыспайды
       const { data: newUser, error } = await supabase.from('users').insert({
         id: browserId,
         first_name: firstName?.trim() || username.trim(),
@@ -49,6 +49,19 @@ module.exports = async (req, res) => {
       if (!user) return res.json({ ok: false, error: 'Пайдаланушы аты немесе құпиясөз қате' });
       return res.json({ ok: true, initData: generateInitData(user), user: { id: user.id, first_name: user.first_name, browser_username: user.browser_username } });
     }
+    if (action === 'reset_password') {
+      const { newPassword } = req.body || {};
+      if (!username || !newPassword || newPassword.length < 6)
+        return res.json({ ok: false, error: 'Деректер жеткіліксіз' });
+      const { data: existing } = await supabase.from('users')
+        .select('id').eq('browser_username', username.trim().toLowerCase()).single();
+      if (!existing) return res.json({ ok: false, error: 'Пайдаланушы табылмады' });
+      await supabase.from('users')
+        .update({ password_hash: hashPassword(newPassword) })
+        .eq('browser_username', username.trim().toLowerCase());
+      return res.json({ ok: true });
+    }
+
     return res.status(400).json({ ok: false, error: 'Unknown action' });
   } catch(e) {
     console.error(e);
