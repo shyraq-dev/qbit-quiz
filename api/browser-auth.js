@@ -41,13 +41,13 @@ module.exports = async (req, res) => {
         birthday_year: birthday_year || null,
       }).select().single();
       if (error) throw error;
-      return res.json({ ok: true, initData: generateInitData(newUser), user: { id: newUser.id, first_name: newUser.first_name } });
+      return res.json({ ok: true, initData: generateInitData(newUser), user: { id: newUser.id, first_name: newUser.first_name, browser_username: newUser.browser_username } });
     }
     if (action === 'login') {
       if (!username || !password) return res.json({ ok: false, error: 'Толтырыңыз' });
       const { data: user } = await supabase.from('users').select('*').eq('browser_username', username.trim().toLowerCase()).eq('password_hash', hashPassword(password)).single();
       if (!user) return res.json({ ok: false, error: 'Пайдаланушы аты немесе құпиясөз қате' });
-      return res.json({ ok: true, initData: generateInitData(user), user: { id: user.id, first_name: user.first_name } });
+      return res.json({ ok: true, initData: generateInitData(user), user: { id: user.id, first_name: user.first_name, browser_username: user.browser_username } });
     }
     return res.status(400).json({ ok: false, error: 'Unknown action' });
   } catch(e) {
