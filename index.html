@@ -512,6 +512,7 @@
         <button class="btn btn-cyan btn-sm adm-nav active" onclick="admSection('create',event)">⚡ Куиз жасау</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('games',event)">🎮 Ойын жасау</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('quizzes',event)">📋 Куиздер</button>
+        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('testcreate',event)">📝 Тест жасау</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('users',event)">👥 Қолданушылар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('recent',event)">📜 Ойындар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('categories',event)">📂 Санаттар</button>
@@ -607,6 +608,39 @@
       <div id="adm-section-recent" style="display:none">
         <div class="card"><div class="card-title">📜 соңғы ойындар</div><div id="adm-recent-list"><div class="loading">Жүктелуде</div></div></div>
       </div>
+      <div id="adm-section-testcreate" style="display:none">
+        <div class="card">
+          <div class="card-title">📝 тест жасау</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:12px">Тест режимінде барлық сұрақты бітіргенде ғана нәтиже шығады</div>
+          <label>Тест атауы</label>
+          <input type="text" id="testTitle" placeholder="Тест атауы..."/>
+          <label>Санат</label>
+          <select id="testCategory">
+            <option>🧠 Жалпы білім</option><option>📖 Тарих</option><option>🔬 Ғылым</option>
+            <option>💻 Технология</option><option>🌍 География</option><option>📚 Әдебиет</option>
+          </select>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <div style="flex:1"><label>Уақыт</label>
+              <select id="testTimer">
+                <option value="0">⏸ Таймерсіз</option><option value="20" selected>🎯 20с</option>
+                <option value="30">💡 30с</option><option value="60">🐢 60с</option>
+              </select>
+            </div>
+            <div style="flex:1"><label>Жауап саны</label>
+              <select id="testAnswerCount">
+                <option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
+              </select>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:10px">
+            <div class="card-title">❓ сұрақтар</div>
+            <div id="testQuestionsList"></div>
+            <button class="btn btn-ghost btn-sm" onclick="addTestQuestion()" style="width:100%;justify-content:center;margin-top:8px">+ Сұрақ қосу</button>
+          </div>
+          <button class="btn btn-primary" onclick="saveTest()" style="width:100%;justify-content:center">💾 Тест сақтау</button>
+          <div id="testSaveStatus" style="font-family:var(--mono);font-size:11px;text-align:center;margin-top:8px;min-height:14px"></div>
+        </div>
+      </div>
       <div id="adm-section-reviews" style="display:none">
         <div class="card"><div class="card-title">📝 кері байланыс пікірлері</div><div id="adm-feedback-list"><div class="loading">Жүктелуде</div></div></div>
       </div>
@@ -650,13 +684,26 @@
   </div>
 
   <!-- 📝 ТЕСТ -->
+  <!-- 🎯 КУИЗ -->
   <div class="panel" id="panel-play">
-    <div id="playContent">
-      <div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">Тест таңдаңыз</div></div>
+    <div id="quizSelectContent" style="padding:16px">
+      <div style="font-family:Orbitron,monospace;font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px">🎯 КУИЗ</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:16px">Куиз таңдаңыз</div>
+      <div id="quizSelectList"></div>
     </div>
-  </div>
+    <div id="playContent" style="display:none;padding:16px"></div>
 
   <!-- 🎮 ОЙЫН -->
+  <!-- 📝 ТЕСТ -->
+  <div class="panel" id="panel-test">
+    <div id="testSelectContent" style="padding:16px">
+      <div style="font-family:Orbitron,monospace;font-size:16px;font-weight:700;color:var(--accent2);margin-bottom:4px">📝 ТЕСТ</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:16px">Тест орындау</div>
+      <div id="testList"></div>
+    </div>
+    <div id="testPlayContent" style="display:none;padding:16px"></div>
+  </div>
+
   <div class="panel" id="panel-game">
     <div id="gameContent">
       <div id="gameJoinScreen">
@@ -668,6 +715,25 @@
             style="text-transform:uppercase;font-family:Orbitron,monospace;font-size:24px;text-align:center;letter-spacing:6px"
             oninput="this.value=this.value.toUpperCase()"/>
           <button class="btn btn-primary btn-lg" onclick="joinGame()" style="width:100%;justify-content:center">🚀 Қосылу</button>
+        </div>
+        <!-- Дайын ойындар -->
+        <div class="card" style="margin-top:14px">
+          <div class="card-title">🌍 дайын ойындар</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:12px">Тіркелген ойын түрлерін бастаңыз</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-ghost" onclick="startBuiltinGame('capitals')" style="justify-content:flex-start;gap:12px">
+              <span style="font-size:22px">🌍</span>
+              <div style="text-align:left"><div style="font-size:14px;font-weight:700">Елдердің астанасы</div><div style="font-size:11px;color:var(--muted)">Елді тауып, астанасын атаңыз</div></div>
+            </button>
+            <button class="btn btn-ghost" onclick="startBuiltinGame('flags')" style="justify-content:flex-start;gap:12px">
+              <span style="font-size:22px">🚩</span>
+              <div style="text-align:left"><div style="font-size:14px;font-weight:700">Елдердің туы</div><div style="font-size:11px;color:var(--muted)">Туды көріп, елді тауып алыңыз</div></div>
+            </button>
+            <button class="btn btn-ghost" onclick="startBuiltinGame('4pics')" style="justify-content:flex-start;gap:12px">
+              <span style="font-size:22px">🖼</span>
+              <div style="text-align:left"><div style="font-size:14px;font-weight:700">Төрт сурет, бір сөз</div><div style="font-size:11px;color:var(--muted)">4 суреттен жасырын сөзді тап</div></div>
+            </button>
+          </div>
         </div>
       </div>
       <div id="gameLobbyScreen" style="display:none">
@@ -1544,7 +1610,7 @@ function switchTab(tab){
 }
 
 function admSection(name,e){
-  ['create','games','quizzes','users','recent','categories','feedback','feedbacks','reviews','broadcast'].forEach(s=>{
+  ['create','games','quizzes','testcreate','users','recent','categories','feedback','feedbacks','reviews','broadcast'].forEach(s=>{
     const el=document.getElementById('adm-section-'+s);if(el)el.style.display='none';
   });
   document.getElementById('adm-section-'+name).style.display='block';
@@ -1587,10 +1653,7 @@ function renderAdminQuizzes(){
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
         <span class="tag" style="font-size:9px;${quiz.mode==='test'?'background:rgba(124,58,237,0.15);color:var(--accent2);border-color:var(--accent2)':'background:rgba(0,245,255,0.1);color:var(--accent)'}">${quiz.mode==='test'?'📝 ТЕСТ':'🎯 КУИЗ'}</span>
-        ${quiz.mode==='test'
-          ? `<button class="btn btn-sm btn-primary" onclick="startTest('${quiz.id}')">📝 Тест</button>`
-          : `<button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}','quiz')">▶ Куиз</button><button class="btn btn-sm btn-ghost" onclick="startTest('${quiz.id}')">📋 Тест</button>`
-        }
+        <button class="btn btn-sm btn-cyan" onclick="${quiz.mode==='test'?`startTest('${quiz.id}')`:`startPlay('${quiz.id}','quiz')`}">▶</button>
         <button class="btn btn-sm btn-cyan" onclick="editQuiz('${quiz.id}')">✏️</button>
         <button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">🗑</button>
       </div>
@@ -1792,6 +1855,170 @@ async function cancelGame(){
 }
 
 // ══ GAME PLAYER ══
+// ══ ДАЙЫН ОЙЫНДАР ════════════════════════════════════════
+
+const CAPITALS_DATA = [
+  {country:'Қазақстан',capital:'Астана'},{country:'Ресей',capital:'Мәскеу'},
+  {country:'АҚШ',capital:'Вашингтон'},{country:'Франция',capital:'Париж'},
+  {country:'Германия',capital:'Берлин'},{country:'Жапония',capital:'Токио'},
+  {country:'Қытай',capital:'Бейжің'},{country:'Үндістан',capital:'Нью-Дели'},
+  {country:'Бразилия',capital:'Бразилиа'},{country:'Австралия',capital:'Канберра'},
+  {country:'Канада',capital:'Оттава'},{country:'Италия',capital:'Рим'},
+  {country:'Испания',capital:'Мадрид'},{country:'Аргентина',capital:'Буэнос-Айрес'},
+  {country:'Мексика',capital:'Мехико'},{country:'Мысыр',capital:'Каир'},
+  {country:'Түркия',capital:'Анкара'},{country:'Иран',capital:'Тегеран'},
+  {country:'Оңтүстік Корея',capital:'Сеул'},{country:'Индонезия',capital:'Джакарта'},
+];
+
+const FLAGS_DATA = [
+  {country:'Қазақстан',flag:'🇰🇿'},{country:'Ресей',flag:'🇷🇺'},
+  {country:'АҚШ',flag:'🇺🇸'},{country:'Франция',flag:'🇫🇷'},
+  {country:'Германия',flag:'🇩🇪'},{country:'Жапония',flag:'🇯🇵'},
+  {country:'Қытай',flag:'🇨🇳'},{country:'Үндістан',flag:'🇮🇳'},
+  {country:'Бразилия',flag:'🇧🇷'},{country:'Австралия',flag:'🇦🇺'},
+  {country:'Канада',flag:'🇨🇦'},{country:'Италия',flag:'🇮🇹'},
+  {country:'Испания',flag:'🇪🇸'},{country:'Түркия',flag:'🇹🇷'},
+  {country:'Оңтүстік Корея',flag:'🇰🇷'},{country:'Мексика',flag:'🇲🇽'},
+  {country:'Мысыр',flag:'🇪🇬'},{country:'Аргентина',flag:'🇦🇷'},
+  {country:'Польша',flag:'🇵🇱'},{country:'Украина',flag:'🇺🇦'},
+];
+
+const PICS4_DATA = [
+  {word:'КІТ',pics:['📚','📖','🔖','✏️']},
+  {word:'СУ',pics:['🌊','💧','🏊','🚿']},
+  {word:'OТ',pics:['🔥','🕯️','💡','☀️']},
+  {word:'АТ',pics:['🐎','🏇','🎠','🐴']},
+  {word:'ТАС',pics:['🪨','⛏️','🏔️','💎']},
+  {word:'ҚАР',pics:['❄️','⛄','🌨️','🏔️']},
+  {word:'КҮН',pics:['☀️','🌤️','🕐','📅']},
+  {word:'БАЛЫҚ',pics:['🐟','🎣','🐠','🐡']},
+  {word:'ГҮЛЬ',pics:['🌹','🌺','🌸','💐']},
+  {word:'ҰЯ',pics:['🐣','🪺','🐦','🥚']},
+];
+
+let _builtinState = null;
+
+function startBuiltinGame(type) {
+  const el = document.getElementById('gameJoinScreen');
+  if (el) el.style.display = 'none';
+  _builtinState = { type, idx: 0, correct: 0, wrong: 0, total: 10 };
+  showBuiltinQuestion();
+}
+
+function showBuiltinQuestion() {
+  const s = _builtinState;
+  const content = document.getElementById('gameContent');
+  if (s.idx >= s.total) {
+    // Нәтиже
+    const pct = Math.round(s.correct / s.total * 100);
+    content.innerHTML = `
+      <div style="padding:20px;text-align:center">
+        <div style="font-size:48px;margin-bottom:12px">${pct>=80?'🏆':pct>=60?'👍':'📚'}</div>
+        <div style="font-family:Orbitron,monospace;font-size:20px;color:var(--accent);margin-bottom:8px">НӘТИЖЕ</div>
+        <div style="font-size:32px;font-weight:700;color:var(--text);margin-bottom:4px">${s.correct}/${s.total}</div>
+        <div style="font-size:24px;color:${pct>=70?'var(--accent3)':'var(--danger)'}">${pct}%</div>
+        <button class="btn btn-cyan" onclick="startBuiltinGame('${s.type}')" style="width:100%;justify-content:center;margin-top:20px">🔄 Қайта</button>
+        <button class="btn btn-ghost" onclick="backToBuiltinMenu()" style="width:100%;justify-content:center;margin-top:8px">← Артқа</button>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+  if (s.type === 'capitals') {
+    const items = [...CAPITALS_DATA].sort(() => Math.random()-0.5).slice(0, s.total);
+    if (!s.items) s.items = items;
+    const item = s.items[s.idx];
+    const wrong = CAPITALS_DATA.filter(c=>c.capital!==item.capital).sort(()=>Math.random()-0.5).slice(0,3);
+    const opts = [...wrong, item].sort(()=>Math.random()-0.5);
+    html = `
+      <div style="padding:16px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px">🌍 АСТАНАЛАР · ${s.idx+1}/${s.total}</div>
+        <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:${s.idx/s.total*100}%"></div></div>
+        <div class="q-card"><div class="q-text">${item.country} елінің астанасы қай қала?</div>
+        <div class="answers-grid">${opts.map((o,i)=>`<button class="answer-btn" onclick="checkBuiltinAnswer(this,'${o.capital}','${item.capital}')"><div class="ans-letter">${'ABCD'[i]}</div>${esc(o.capital)}</button>`).join('')}
+        </div></div>
+        <div style="text-align:right;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="backToBuiltinMenu()">← Шығу</button></div>
+      </div>`;
+  } else if (s.type === 'flags') {
+    const items = [...FLAGS_DATA].sort(()=>Math.random()-0.5).slice(0,s.total);
+    if (!s.items) s.items = items;
+    const item = s.items[s.idx];
+    const wrong = FLAGS_DATA.filter(c=>c.country!==item.country).sort(()=>Math.random()-0.5).slice(0,3);
+    const opts = [...wrong, item].sort(()=>Math.random()-0.5);
+    html = `
+      <div style="padding:16px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px">🚩 ТУЛАР · ${s.idx+1}/${s.total}</div>
+        <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:${s.idx/s.total*100}%"></div></div>
+        <div class="q-card"><div style="font-size:72px;text-align:center;margin-bottom:8px">${item.flag}</div>
+        <div class="q-text">Бұл қай елдің туы?</div>
+        <div class="answers-grid">${opts.map((o,i)=>`<button class="answer-btn" onclick="checkBuiltinAnswer(this,'${o.country}','${item.country}')"><div class="ans-letter">${'ABCD'[i]}</div>${esc(o.country)}</button>`).join('')}
+        </div></div>
+        <div style="text-align:right;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="backToBuiltinMenu()">← Шығу</button></div>
+      </div>`;
+  } else if (s.type === '4pics') {
+    const items = [...PICS4_DATA].sort(()=>Math.random()-0.5).slice(0,Math.min(s.total,PICS4_DATA.length));
+    if (!s.items) s.items = items;
+    s.total = s.items.length;
+    const item = s.items[s.idx];
+    if (!s.input) s.input = '';
+    html = `
+      <div style="padding:16px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px">🖼 ТӨРТ СУРЕТ · ${s.idx+1}/${s.total}</div>
+        <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:${s.idx/s.total*100}%"></div></div>
+        <div class="q-card">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+            ${item.pics.map(p=>`<div style="font-size:52px;text-align:center;background:var(--surface2);border-radius:10px;padding:8px">${p}</div>`).join('')}
+          </div>
+          <div class="q-text">Бұл 4 суреттен бір сөз тап!</div>
+          <input type="text" id="pics4input" value="${esc(s.input||'')}" placeholder="Жауабыңыз..." style="text-align:center;font-size:18px;font-weight:700;letter-spacing:4px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase();_builtinState.input=this.value"/>
+          <button class="btn btn-cyan" onclick="checkPics4Answer('${item.word}')" style="width:100%;justify-content:center;margin-top:8px">✅ Тексеру</button>
+        </div>
+        <div style="text-align:right;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="backToBuiltinMenu()">← Шығу</button></div>
+      </div>`;
+  }
+  content.innerHTML = html;
+}
+
+function checkBuiltinAnswer(btn, chosen, correct) {
+  document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+  if (chosen === correct) {
+    btn.classList.add('correct'); _builtinState.correct++;
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.answer-btn').forEach(b => { if(b.textContent.includes(correct)) b.classList.add('correct'); });
+  }
+  _builtinState.wrong += (chosen !== correct ? 1 : 0);
+  setTimeout(() => { _builtinState.idx++; _builtinState.input=''; showBuiltinQuestion(); }, 1200);
+}
+
+function checkPics4Answer(correct) {
+  const input = document.getElementById('pics4input')?.value?.trim().toUpperCase();
+  if (!input) return;
+  if (input === correct.toUpperCase()) {
+    _builtinState.correct++;
+    showToast('✅ Дұрыс!');
+  } else {
+    _builtinState.wrong++;
+    showToast(`❌ Қате! Дұрыс жауап: ${correct}`);
+  }
+  setTimeout(() => { _builtinState.idx++; _builtinState.input=''; showBuiltinQuestion(); }, 1200);
+}
+
+function backToBuiltinMenu() {
+  _builtinState = null;
+  const el = document.getElementById('gameJoinScreen');
+  if (el) el.style.display = 'block';
+  const content = document.getElementById('gameContent');
+  if (content) content.innerHTML = '';
+  // gameContent-ті қайтару
+  const gamePanel = document.getElementById('panel-game');
+  if (gamePanel) {
+    const orig = gamePanel.querySelector('#gameJoinScreen');
+    if (orig) orig.style.display = '';
+  }
+  showGameScreen('join');
+}
+
 async function joinGameByCode(code){
   // Шақыру сілтемесі арқылы автоматты қосылу
   try{
@@ -2064,15 +2291,17 @@ function showGameQuestion(q,idx,total,timerSecs){
     const shapes=['▲','●','■','⬟','★','◆'];
     document.getElementById('gameAnswers').innerHTML=`
       <div style="font-family:var(--mono);font-size:9px;color:var(--accent);margin-bottom:8px;letter-spacing:1px">🎮 ЖҮРГІЗУШІ РЕЖИМІ — ЖАУАПТАР:</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
       ${q.type==='match'
-        ? (q.pairs||[]).map((p,pi)=>`<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;margin-bottom:6px;align-items:center"><div style="padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px">${esc(p.left)}</div><span style="color:var(--accent)">↔</span><div style="padding:8px;background:rgba(16,185,129,0.1);border:1px solid var(--accent3);border-radius:8px;font-size:12px;color:var(--accent3)">${esc(p.right)}</div></div>`).join('')
-        : (q.options||[]).map((opt,i)=>{
+        ? (q.pairs||[]).map((p,pi)=>`<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center"><div style="padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;word-break:break-word">${esc(p.left)}</div><span style="color:var(--accent)">↔</span><div style="padding:8px;background:rgba(16,185,129,0.1);border:1px solid var(--accent3);border-radius:8px;font-size:12px;color:var(--accent3);word-break:break-word">${esc(p.right)}</div></div>`).join('')
+        : (q.options||[]).filter(opt=>opt.trim()).map((opt,i)=>{
             const isCorrect = q.type==='multi' ? (q.correctMulti||[]).includes(i) : i===q.correct;
-            return `<div style="padding:8px 12px;border-radius:8px;border:1px solid ${isCorrect?'var(--accent3)':'var(--border)'};background:${isCorrect?'rgba(16,185,129,0.1)':'var(--surface2)'};margin-bottom:6px;font-size:13px;color:${isCorrect?'var(--accent3)':'var(--text)'}">
-              <span style="font-size:16px;margin-right:8px">${shapes[i]}</span>${esc(opt)}${isCorrect?' ✅':''}
+            return `<div style="padding:8px 12px;border-radius:8px;border:1px solid ${isCorrect?'var(--accent3)':'var(--border)'};background:${isCorrect?'rgba(16,185,129,0.1)':'var(--surface2)'};font-size:13px;color:${isCorrect?'var(--accent3)':'var(--text)'};display:flex;align-items:center;gap:8px">
+              <span style="font-size:16px;flex-shrink:0">${shapes[i]}</span><span style="word-break:break-word">${esc(opt)}${isCorrect?' ✅':''}</span>
             </div>`;
           }).join('')
-      }`;
+      }
+      </div>`;
   } else if(q.type==='multi'){
     window._gameMultiSelected=[];
     document.getElementById('gameAnswers').innerHTML=q.options.map((opt,i)=>`
@@ -3319,6 +3548,61 @@ async function sendBroadcast() {
   }
 }
 
+let testQuestions = [];
+function addTestQuestion() {
+  const ac = parseInt(document.getElementById('testAnswerCount')?.value||'4');
+  testQuestions.push({ id:'tq_'+Date.now(), text:'', options:Array.from({length:ac},()=>''), correct:0, explanation:'' });
+  renderTestQuestions();
+}
+function renderTestQuestions() {
+  const el = document.getElementById('testQuestionsList'); if(!el) return;
+  if(!testQuestions.length) { el.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px">Сұрақ жоқ</div>'; return; }
+  const ac = parseInt(document.getElementById('testAnswerCount')?.value||'4');
+  el.innerHTML = testQuestions.map((q,idx)=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--accent)">СҰРАҚ ${idx+1}</span>
+        <button class="btn btn-sm btn-danger" onclick="testQuestions.splice(${idx},1);renderTestQuestions()">✕</button>
+      </div>
+      <input type="text" value="${esc(q.text)}" placeholder="Сұрақ мәтіні..." style="margin-bottom:8px" oninput="testQuestions[${idx}].text=this.value"/>
+      <div class="options-grid">${Array.from({length:ac},(_,oi)=>`
+        <div class="option-input"><div class="option-label">${'ABCDEF'[oi]}</div>
+        <input type="text" value="${esc(q.options[oi]||'')}" placeholder="${'ABCDEF'[oi]}" oninput="testQuestions[${idx}].options[${oi}]=this.value"/>
+        </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${Array.from({length:ac},(_,oi)=>`
+        <button class="correct-btn ${q.correct===oi?'selected':''}" onclick="testQuestions[${idx}].correct=${oi};renderTestQuestions()">✓ ${'ABCDEF'[oi]}</button>`).join('')}
+      </div>
+    </div>`).join('');
+}
+async function saveTest() {
+  const title = document.getElementById('testTitle')?.value?.trim();
+  if(!title) return showToast('⚠️ Атауын жазыңыз!');
+  const validQs = testQuestions.filter(q=>q.text.trim()&&q.options.some(o=>o.trim()));
+  if(validQs.length<2) return showToast('⚠️ Кем дегенде 2 сұрақ!');
+  const status = document.getElementById('testSaveStatus');
+  if(status) status.innerHTML='<span style="color:var(--muted)">Сақталуда...</span>';
+  const user = getTgUser();
+  try {
+    const {error} = await supabaseClient.from('quizzes').insert({
+      id:'test_'+Date.now(),
+      title, mode:'test',
+      category: document.getElementById('testCategory')?.value||'Жалпы',
+      timer: parseInt(document.getElementById('testTimer')?.value||'0'),
+      answerCount: parseInt(document.getElementById('testAnswerCount')?.value||'4'),
+      questions: validQs.map(q=>({...q,type:'single',options:q.options.filter(o=>o.trim())})),
+      created_by: user?.id||null, data:{},
+    });
+    if(error) throw error;
+    if(status) status.innerHTML='<span style="color:var(--accent3)">✅ Тест сақталды!</span>';
+    testQuestions=[];
+    document.getElementById('testTitle').value='';
+    renderTestQuestions();
+    await loadQuizzesFromDB();
+  } catch(e) {
+    if(status) status.innerHTML=`<span style="color:var(--danger)">⚠️ ${esc(e.message)}</span>`;
+  }
+}
 async function loadAdminFeedbacks(){
   const c=document.getElementById('adm-feedback-list');
   if(!c) return;
@@ -3729,7 +4013,11 @@ function startTest(id) {
   if (!quiz || !quiz.questions?.length) return showToast('⚠️ Сұрақ жоқ');
   state.currentPlay = quiz;
   state.playState = { idx:0, correct:0, wrong:0, answers:[], startTime:Date.now(), streak:0, maxStreak:0, mode:'test' };
-  switchTab('play');
+  switchTab('test');
+  const selEl = document.getElementById('testSelectContent');
+  const playEl = document.getElementById('testPlayContent');
+  if(selEl) selEl.style.display='none';
+  if(playEl) playEl.style.display='block';
   renderTestQuestion();
 }
 
@@ -3768,7 +4056,8 @@ function renderTestQuestion() {
       + Array.from({length:ac},(_,i) => '<button class="answer-btn" id="tab_'+i+'" onclick="selectTestAnswer('+i+')"><div class="ans-letter">'+'ABCDEF'[i]+'</div>'+esc(q.options[i]||'')+'</button>').join('')
       + '</div>';
   }
-  document.getElementById('playContent').innerHTML = `
+  const tcEl = document.getElementById('testPlayContent') || document.getElementById('playContent');
+  tcEl.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div><div style="font-family:Orbitron,monospace;font-size:18px;font-weight:700;color:var(--accent)">${esc(quiz.title)}</div>
       <div style="color:var(--muted);font-size:11px;font-family:var(--mono)">📋 ТЕСТ РЕЖИМІ</div></div>
@@ -4190,15 +4479,35 @@ function filterCategory(cat){
   renderLibrary();
 }
 
+function renderQuizList() {
+  const el = document.getElementById('quizSelectList'); if(!el) return;
+  const quizzes = state.quizzes.filter(q => q.mode !== 'test');
+  if (!quizzes.length) {
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">Куиз жоқ</div></div>';
+    return;
+  }
+  el.innerHTML = quizzes.map(q=>`
+    <div class="card" style="margin-bottom:10px;cursor:pointer" onclick="startPlay('${q.id}','quiz')">
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">${esc(q.title)}</div>
+      <div style="font-size:11px;color:var(--muted)">${q.category} · ${q.questions?.length||0} сұрақ · ${q.timer>0?q.timer+'с':'⏸'} · ${q.difficulty==='easy'?'🟢':q.difficulty==='hard'?'🔴':'🟡'}</div>
+    </div>`).join('');
+}
+
 function renderTestList() {
   const el = document.getElementById('testList');
   if (!el) return;
   const quizzes = state.quizzes;
-  if (!quizzes.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">Тест жоқ</div><div class="empty-sub">Куиздер кітапханадан тест ретінде тапсырылады</div></div>';
+  const tests = quizzes.filter(q => q.mode === 'test');
+  // testPlayContent жасыру
+  const playEl = document.getElementById('testPlayContent');
+  const selEl = document.getElementById('testSelectContent');
+  if(playEl) playEl.style.display='none';
+  if(selEl) selEl.style.display='block';
+  if (!tests.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">Тест жоқ</div><div class="empty-sub">Әкімші тақтасында Тест жасау арқылы жасаңыз</div></div>';
     return;
   }
-  el.innerHTML = quizzes.map(q => `
+  el.innerHTML = tests.map(q => `
     <div class="card" style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
         <div>
@@ -4207,7 +4516,7 @@ function renderTestList() {
         </div>
         <span class="tag" style="background:rgba(124,58,237,0.15);color:var(--accent2);border-color:var(--accent2);font-size:9px">📝 ТЕСТ</span>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="startTest('${q.id}')" style="width:100%;justify-content:center">📝 Тестті бастау</button>
+      <button class="btn btn-cyan btn-sm" onclick="startTest('${q.id}')" style="width:100%;justify-content:center">▶ Бастау</button>
     </div>`).join('');
 }
 
