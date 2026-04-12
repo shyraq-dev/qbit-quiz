@@ -511,7 +511,7 @@
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
         <button class="btn btn-cyan btn-sm adm-nav active" onclick="admSection('create',event)">⚡ Куиз жасау</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('games',event)">🎮 Ойын жасау</button>
-        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('quizzes',event)">📋 Тесттер</button>
+        <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('quizzes',event)">📋 Куиздер</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('users',event)">👥 Қолданушылар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('recent',event)">📜 Ойындар</button>
         <button class="btn btn-ghost btn-sm adm-nav" onclick="admSection('categories',event)">📂 Санаттар</button>
@@ -544,6 +544,14 @@
           </div>
           <div id="customCategoryWrap" style="display:none;margin-bottom:12px">
             <input type="text" id="customCategory" placeholder="Санат атауын жазыңыз..." style="margin-bottom:0"/>
+          </div>
+          <div style="margin-bottom:12px">
+            <label>Режим</label>
+            <div style="display:flex;gap:8px">
+              <button id="modeQuiz" onclick="setQuizMode('quiz')" class="btn btn-cyan btn-sm" style="flex:1;justify-content:center">🎯 Куиз</button>
+              <button id="modeTest" onclick="setQuizMode('test')" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center">📝 Тест</button>
+            </div>
+            <input type="hidden" id="quizMode" value="quiz"/>
           </div>
           <div style="display:flex;gap:12px;flex-wrap:wrap">
             <div style="flex:1;min-width:120px"><label>Уақыт (сек/сұрақ)</label>
@@ -741,7 +749,7 @@
         <div class="card"><div class="card-title">🏆 scoreboard</div><div id="gameScoreboard"></div></div>
         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px">
           <button class="btn btn-cyan" onclick="backToGameJoin()">🎮 Жаңа ойын</button>
-          <button class="btn btn-ghost" onclick="switchTab('library')">📦 Тесттер</button>
+          <button class="btn btn-ghost" onclick="switchTab('library')">📦 Кітапхана</button>
         </div>
       </div>
     </div>
@@ -798,7 +806,7 @@
             Мысал:<br>1. Астана қай жылы астана болды? A) 1997 B) 1991 C) 2000 D) 2019 Жауап: A<br>2. 2+2=? A) 3 B) 4 C) 5 D) 6 Жауап: B
           </div>
           <textarea id="importTextBox" placeholder="Тест мәтінін осында жазыңыз немесе қойыңыз..." style="width:100%;min-height:200px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Rajdhani,sans-serif;font-size:13px;padding:10px;resize:vertical;outline:none;box-sizing:border-box;margin-bottom:10px;line-height:1.5" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-          <button class="btn btn-cyan" onclick="parseTextImport()" style="width:100%;justify-content:center">🔍 Тануу &amp; Алдын ала қарау</button>
+          <button class="btn btn-cyan" onclick="parseTextImport()" style="width:100%;justify-content:center">🔍 Тану</button>
         </div>
         <!-- Код режимі -->
         <div id="importCodeMode" style="display:none">
@@ -822,8 +830,9 @@
   <!-- TABS -->
   <div class="tabs">
     <button class="tab admin-tab" id="tab-create" onclick="switchTab('create')" style="display:none"><span class="tab-icon">⚡</span><span class="tab-label">Әкімші</span></button>
-    <button class="tab active" id="tab-library" onclick="switchTab('library')"><span class="tab-icon">📦</span><span class="tab-label">Тесттер</span></button>
-    <button class="tab" id="tab-play" onclick="switchTab('play')"><span class="tab-icon">📝</span><span class="tab-label">Тест</span></button>
+    <button class="tab active" id="tab-library" onclick="switchTab('library')"><span class="tab-icon">📦</span><span class="tab-label">Кітапхана</span></button>
+    <button class="tab" id="tab-play" onclick="switchTab('play')"><span class="tab-icon">🎯</span><span class="tab-label">Куиз</span></button>
+    <button class="tab" id="tab-test" onclick="switchTab('test')"><span class="tab-icon">📝</span><span class="tab-label">Тест</span></button>
     <button class="tab" id="tab-game" onclick="switchTab('game')"><span class="tab-icon">🎮</span><span class="tab-label">Ойын</span></button>
     <button class="tab" id="tab-leaderboard" onclick="switchTab('leaderboard')"><span class="tab-icon">🏆</span><span class="tab-label">Рейтинг</span></button>
     <button class="tab" id="tab-profile" onclick="switchTab('profile')"><span class="tab-icon">👤</span><span class="tab-label">Бейін</span></button>
@@ -1577,9 +1586,11 @@ function renderAdminQuizzes(){
         <div class="lb-sub">${quiz.category} · ${quiz.questions.length} сұрақ · ${quiz.created}</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
-        <button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}','quiz')">▶ Куиз</button>
-              <button class="btn btn-sm btn-ghost" onclick="startTest('${quiz.id}')">📋 Тест</button>
-        <button class="btn btn-sm btn-ghost" onclick="startPlay('${quiz.id}','test')" style="padding:4px 8px;font-size:11px">📋 Тест</button>
+        <span class="tag" style="font-size:9px;${quiz.mode==='test'?'background:rgba(124,58,237,0.15);color:var(--accent2);border-color:var(--accent2)':'background:rgba(0,245,255,0.1);color:var(--accent)'}">${quiz.mode==='test'?'📝 ТЕСТ':'🎯 КУИЗ'}</span>
+        ${quiz.mode==='test'
+          ? `<button class="btn btn-sm btn-primary" onclick="startTest('${quiz.id}')">📝 Тест</button>`
+          : `<button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}','quiz')">▶ Куиз</button><button class="btn btn-sm btn-ghost" onclick="startTest('${quiz.id}')">📋 Тест</button>`
+        }
         <button class="btn btn-sm btn-cyan" onclick="editQuiz('${quiz.id}')">✏️</button>
         <button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">🗑</button>
       </div>
@@ -4067,7 +4078,7 @@ async function showResults(){
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <button class="btn btn-primary" onclick="startPlay('${quiz.id}')">🔄 Қайта</button>
         <button class="btn btn-cyan" onclick="switchTab('leaderboard')">🏆 Рейтинг</button>
-        <button class="btn btn-ghost" onclick="switchTab('library')">📦 Тесттер</button>
+        <button class="btn btn-ghost" onclick="switchTab('library')">📦 Кітапхана</button>
       </div>
     </div>
     <div class="card" style="margin-top:12px">
@@ -4179,6 +4190,27 @@ function filterCategory(cat){
   renderLibrary();
 }
 
+function renderTestList() {
+  const el = document.getElementById('testList');
+  if (!el) return;
+  const quizzes = state.quizzes;
+  if (!quizzes.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">Тест жоқ</div><div class="empty-sub">Куиздер кітапханадан тест ретінде тапсырылады</div></div>';
+    return;
+  }
+  el.innerHTML = quizzes.map(q => `
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--text)">${esc(q.title)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${q.category} · ${q.questions?.length||0} сұрақ · ${q.difficulty==='easy'?'🟢 Оңай':q.difficulty==='hard'?'🔴 Қиын':'🟡 Орта'}</div>
+        </div>
+        <span class="tag" style="background:rgba(124,58,237,0.15);color:var(--accent2);border-color:var(--accent2);font-size:9px">📝 ТЕСТ</span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="startTest('${q.id}')" style="width:100%;justify-content:center">📝 Тестті бастау</button>
+    </div>`).join('');
+}
+
 function renderLibrary(){
   renderCategoryFilters();
   const c=document.getElementById('quizLibrary');
@@ -4208,9 +4240,11 @@ function renderLibrary(){
         </div>
       </div>
       <div class="qli-actions" onclick="event.stopPropagation()">
-        <button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}','quiz')">▶ Куиз</button>
-              <button class="btn btn-sm btn-ghost" onclick="startTest('${quiz.id}')">📋 Тест</button>
-        <button class="btn btn-sm btn-ghost" onclick="startPlay('${quiz.id}','test')" style="padding:4px 8px;font-size:11px">📋 Тест</button>
+        <span class="tag" style="font-size:9px;${quiz.mode==='test'?'background:rgba(124,58,237,0.15);color:var(--accent2);border-color:var(--accent2)':'background:rgba(0,245,255,0.1);color:var(--accent)'}">${quiz.mode==='test'?'📝 ТЕСТ':'🎯 КУИЗ'}</span>
+        ${quiz.mode==='test'
+          ? `<button class="btn btn-sm btn-primary" onclick="startTest('${quiz.id}')">📝 Тест</button>`
+          : `<button class="btn btn-sm btn-cyan" onclick="startPlay('${quiz.id}','quiz')">▶ Куиз</button><button class="btn btn-sm btn-ghost" onclick="startTest('${quiz.id}')">📋 Тест</button>`
+        }
         ${isAdmin()?`<button class="btn btn-sm btn-cyan" onclick="editQuiz('${quiz.id}')">✏️</button>`:''}
         ${isAdmin()?`<button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">✕</button>`:''}
       </div>
@@ -4501,35 +4535,58 @@ function parseTextImport() {
 
 function parseQuestionText(raw) {
   const questions = [];
-  // Сұрақтарды нөмір бойынша бөлу: 1. немесе 1)
-  const blocks = raw.split(/(?=^\d+[.)\s])/m).filter(b => b.trim());
-  for (const block of blocks) {
-    const lines = block.split('\n').map(l => l.trim()).filter(l => l);
-    if (!lines.length) continue;
-    // Бірінші жол — сұрақ мәтіні
-    const qText = lines[0].replace(/^\d+[.)\s]+/, '').trim();
-    if (!qText) continue;
-    const options = [];
-    let correctIdx = 0;
-    let correctLetter = '';
-    for (const line of lines.slice(1)) {
-      // Жауап нұсқасы: A) B) C) D) немесе A. B. C. D.
-      const optMatch = line.match(/^([A-Fa-f])[.)\s]+(.+)/);
-      if (optMatch) { options.push(optMatch[2].trim()); }
-      // Дұрыс жауап: Жауап: A немесе Answer: A немесе Дұрыс: A
-      const ansMatch = line.match(/(?:жауап|answer|дұрыс|correct)[:\s]+([A-Fa-f])/i);
-      if (ansMatch) correctLetter = ansMatch[1].toUpperCase();
+  // Сұрақтарды нөмір бойынша бөлу: 1. 2. 3. немесе 1) 2) 3)
+  const lines = raw.split(/\n/).map(l => l.trim()).filter(l => l);
+  let currentQ = null;
+  for (const line of lines) {
+    // Жаңа сұрақ басы: 1. немесе 1)
+    const qMatch = line.match(/^(\d+)[.)\s]+(.+)/);
+    // Жауап нұсқасы: A) B) немесе А) Ә) (кириллица да)
+    const optMatch = line.match(/^([A-Fa-fА-ЕӘа-еә])[.)\s]+(.+)/);
+    // Дұрыс жауап жолы
+    const ansMatch = line.match(/(?:жауап|answer|дұрыс|correct|ans)[:\s]+([A-Fa-f])/i);
+    if (ansMatch) {
+      if (currentQ) currentQ.correctLetter = ansMatch[1].toUpperCase();
+      continue;
     }
-    if (options.length >= 2) {
-      if (correctLetter) correctIdx = 'ABCDEF'.indexOf(correctLetter);
-      questions.push({
-        id: 'q_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
-        text: qText, type: 'single',
-        options, correct: correctIdx >= 0 ? correctIdx : 0,
-        correctMulti: [], pairs: [], context: '', mediaUrl: '', explanation: '',
-        answerCount: options.length,
-      });
+    if (optMatch && currentQ && !qMatch) {
+      const letter = optMatch[1].toUpperCase();
+      // Тек A-F латын әріптері
+      if ('ABCDEF'.includes(letter)) {
+        currentQ.options.push(optMatch[2].trim());
+      }
+      continue;
     }
+    if (qMatch) {
+      if (currentQ && currentQ.options.length >= 2) {
+        const ci = currentQ.correctLetter ? 'ABCDEF'.indexOf(currentQ.correctLetter) : 0;
+        questions.push({
+          id: 'q_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
+          text: currentQ.text, type: 'single',
+          options: currentQ.options, correct: ci >= 0 ? ci : 0,
+          correctMulti: [], pairs: [], context: '', mediaUrl: '', explanation: '',
+          answerCount: currentQ.options.length,
+        });
+      }
+      currentQ = { text: qMatch[2].trim(), options: [], correctLetter: '' };
+      continue;
+    }
+    // Жауап нұсқасы нөмірмен де болуы мүмкін: 1) 2) 3)
+    if (currentQ && !currentQ.options.length) {
+      // Сұрақ мәтіні жалғасы болуы мүмкін
+      currentQ.text += ' ' + line;
+    }
+  }
+  // Соңғы сұрақты қос
+  if (currentQ && currentQ.options.length >= 2) {
+    const ci = currentQ.correctLetter ? 'ABCDEF'.indexOf(currentQ.correctLetter) : 0;
+    questions.push({
+      id: 'q_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
+      text: currentQ.text, type: 'single',
+      options: currentQ.options, correct: ci >= 0 ? ci : 0,
+      correctMulti: [], pairs: [], context: '', mediaUrl: '', explanation: '',
+      answerCount: currentQ.options.length,
+    });
   }
   return questions;
 }
@@ -4793,6 +4850,12 @@ function getAnswerCount(){
   return parseInt(document.getElementById('quizAnswerCount')?.value||'4');
 }
 
+function setQuizMode(mode) {
+  document.getElementById('quizMode').value = mode;
+  document.getElementById('modeQuiz').className = mode==='quiz' ? 'btn btn-cyan btn-sm' : 'btn btn-ghost btn-sm';
+  document.getElementById('modeTest').className = mode==='test' ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+}
+
 function setQType(idx,type){questions[idx].type=type;renderQuestions();}
 function toggleMultiCorrect(idx,oi){
   const q=questions[idx];
@@ -4836,6 +4899,7 @@ async function saveQuiz(){
     timer:parseInt(document.getElementById('quizTimer').value),
     difficulty:document.getElementById('quizDifficulty').value,
     answerCount:parseInt(document.getElementById('quizAnswerCount')?.value||'4'),
+    mode:document.getElementById('quizMode')?.value||'quiz',
     questions:validQs.map(q=>{
       if(q.type==='match') return {...q};
       return {...q, options:q.options.filter(o=>o.trim())};
@@ -4919,6 +4983,7 @@ async function loadQuizzesFromDB(){
         difficulty: d.difficulty || q.difficulty || 'medium',
         questions: d.questions || q.questions || [],
         answerCount: d.answerCount || q.answerCount || 4,
+        mode: d.mode || q.mode || 'quiz',
         created: q.created_at ? fmtDate(q.created_at) : '',
         playCount: d.play_count || q.play_count || 0,
         bestScore: d.best_score || q.best_score || 0,
