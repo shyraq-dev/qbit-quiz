@@ -1030,53 +1030,51 @@ let _regAvatar = '🐱';
 function showAboutModal() {
   const modal = document.createElement('div');
   modal.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center';
-  modal.innerHTML=`
-    <div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto">
-      <div style="font-family:Orbitron,monospace;font-size:18px;font-weight:900;color:var(--accent);margin-bottom:4px">QBIT QUIZ</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:16px">// ИНТЕЛЛЕКТ ПЛАТФОРМАСЫ</div>
-      <p style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px">
-        QBit Quiz — Қазақ тіліндегі интерактивті викторина платформасы. Telegram Mini App ретінде жұмыс істейді, браузер арқылы да қолжетімді.
-      </p>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:8px">Мүмкіндіктер:</div>
-      <div style="font-size:12px;color:var(--text);line-height:1.8">
-        🎯 Куиз — әр сұрақтан кейін жауап<br>
-        📝 Тест — соңында нәтиже<br>
-        🎮 Multiplayer ойын<br>
-        💬 Мессенджер<br>
-        🌍 Дайын ойындар (астана, ту, 4 сурет)<br>
-        📤 Экспорт / Импорт
-      </div>
-      <div style="margin-top:16px;font-family:var(--mono);font-size:10px;color:var(--muted)">
-        Жасаған: <span style="color:var(--accent)">Shyraq</span><br>
-        Telegram: <a href="https://t.me/QBitQuizBot" style="color:var(--accent)">@QBitQuizBot</a>
-      </div>
-      <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:20px">← Жабу</button>
-    </div>`;
+  modal.innerHTML = '<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto">'
+    + '<div style="font-family:Orbitron,monospace;font-size:18px;font-weight:900;color:var(--accent);margin-bottom:4px">QBIT QUIZ</div>'
+    + '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:16px">// ИНТЕЛЛЕКТ ПЛАТФОРМАСЫ</div>'
+    + '<p style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px">QBit Quiz — Қазақ тіліндегі интерактивті викторина платформасы.</p>'
+    + '<div style="font-size:12px;color:var(--text);line-height:2">'
+    + '🎯 Куиз — әр сұрақтан кейін жауап<br>'
+    + '📝 Тест — соңында нәтиже<br>'
+    + '🎮 Multiplayer ойын<br>'
+    + '💬 Мессенджер<br>'
+    + '🌍 Дайын ойындар<br>'
+    + '📤 Экспорт / Импорт'
+    + '</div>'
+    + '<div style="margin-top:16px;font-family:var(--mono);font-size:10px;color:var(--muted)">Жасаған: <span style="color:var(--accent)">Shyraq</span></div>'
+    + '<button onclick="this.closest('[style*=fixed]').remove()" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:20px">← Жабу</button>'
+    + '</div>';
   modal.onclick = e=>{if(e.target===modal)modal.remove();};
   document.body.appendChild(modal);
 }
 
+function _setTheme(t){
+  if(t==='light'){document.documentElement.classList.add('light');localStorage.setItem('qbit_theme','light');}
+  else{document.documentElement.classList.remove('light');localStorage.setItem('qbit_theme','dark');}
+}
+function _logoutBrowser(){sessionStorage.removeItem('qbit_tg_user');location.reload();}
 function showSettingsModal() {
-  const user = getTgUser();
   const modal = document.createElement('div');
   modal.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center';
-  modal.innerHTML=`
-    <div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto">
-      <div style="font-family:Orbitron,monospace;font-size:14px;color:var(--accent);margin-bottom:20px">⚙️ БАПТАУЛАР</div>
-      <div class="card" style="margin-bottom:12px">
-        <div class="card-title">🎨 Тема</div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-ghost" onclick="document.documentElement.classList.remove('light');localStorage.setItem('qbit_theme','dark');this.parentElement.querySelectorAll('.btn').forEach(b=>b.style.borderColor='');this.style.borderColor='var(--accent)'">🌙 Күңгірт</button>
-          <button class="btn btn-ghost" onclick="document.documentElement.classList.add('light');localStorage.setItem('qbit_theme','light');this.parentElement.querySelectorAll('.btn').forEach(b=>b.style.borderColor='');this.style.borderColor='var(--accent)'">☀️ Жарық</button>
-        </div>
-      </div>
-      <div class="card" style="margin-bottom:12px">
-        <div class="card-title">👤 Бейін баптаулары</div>
-        <button class="btn btn-ghost" onclick="this.closest('div[style*=fixed]').remove();switchTab('profile')" style="width:100%;justify-content:flex-start;gap:10px"><span>✏️</span> Бейінді өңдеу</button>
-      </div>
-      ${isBrowser()?'<div class="card" style="margin-bottom:12px"><div class="card-title">🔑 Аккаунт</div><button class="btn btn-ghost" onclick="showForgotPassword()" style="width:100%;justify-content:flex-start;gap:10px"><span>🔑</span> Құпиясөзді өзгерту</button><button class="btn btn-danger" onclick="sessionStorage.removeItem(\'qbit_tg_user\');location.reload()" style="width:100%;justify-content:flex-start;gap:10px;margin-top:8px"><span>🚪</span> Шығу</button></div>':''}
-      <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px">← Жабу</button>
-    </div>`;
+  const browserCard = isBrowser()
+    ? '<div class="card" style="margin-bottom:12px"><div class="card-title">🔑 Аккаунт</div>'
+      + '<button class="btn btn-ghost" onclick="showForgotPassword()" style="width:100%;justify-content:flex-start;gap:10px"><span>🔑</span> Құпиясөзді өзгерту</button>'
+      + '<button class="btn btn-danger" onclick="_logoutBrowser()" style="width:100%;justify-content:flex-start;gap:10px;margin-top:8px"><span>🚪</span> Шығу</button></div>'
+    : '';
+  modal.innerHTML = '<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto">'
+    + '<div style="font-family:Orbitron,monospace;font-size:14px;color:var(--accent);margin-bottom:20px">⚙️ БАПТАУЛАР</div>'
+    + '<div class="card" style="margin-bottom:12px"><div class="card-title">🎨 Тема</div>'
+    + '<div style="display:flex;gap:8px">'
+    + '<button class="btn btn-ghost" onclick="_setTheme('dark')">🌙 Күңгірт</button>'
+    + '<button class="btn btn-ghost" onclick="_setTheme('light')">☀️ Жарық</button>'
+    + '</div></div>'
+    + '<div class="card" style="margin-bottom:12px"><div class="card-title">👤 Бейін баптаулары</div>'
+    + '<button class="btn btn-ghost" onclick="this.closest('[style*=fixed]').remove();switchTab('profile')" style="width:100%;justify-content:flex-start;gap:10px"><span>✏️</span> Бейінді өңдеу</button>'
+    + '</div>'
+    + browserCard
+    + '<button onclick="this.closest('[style*=fixed]').remove()" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px">← Жабу</button>'
+    + '</div>';
   modal.onclick = e=>{if(e.target===modal)modal.remove();};
   document.body.appendChild(modal);
 }
@@ -2075,77 +2073,73 @@ function startBuiltinGame(type) {
 
 function showBuiltinQuestion() {
   const s = _builtinState;
-  const content = document.getElementById('gameContent');
+  const c = document.getElementById('gameContent');
   if (s.idx >= s.total) {
-    // Нәтиже
     const pct = Math.round(s.correct / s.total * 100);
-    content.innerHTML = `
-      <div style="padding:20px;text-align:center">
-        <div style="font-size:48px;margin-bottom:12px">${pct>=80?'🏆':pct>=60?'👍':'📚'}</div>
-        <div style="font-family:Orbitron,monospace;font-size:20px;color:var(--accent);margin-bottom:8px">НӘТИЖЕ</div>
-        <div style="font-size:32px;font-weight:700;color:var(--text);margin-bottom:4px">${s.correct}/${s.total}</div>
-        <div style="font-size:24px;color:${pct>=70?'var(--accent3)':'var(--danger)'}">${pct}%</div>
-        <button class="btn btn-cyan" onclick="startBuiltinGame('${s.type}')" style="width:100%;justify-content:center;margin-top:20px">🔄 Қайта</button>
-        <button class="btn btn-ghost" onclick="backToBuiltinMenu()" style="width:100%;justify-content:center;margin-top:8px">← Артқа</button>
-      </div>`;
+    c.innerHTML = '<div style="padding:20px;text-align:center">'
+      + '<div style="font-size:48px;margin-bottom:12px">' + (pct>=80?'🏆':pct>=60?'👍':'📚') + '</div>'
+      + '<div style="font-family:Orbitron,monospace;font-size:20px;color:var(--accent);margin-bottom:8px">НӘТИЖЕ</div>'
+      + '<div style="font-size:32px;font-weight:700;color:var(--text);margin-bottom:4px">' + s.correct + '/' + s.total + '</div>'
+      + '<div style="font-size:24px;color:' + (pct>=70?'var(--accent3)':'var(--danger)') + '">' + pct + '%</div>'
+      + '<button class="btn btn-cyan" onclick="startBuiltinGame('' + s.type + '')" style="width:100%;justify-content:center;margin-top:20px">🔄 Қайта</button>'
+      + '<button class="btn btn-ghost" onclick="backToBuiltinMenu()" style="width:100%;justify-content:center;margin-top:8px">← Артқа</button>'
+      + '</div>';
     return;
   }
-
-  let html = '';
-  if (s.type === 'capitals') {
-    const items = [...CAPITALS_DATA].sort(() => Math.random()-0.5).slice(0, s.total);
-    if (!s.items) s.items = items;
-    const item = s.items[s.idx];
-    const wrong = CAPITALS_DATA.filter(c=>c.capital!==item.capital).sort(()=>Math.random()-0.5).slice(0,3);
-    const opts = [...wrong, item].sort(()=>Math.random()-0.5);
-    html = `
-      <div style="padding:16px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px">🌍 АСТАНАЛАР · ${s.idx+1}/${s.total}</div>
-        <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:${s.idx/s.total*100}%"></div></div>
-        <div class="q-card"><div class="q-text">${item.country} елінің астанасы қай қала?</div>
-        <div class="answers-grid">${opts.map((o,i)=>`<button class="answer-btn" onclick="checkBuiltinAnswer(this,'${o.capital}','${item.capital}')"><div class="ans-letter">${'ABCD'[i]}</div>${esc(o.capital)}</button>`).join('')}
-        </div></div>
-        <div style="text-align:right;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="backToBuiltinMenu()">← Шығу</button></div>
-      </div>`;
-  } else if (s.type === 'flags') {
-    const items = [...FLAGS_DATA].sort(()=>Math.random()-0.5).slice(0,s.total);
-    if (!s.items) s.items = items;
-    const item = s.items[s.idx];
-    const wrong = FLAGS_DATA.filter(c=>c.country!==item.country).sort(()=>Math.random()-0.5).slice(0,3);
-    const opts = [...wrong, item].sort(()=>Math.random()-0.5);
-    html = `
-      <div style="padding:16px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px">🚩 ТУЛАР · ${s.idx+1}/${s.total}</div>
-        <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:${s.idx/s.total*100}%"></div></div>
-        <div class="q-card"><div style="font-size:72px;text-align:center;margin-bottom:8px">${item.flag}</div>
-        <div class="q-text">Бұл қай елдің туы?</div>
-        <div class="answers-grid">${opts.map((o,i)=>`<button class="answer-btn" onclick="checkBuiltinAnswer(this,'${o.country}','${item.country}')"><div class="ans-letter">${'ABCD'[i]}</div>${esc(o.country)}</button>`).join('')}
-        </div></div>
-        <div style="text-align:right;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="backToBuiltinMenu()">← Шығу</button></div>
-      </div>`;
-  } else if (s.type === '4pics') {
-    const items = [...PICS4_DATA].sort(()=>Math.random()-0.5).slice(0,Math.min(s.total,PICS4_DATA.length));
-    if (!s.items) s.items = items;
-    s.total = s.items.length;
-    const item = s.items[s.idx];
-    if (!s.input) s.input = '';
-    html = `
-      <div style="padding:16px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px">🖼 ТӨРТ СУРЕТ · ${s.idx+1}/${s.total}</div>
-        <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:${s.idx/s.total*100}%"></div></div>
-        <div class="q-card">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-            ${item.pics.map(p=>`<div style="font-size:52px;text-align:center;background:var(--surface2);border-radius:10px;padding:8px">${p}</div>`).join('')}
-          </div>
-          <div class="q-text">Бұл 4 суреттен бір сөз тап!</div>
-          <input type="text" id="pics4input" value="${esc(s.input||'')}" placeholder="Жауабыңыз..." style="text-align:center;font-size:18px;font-weight:700;letter-spacing:4px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase();_builtinState.input=this.value"/>
-          <button class="btn btn-cyan" onclick="checkPics4Answer('${item.word}')" style="width:100%;justify-content:center;margin-top:8px">✅ Тексеру</button>
-        </div>
-        <div style="text-align:right;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="backToBuiltinMenu()">← Шығу</button></div>
-      </div>`;
-  }
-  content.innerHTML = html;
+  if (s.type === 'capitals') _showCapitalsQ(s);
+  else if (s.type === 'flags') _showFlagsQ(s);
+  else if (s.type === '4pics') _show4PicsQ(s);
 }
+
+function _buildGameQ(s, topHtml, question, opts, correctKey, dataKey) {
+  if (!s.items) s.items = [...window[dataKey]].sort(()=>Math.random()-0.5).slice(0, s.total);
+  const item = s.items[s.idx];
+  const allData = window[dataKey];
+  const wrong = allData.filter(c=>c[correctKey]!==item[correctKey]).sort(()=>Math.random()-0.5).slice(0,3);
+  const options = [...wrong, item].sort(()=>Math.random()-0.5);
+  const letters = 'ABCD';
+  let btns = '';
+  options.forEach((o,i) => {
+    btns += '<button class="answer-btn" onclick="checkBuiltinAnswer(this,'' + o[correctKey].replace(/'/g,"\'") + '','' + item[correctKey].replace(/'/g,"\'") + '')">'
+      + '<div class="ans-letter">' + letters[i] + '</div>' + esc(o[correctKey]) + '</button>';
+  });
+  const c = document.getElementById('gameContent');
+  c.innerHTML = '<div style="padding:16px">'
+    + '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px">' + topHtml + ' · ' + (s.idx+1) + '/' + s.total + '</div>'
+    + '<div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:' + (s.idx/s.total*100) + '%"></div></div>'
+    + '<div class="q-card">' + (topHtml.includes('🚩')?'<div style="font-size:72px;text-align:center;margin-bottom:8px">' + item.flag + '</div>':'')
+    + '<div class="q-text">' + question + '</div>'
+    + '<div class="answers-grid">' + btns + '</div></div>'
+    + '<div style="text-align:right;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="backToBuiltinMenu()">← Шығу</button></div>'
+    + '</div>';
+}
+
+function _showCapitalsQ(s) {
+  _buildGameQ(s, '🌍 АСТАНАЛАР', s.items?.[s.idx]?.country + ' елінің астанасы?', null, 'capital', 'CAPITALS_DATA');
+}
+function _showFlagsQ(s) {
+  _buildGameQ(s, '🚩 ТУЛАР', 'Бұл қай елдің туы?', null, 'country', 'FLAGS_DATA');
+}
+function _show4PicsQ(s) {
+  if (!s.items) s.items = [...PICS4_DATA].sort(()=>Math.random()-0.5);
+  s.total = s.items.length;
+  const item = s.items[s.idx];
+  const c = document.getElementById('gameContent');
+  c.innerHTML = '<div style="padding:16px">'
+    + '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px">🖼 ТӨРТ СУРЕТ · ' + (s.idx+1) + '/' + s.total + '</div>'
+    + '<div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:' + (s.idx/s.total*100) + '%"></div></div>'
+    + '<div class="q-card">'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'
+    + item.pics.map(p=>'<div style="font-size:52px;text-align:center;background:var(--surface2);border-radius:10px;padding:8px">' + p + '</div>').join('')
+    + '</div>'
+    + '<div class="q-text">Бұл 4 суреттен бір сөз тап!</div>'
+    + '<input type="text" id="pics4input" placeholder="Жауабыңыз..." style="text-align:center;font-size:18px;font-weight:700;letter-spacing:4px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"/>'
+    + '<button class="btn btn-cyan" onclick="checkPics4Answer('' + item.word + '')" style="width:100%;justify-content:center;margin-top:8px">✅ Тексеру</button>'
+    + '</div>'
+    + '<div style="text-align:right;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="backToBuiltinMenu()">← Шығу</button></div>'
+    + '</div>';
+}
+
 
 function checkBuiltinAnswer(btn, chosen, correct) {
   document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
