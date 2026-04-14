@@ -1716,9 +1716,8 @@ function initApp(){
     document.getElementById('adminBadge').innerHTML=`<div class="admin-badge"><div class="admin-dot"></div>ADMIN</div>`;
   }
   initTheme();
-  admSection('create',null);
+  if(isAdmin()) admSection('create',null);
   refreshCategorySelect();updateHeader();renderLibrary();updateExportSelect();
-  // Бас бетті бастапқы ет
   switchTab('library');
   if(!questions.length)addQuestion();
   renderStats();
@@ -1753,13 +1752,19 @@ function switchTab(tab){
   if((tab==='create'||tab==='export')&&!isAdmin()){showToast('🔒 Тек әкімшіге қол жетімді');return;}
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  const el=document.getElementById('tab-'+tab);if(el)el.classList.add('active');
-  document.getElementById('panel-'+tab).classList.add('active');
+  // Bottom nav tab active белгісі
+  const activeBottomTab = ['library','test','home'].includes(tab) ? tab : null;
+  if(activeBottomTab){const el=document.getElementById('tab-'+activeBottomTab);if(el)el.classList.add('active');}
+  const panel=document.getElementById('panel-'+tab);
+  if(panel) panel.classList.add('active');
   if(tab==='create'){loadAdminDashboard();updateGameQuizSelect();}
   if(tab==='leaderboard')loadLeaderboard('all');
   if(tab==='profile')loadProfile();
   if(tab==='export'){updateExportSelect();renderStats();}
   if(tab==='library')renderLibrary();
+  if(tab==='test')renderTestList();
+  if(tab==='play')renderQuizList();
+  if(tab==='home')renderHomePage();
 }
 
 
