@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+һ<!DOCTYPE html>
 <html lang="kk">
 <head>
 <meta charset="UTF-8">
@@ -1709,10 +1709,8 @@ function toggleTheme() {
 function initApp(){
   hideLoginScreen();
   if(isAdmin()){
-    const tabCreate=document.getElementById('tab-create');
-    const tabExport=document.getElementById('tab-export');
-    if(tabCreate)tabCreate.style.display='';
-    if(tabExport)tabExport.style.display='';
+    document.getElementById('tab-create').style.display='';
+    document.getElementById('tab-export').style.display='';
     document.getElementById('adminBadge').innerHTML=`<div class="admin-badge"><div class="admin-dot"></div>ADMIN</div>`;
   }
   initTheme();
@@ -2083,7 +2081,7 @@ function showBuiltinQuestion() {
       + '<div style="font-family:Orbitron,monospace;font-size:20px;color:var(--accent);margin-bottom:8px">НӘТИЖЕ</div>'
       + '<div style="font-size:32px;font-weight:700;color:var(--text);margin-bottom:4px">' + s.correct + '/' + s.total + '</div>'
       + '<div style="font-size:24px;color:' + (pct>=70?'var(--accent3)':'var(--danger)') + '">' + pct + '%</div>'
-      + `<button class="btn btn-cyan" onclick="startBuiltinGame('${s.type}')" style="width:100%;justify-content:center;margin-top:20px">🔄 Қайта</button>`
+      + '<button class="btn btn-cyan" onclick="startBuiltinGame('' + s.type + '')" style="width:100%;justify-content:center;margin-top:20px">🔄 Қайта</button>'
       + '<button class="btn btn-ghost" onclick="backToBuiltinMenu()" style="width:100%;justify-content:center;margin-top:8px">← Артқа</button>'
       + '</div>';
     return;
@@ -3625,8 +3623,7 @@ async function openAdminDirectChat(){
   const win = document.getElementById('chatWindow');
   if (win) { win.style.display = 'flex'; win.style.flexDirection = 'column'; }
   document.getElementById('chatHeaderName').textContent = 'Әкімші';
-  const chatHeaderUsername = document.getElementById('chatHeaderUsername');
-  if(chatHeaderUsername) chatHeaderUsername.textContent = '';
+  document.getElementById('chatHeaderUsername').textContent = '';
   document.getElementById('chatPartnerAvatar').textContent = '⚡';
   _chatPartnerId = adminId;
   loadChatMessages();
@@ -3839,8 +3836,7 @@ function openAdminChatWith(partnerId, name, username, avatar){
   const win=document.getElementById('chatWindow');
   if(win) win.style.display='flex';
   document.getElementById('chatHeaderName').textContent=name;
-  const _hdrUsername=document.getElementById('chatHeaderUsername');
-  if(_hdrUsername)_hdrUsername.textContent=username?'@'+username:'';
+  document.getElementById('chatHeaderUsername').textContent=username?'@'+username:'';
   document.getElementById('chatPartnerAvatar').textContent=avatar||'🐱';
   _chatPartnerId=partnerId;
   loadChatMessages();
@@ -4487,6 +4483,9 @@ function autoAnswer(){
 
 function nextQuestion(){
   state.playState.idx++;
+  if(state.playMode==='test' && !ps.ok && ps.ok !== false){
+    // тест режимінде ok есептелмейді — showResults-та есептейміз
+  }
   if(state.playState.idx>=state.currentPlay.questions.length)showResults();else renderQuestion();
 }
 
@@ -4516,9 +4515,7 @@ async function showResults(){
   const re=score>=90?'🏆':score>=70?'⭐':score>=50?'📚':'🌱';
   // Жаңа title тексеру (ойыннан кейін)
   const newTitle=getTitle((state.plays||1), score);
-  const resultEl=document.getElementById('playContent')||document.getElementById('testPlayContent');
-  if(!resultEl)return;
-  resultEl.innerHTML=`
+  document.getElementById('playContent').innerHTML=`
     <div class="result-big">
       <div class="rank-badge">${re} ${rank}</div>
       <div class="result-score">${score}%</div>
@@ -4730,7 +4727,6 @@ function renderLibrary(){
         ${isAdmin()?`<button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">✕</button>`:''}
       </div>
     </div>`).join('');
-} // renderLibrary end
 
 async function deleteQuiz(id){
   if(!isAdmin())return;if(!confirm('Жоюға сенімдісіз бе?'))return;
